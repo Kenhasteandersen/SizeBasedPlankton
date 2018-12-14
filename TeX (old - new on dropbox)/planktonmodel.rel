@@ -1,0 +1,92 @@
+;; RefTeX parse info file
+;; File: /Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex
+;; User: ken (Ken H. Andersen)
+
+(set reftex-docstruct-symbol '(
+
+
+(xr nil "\\\\\\\\\\\\")
+
+(index-tags)
+
+(is-multi nil)
+
+(bibview-cache ("Hartvig" . "Hartvig & Andersen {Coex. size struct. popul"))
+
+(master-dir . "/Users/ken/Documents/Projects/Size based plankton/")
+
+(label-numbers ("eq:" . 3))
+
+(bof "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex")
+
+(toc "toc" "    * Cell model" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil 2 "*" "\\section*{Cell model}" 456)
+
+("eq:nu" "e" "\\nu = c m^{-1/3} " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:AN" "e" "A_N = A_\\DOC = \\alpha_N m^{1/3}. " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:AL" "e" "A_L = (1-\\nu) \\alpha_L m \\frac{c_L m^{2/3}}{\\alpha_L m + c_L m^{2/3}}. " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:AF" "e" "A_F = (1-\\nu) \\alpha_F m. " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:uptake" "e" "J_C &=& A_N X_\\mathrm{DOC} + \\epsilon_L A_L(1-\\nu) L + \\epsilon_F A_F (1-\\nu) F " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:Liebig" "e" "J_\\mathrm{tot} = \\min\\{J_C - J_R,\\, \\rho_\\mathrm{C:N} J_N\\}, " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:synth" "e" "J_\\mathrm{synth} = \\Jmax[] f, \\quad \\mathrm{where} \\quad f = \\frac{J_\\mathrm{tot}}{ J_\\mathrm{tot} +" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:Jmax" "e" "\\Jmax = \\alpha_\\mathrm{max} m (1-\\nu). " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:5" "e" "r = \\frac{ J_\\mathrm{synth}}{m} - \\mu, " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:11" "e" "J_{L.\\mathrm{real}} = J_L - \\max\\{0,\\,J_L,\\, J_\\mathrm{DOC} - J_R - J_N/\\rho_{C:N}\\}. " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:7" "e" "J_\\mathrm{loss.C} &=& \\frac{1-\\epsilon_F}{\\epsilon_F} A_F (1-\\nu) F + \\frac{1-\\epsilon_L}{\\epsilon_L" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:13" "e" "J_\\mathrm{Nexcude} = \\max\\{0, J_F - (J_\\mathrm{tot} -f \\Jmax \\}. " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+(toc "toc" "    * Ecosystem model" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil 2 "*" "\\section*{Ecosystem model}" 5267)
+
+("eq:6" "e" "\\phi(m, m_p) = \\exp \\left[ - \\frac{\\ln^2(m/(\\beta m_p))}{2 \\sigma^2} \\right], " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:8" "e" "F_i = \\sum_j \\phi(m_i,\\, m_j) B_j, " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:9" "e" "\\mu_p(m_j) = \\sum_i \\frac{J_\\mathrm{Freal}}{\\epsilon_F} \\frac{B_i}{m_i} \\frac{ \\phi(m_i,\\,m_j) }{ \\s" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+(toc "toc" "    * Parameter values" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil 2 "*" "\\section*{Parameter values}" 7110)
+
+("fig:AL" "f" "Light affinities of protists as a function of carbon mass. The data are fitted to the self-shading f" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("fig:AF" "f" "Clearance rate ($A_F$) as a function of carbon mass. Data are fitted to $A_F \\propto m$. Data of nan" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("tab:parameters" "t" "Parameters." "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+(toc "toc" "    1 Model analysis" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil 2 "1" "\\section{Model analysis}" 8449)
+
+(toc "toc" "      1.1 Smallest size" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil 3 "1.1" "\\subsection{Smallest size}" 8475)
+
+("eq:12" "e" "m_\\mathrm{min} = \\approx \\mathrm{\\mu g}. " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+(toc "toc" "        * $R^*$" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil 3 "  *" "\\subsection*{$R^*$}" 8789)
+
+("fig:Rstar" "f" "Limiting concentrations (``$R^*$'''s) of dissolved nutrients (blue), organic carbon (magenta), and l" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:Rstar" "e" "0 &=& \\frac{\\Jmax}{m} \\frac{A_N N^* \\rCN }{A_N N^* \\rCN + \\Jmax} - \\mu " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+("eq:Rstars" "e" "N^* &=& m^{2/3} \\frac{\\alpha_\\mathrm{max}}{\\alpha_N \\rCN} \\frac{\\mu(1-\\nu(m))}{\\alpha_\\mathrm{max} (" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+(toc "toc" "      1.2 Structure and biomass" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil 3 "1.2" "\\subsection{Structure and biomass}" 10400)
+
+("eq:2" "e" " " "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil)
+
+(toc "toc" "      1.3 Higher trophic level mortality" "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil 3 "1.3" "\\subsection{Higher trophic level mortality}" 11336)
+
+("eq:3" "e" nil "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil "")
+
+("eq:1" "e" nil "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex" nil "")
+
+(bib "/Users/ken/Documents/Literature/Bibliography.bib")
+
+(eof "/Users/ken/Documents/Projects/Size based plankton/planktonmodel.tex")
+))
+
