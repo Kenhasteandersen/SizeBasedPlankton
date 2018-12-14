@@ -12,7 +12,7 @@ require(latex2exp)
 source("basetools.R")
 source("model.R")
 
-cex = 1 # Size of text labels on plots
+cex = 1 #  Size of text labels on plots
 
 
 # ===================================================
