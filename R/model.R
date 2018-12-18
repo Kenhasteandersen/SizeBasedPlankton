@@ -25,8 +25,8 @@ parameters <- function() {
   #factor = (1e-6)^(1/3)/1.5 
   p$AN = 0.005#0.000162 # Mathilde.  (2.5e-3 l/d/cm) * (1e6 mug/g)^(-1/3) / 1.5 (g/cm); Andersen et al 2015
   p$AL = 0.0019 # if using Al propto m^(2/3) for non-diatoms
-  p$AL = 0.004864 # if using shading formula for non-diatoms
-  p$cL = 0.08733 # if using shading formula for non-diatoms
+  p$AL = 0.0012 # if using shading formula for non-diatoms
+  p$cL = 0.021 # if using shading formula for non-diatoms
   p$AF = 0.018  #  Fits to TK data for protists
   
   p$ANm = p$AN*p$m^(1/3)
@@ -65,7 +65,7 @@ parameters <- function() {
   p$DOC0 = 0
   p$POM0 = 0
   p$B0 = rep(10,p$n)
-  p$L = 30  # PAR
+  p$L = 125  # PAR
   p$amplitudeL = 0 # amplitude of seasonal light variation in fractions of L
   
   p$tEnd = 365 # Simulation length (days)

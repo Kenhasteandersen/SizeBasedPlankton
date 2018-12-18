@@ -33,9 +33,9 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       sliderInput("L",
-                  "Light (PAR; W/m2)",
+                  "Light (PAR; mu mol photons/m2/s)",
                   min = 0,
-                  max = 100,
+                  max = 500,
                   step=1,
                   value = parameters()$L)
       ,

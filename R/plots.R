@@ -28,7 +28,7 @@ plotAL = function() {
   #
   Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
                  sep=";", skip=3, header=TRUE, na.strings = "na")
-  C = 1e-6 * exp(-0.665) * Aed$volume^0.939 # Menden-deyer and Lessard (2000), table 4, for protists. mugC
+  C = 1e-6 * exp(-0.665) * Aed$volume^0.939 # mu gC. Menden-deyer and Lessard (2000), table 4, for protists. mugC
   ixSmall = (Aed$volume<3000) & (!is.na(Aed$volume))
   C[ixSmall] = 1e-6 * exp(-0.583) * Aed$volume[ixSmall]^0.860
   ixDiatom = (Aed$taxon=="diatom") & (Aed$volume>3000) & (!is.na(Aed$volume))
@@ -36,7 +36,8 @@ plotAL = function() {
   ixDiatom = (Aed$taxon=="diatom") & (Aed$volume<=3000)  & (!is.na(Aed$volume))
   C[ixDiatom] = 1e-6 * exp(-0.541) * Aed$volume[ixDiatom]^0.811 # As above for diatom>3000 mum^3
 
-  A = (Aed$alpha * 4.15) * C * (Aed$daylength/24)
+  A = Aed$alpha * C * (Aed$daylength/24) # convert to units of mu gC/(mu mol photons/m2/s),
+                                         # corrected for daylength.
   data = data.frame(C=C, taxon=Aed$taxon, A=A, source="Edwards")#rbind(data, 
                
   #
@@ -48,7 +49,7 @@ plotAL = function() {
   #
   ixDiatom = data$taxon=="diatom"
   
-  form = formula(log(A) ~ log( Cmax*C^(2/3) * a*C / (Cmax*C^(2/3) + a*C)))
+  form = formula(log(A) ~ log( a*C^(2/3) * Cmax*C / (a*C^(2/3) + Cmax*C)))
 
   
   fit = nls(form,
@@ -76,9 +77,10 @@ plotAL = function() {
   # Plot
   #
   defaultplot()
-  loglogpanel(xlim = data$C, ylim = c(0.9*min(data$A[!is.na(data$A)]), 1.1*max(data$A[!is.na(data$A)])),
+  loglogpanel(xlim = data$C, 
+              ylim = c(0.9*min(data$A[!is.na(data$A)]), 1.1*max(data$A[!is.na(data$A)])),
               xlab="Cell weight ($\\mu$gC)",
-              ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/d/(W m$^2$)")
+              ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/($\\mu$ mol photons m$^{-2}s^{-1})")
   points(data$C[!ixDiatom], data$A[!ixDiatom],pch=16, col="blue")
   points(data$C[ixDiatom], data$A[ixDiatom],pch=16, col="red")
   points(data$C[data$source=="Taguchi"], data$A[data$source=="Taguchi"], pch=17, col="red")
