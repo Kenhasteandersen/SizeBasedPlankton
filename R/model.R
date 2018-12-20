@@ -24,15 +24,18 @@ parameters <- function() {
   #
   #factor = (1e-6)^(1/3)/1.5 
   p$AN = 0.005#0.000162 # Mathilde.  (2.5e-3 l/d/cm) * (1e6 mug/g)^(-1/3) / 1.5 (g/cm); Andersen et al 2015
-  p$AL = 0.0019 # if using Al propto m^(2/3) for non-diatoms
-  p$AL = 0.0012 # if using shading formula for non-diatoms
-  p$cL = 0.021 # if using shading formula for non-diatoms
+  #p$AL = 0.0019 # if using Al propto m^(2/3) for non-diatoms
+  #p$AL = 0.0012 # if using my shading formula for non-diatoms
+  #p$cL = 0.021 # if using my shading formula for non-diatoms
+  p$AL = 0.000914 # if using Andys shading formula for non-diatoms
+  p$cL = 21 # if using Andys shading formula for non-diatoms
   p$AF = 0.018  #  Fits to TK data for protists
   
   p$ANm = p$AN*p$m^(1/3)
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
-  p$ALm = (1-nu) * p$cL*p$m * p$AL*p$m^(2/3) / ( p$cL*p$m + p$AL*p$m^(2/3) )  # shading formula
-  p$AFm = (1-nu) * p$AF*p$m
+  #p$ALm = p$cL*p$m * p$AL*p$m^(2/3) / ( p$cL*p$m + p$AL*p$m^(2/3) )  # shading formula
+  p$ALm = p$AL*p$m^(2/3) * exp(1 -p$cL*p$m^(1/3) )  # shading formula
+  p$AFm = p$AF*p$m
   #
   # Prey encounter
   #

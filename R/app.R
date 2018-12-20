@@ -379,7 +379,7 @@ server <- function(input, output) {
     lines(m, r$Jtot/m, lty=2)
     lines(m, p$Jmax/m*r$f)
     lines(m, r$dBdt/B,lwd=2)
-    lines(m,0*m,lty=3)
+    lines(m, 0*m,lty=3)
     lines(m, -r$mortpred, col="red")
     lines(m, -r$mort, col="red", lty=2)
     lines(m, -p$Jresp/m, col="magenta")

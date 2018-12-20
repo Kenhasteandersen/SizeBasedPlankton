@@ -8,7 +8,19 @@ source("basetools.R")
 plotAll = function() {
   pdfplot("../AL.pdf", plotAL, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../AF.pdf", plotAF, width = 1.5*singlewidth, height=1.5*height)
+  pdfplot("../AN.pdf", plotAN, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Rstar.pdf", plotRstar, width=doublewidth, height = height)
+}
+
+convertVolume2Mass = function(vol, taxon) {
+  C = 1e-6 * exp(-0.665) * vol^0.939 # Menden-deyer and Lessard (2000), table 4, for protists. mugC
+  ixSmall = (vol<3000) & (!is.na(vol))
+  C[ixSmall] = 1e-6 * exp(-0.583) * vol[ixSmall]^0.860
+  ixDiatom = (taxon=="diatom") & (vol>3000) & (!is.na(vol))
+  C[ixDiatom] = 1e-6 * exp(-0.933) * vol[ixDiatom]^0.881 # As above for diatom>3000 mum^3
+  ixDiatom = (taxon=="diatom") & (vol<=3000)  & (!is.na(vol))
+  C[ixDiatom] = 1e-6 * exp(-0.541) * vol[ixDiatom]^0.811 # As above for diatom>3000 mum^3
+  return(C)
 }
 
 plotAL = function() {
@@ -49,8 +61,8 @@ plotAL = function() {
   #
   ixDiatom = data$taxon=="diatom"
   
-  form = formula(log(A) ~ log( a*C^(2/3) * Cmax*C / (a*C^(2/3) + Cmax*C)))
-
+  #form = formula(log(A) ~ log( a*C^(2/3) * Cmax*C / (a*C^(2/3) + Cmax*C)))
+  form = formula(log(A) ~ log( a*C^(2/3) * (1 - exp(-Cmax*C^(1/3)) ) ))
   
   fit = nls(form,
             data = data,
@@ -116,6 +128,8 @@ plotALvolume = function() {
   #
   Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
                  sep=";", skip=3, header=TRUE, na.strings = "na")
+  C = convertVolume2Mass(Aed$volume, Aed$taxon)
+  
   C = 1e-6 * exp(-0.665) * Aed$volume^0.939 # Menden-deyer and Lessard (2000), table 4, for protists. mugC
   ixSmall = (Aed$volume<3000) & (!is.na(Aed$volume))
   C[ixSmall] = 1e-6 * exp(-0.583) * Aed$volume[ixSmall]^0.860
@@ -124,7 +138,7 @@ plotALvolume = function() {
   ixDiatom = (Aed$taxon=="diatom") & (Aed$volume<=3000)  & (!is.na(Aed$volume))
   C[ixDiatom] = 1e-6 * exp(-0.541) * Aed$volume[ixDiatom]^0.811 # As above for diatom>3000 mum^3
   
-  A = (Aed$alpha * 4.15) * (Aed$daylength/24)
+  A = (Aed$alpha) * (Aed$daylength/24)
   data = data.frame(V=Aed$volume, r = (3/(4*pi)*Aed$volume)^(1/3), 
                     Aed$taxon, A=A, source="Edwards", taxon=Aed$taxon,
                     mumax=Aed$mu_max)#rbind(data, 
@@ -167,7 +181,7 @@ plotALvolume = function() {
   defaultplotvertical(2)
   loglogpanel(xlim = data$r, ylim = c(0.9*min(data$A[!is.na(data$A)]), 1.1*max(data$A[!is.na(data$A)])),
               xaxis=FALSE,
-              ylab="Affinity for light, $\\textit{A_L}$ ((d W m$^2$)$^{-1}$")
+              ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/($\\mu$ mol photons m$^{-2}s^{-1})")
   points(data$r[!ixDiatom], data$A[!ixDiatom],pch=16, col="blue")
   points(data$r[ixDiatom], data$A[ixDiatom],pch=16, col="red")
   
@@ -323,6 +337,49 @@ plotAF = function() {
   lines(data$w[ixProtist], SpecificBeta*data$w[ixProtist], lwd=2)
 }
 
+plotAN = function() {
+  dat = read.csv("../data/Nutrient data from Edwards et al (2015b).csv",
+                 header=TRUE,sep=",")
+  #
+  # Convert carbon from mol to g:
+  #
+  dat$c_per_cell = dat$c_per_cell*12
+  #
+  # Convert to weights when only volume is given:
+  # 
+  ix = (!is.na(dat$volume)) & (is.na(dat$c_per_cell))
+  dat$c_per_cell[ix] = convertVolume2Mass(dat$volume[ix], dat$taxon[ix])
+  C = dat$c_per_cell
+  #
+  # Calc affinities
+  #
+  Anit = dat$vmax_nit / dat$k_nit
+  Aamm = dat$vmax_amm / dat$k_amm
+  Aphos = dat$vmax_p / dat$k_p
+  #
+  # Plot
+  #
+  defaultplot()
+  loglogpanel(xlim=dat$c_per_cell, ylim=c(Anit,Aamm,Aphos),
+              xlab="Mass ($\\mathrm{\\mu g_C}$)",
+              ylab="$Nutrient affinity, \\textit{A_N}$ (L/day)")
+  
+  col = 1
+  taxons = unique(dat$taxon[!is.na(C) & !(is.na(Anit) & is.na(Aamm))])
+  for (i in taxons) {
+    ix = dat$taxon == i
+    points(C[ix], Anit[ix], pch=16, col=col)
+    points(C[ix], Aamm[ix], pch=17, col=col)
+    col = col + 1
+  }
+  #points(C, Aphos,pch=18)
+
+  legend(x="bottomright",bty="n", 
+         legend=taxons, pch=16, col=seq(1,length(taxons)))
+ 
+  lines(C, 1e-5*C^0.33)  
+}
+
 plotRstar = function() {
   p = parameters()
   
@@ -332,21 +389,25 @@ plotRstar = function() {
   
   tightaxes()
   defaultplot()
-  loglogpanel(xlim=m, ylim=c(0.1,1000),
+  loglogpanel(xlim=m, 
+              ylim=c(0.0001,10000),
               xlab = "Cell mass ($\\mu$gC)",
-              ylab = "Limiting concentration ($\\mu$g/l or W/m$^2$)")
+              ylab = "Limiting concentration ($\\mu$g/l or mu mol photons/m2/s$)")
   
   for (i in 1:length(mu)) {
-    Nstar = m^0.667 * p$alphaJ/(p$AN*p$rhoCN) * mu[i]*(1-nu)/(p$alphaJ*(1-nu)-mu[i])
+    correct = mu[i]*(1-nu)/((1-nu)-mu[i])
+    
+    Nstar = m^0.667 /(p$AN*p$rhoCN) * correct
     Nstar[Nstar<0] = Inf
     lines(m, Nstar, lwd=2, col="blue")
     
-    DOCstar = m^0.667 * p$alphaJ/(p$AN) * mu[i]*(1-nu)/(p$alphaJ*(1-nu)-mu[i])
+    DOCstar = m^0.667/(p$AN) * correct
     DOCstar[DOCstar<0] = Inf
     lines(m, DOCstar, lwd=2, col="magenta")
     
-    Lstar = m^0.333 * p$alphaJ/(p$AL) * mu[i]/(p$alphaJ*(1-nu)-mu[i])
-    Lstar = p$alphaJ*(p$AL+p$cL*m^(1/3))*mu[i] / (p$AL*p$cL*(p$alphaJ-mu[i])*(1-nu))
+    #Lstar = m^0.333 * p$alphaJ/(p$AL) * mu[i]/(p$alphaJ*(1-nu)-mu[i])
+    #Lstar = p$alphaJ*(p$AL+p$cL*m^(1/3))*mu[i] / (p$AL*p$cL*(p$alphaJ-mu[i])*(1-nu))
+    Lstar = m^(1/3)/p$AL *  1/(1-exp(-p$cL*m^(1/3))) * correct
     Lstar[Lstar<0] = Inf
     lines(m , Lstar, lwd=2, col="green")
   }
@@ -355,5 +416,11 @@ plotRstar = function() {
          legend=c(TeX("$N^*$"), TeX("$DOC^*$"), TeX("$L^*$")),
          col=c("magenta","blue","green"),
          lwd=2)
+}
+
+calcMufactor = function(p) {
+  f0 = 0.6
+  delta = p$m[2]/p$m[1]
+  return( (1-0.6)/delta * p$AF *sqrt(2*pi)*p$sigma )
 }
 
