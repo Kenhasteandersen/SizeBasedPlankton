@@ -9,7 +9,10 @@ plotAll = function() {
   pdfplot("../AL.pdf", plotAL, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../AF.pdf", plotAF, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../AN.pdf", plotAN, width = 1.5*singlewidth, height=1.5*height)
+  pdfplot("../Mumax.pdf", plotMumax, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Rstar.pdf", plotRstar, width=doublewidth, height = height)
+  
+  #system2("cp *pdf ~/Dropbox/Apps/Overleaf/A\ minimal\ size-based\ model\ of\ unicellular\ plankton/")
 }
 
 convertVolume2Mass = function(vol, taxon) {
@@ -40,14 +43,8 @@ plotAL = function() {
   #
   Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
                  sep=";", skip=3, header=TRUE, na.strings = "na")
-  C = 1e-6 * exp(-0.665) * Aed$volume^0.939 # mu gC. Menden-deyer and Lessard (2000), table 4, for protists. mugC
-  ixSmall = (Aed$volume<3000) & (!is.na(Aed$volume))
-  C[ixSmall] = 1e-6 * exp(-0.583) * Aed$volume[ixSmall]^0.860
-  ixDiatom = (Aed$taxon=="diatom") & (Aed$volume>3000) & (!is.na(Aed$volume))
-  C[ixDiatom] = 1e-6 * exp(-0.933) * Aed$volume[ixDiatom]^0.881 # As above for diatom>3000 mum^3
-  ixDiatom = (Aed$taxon=="diatom") & (Aed$volume<=3000)  & (!is.na(Aed$volume))
-  C[ixDiatom] = 1e-6 * exp(-0.541) * Aed$volume[ixDiatom]^0.811 # As above for diatom>3000 mum^3
-
+  C = convertVolume2Mass(Aed$volume, Aed$taxon)
+  
   A = Aed$alpha * C * (Aed$daylength/24) # convert to units of mu gC/(mu mol photons/m2/s),
                                          # corrected for daylength.
   data = data.frame(C=C, taxon=Aed$taxon, A=A, source="Edwards")#rbind(data, 
@@ -129,14 +126,6 @@ plotALvolume = function() {
   Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
                  sep=";", skip=3, header=TRUE, na.strings = "na")
   C = convertVolume2Mass(Aed$volume, Aed$taxon)
-  
-  C = 1e-6 * exp(-0.665) * Aed$volume^0.939 # Menden-deyer and Lessard (2000), table 4, for protists. mugC
-  ixSmall = (Aed$volume<3000) & (!is.na(Aed$volume))
-  C[ixSmall] = 1e-6 * exp(-0.583) * Aed$volume[ixSmall]^0.860
-  ixDiatom = (Aed$taxon=="diatom") & (Aed$volume>3000) & (!is.na(Aed$volume))
-  C[ixDiatom] = 1e-6 * exp(-0.933) * Aed$volume[ixDiatom]^0.881 # As above for diatom>3000 mum^3
-  ixDiatom = (Aed$taxon=="diatom") & (Aed$volume<=3000)  & (!is.na(Aed$volume))
-  C[ixDiatom] = 1e-6 * exp(-0.541) * Aed$volume[ixDiatom]^0.811 # As above for diatom>3000 mum^3
   
   A = (Aed$alpha) * (Aed$daylength/24)
   data = data.frame(V=Aed$volume, r = (3/(4*pi)*Aed$volume)^(1/3), 
@@ -233,14 +222,9 @@ plotMumax = function() {
   #
   Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
                  sep=";", skip=3, header=TRUE, na.strings = "na")
-  C = 1e-6 * exp(-0.665) * Aed$volume^0.939 # Menden-deyer and Lessard (2000), table 4, for protists. mugC
-  ixSmall = (Aed$volume<3000) & (!is.na(Aed$volume))
-  C[ixSmall] = 1e-6 * exp(-0.583) * Aed$volume[ixSmall]^0.860
-  ixDiatom = (Aed$taxon=="diatom") & (Aed$volume>3000) & (!is.na(Aed$volume))
-  C[ixDiatom] = 1e-6 * exp(-0.933) * Aed$volume[ixDiatom]^0.881 # As above for diatom>3000 mum^3
-  ixDiatom = (Aed$taxon=="diatom") & (Aed$volume<=3000)  & (!is.na(Aed$volume))
-  C[ixDiatom] = 1e-6 * exp(-0.541) * Aed$volume[ixDiatom]^0.811 # As above for diatom>3000 mum^3
-  Aed$C = C
+  C = convertVolume2Mass(Aed$volume, Aed$taxon)
+  Aed$C =   C
+
   #
   # Sort our nans:
   #
@@ -256,7 +240,7 @@ plotMumax = function() {
   print(fit_no_diatoms)
   
   defaultplot()
-  loglogpanel(xlim = Aed$C, ylim = Aed$mu_max,
+  loglogpanel(xlim = c(1e-8,1), ylim = Aed$mu_max,
               xlab="Cell weight ($\\mu$gC)",
               ylab="max growth rate ($d^{-1}$)")
   points(Aed$C[!ixDiatom], Aed$mu_max[!ixDiatom], pch=16, col="blue")
@@ -265,6 +249,9 @@ plotMumax = function() {
   C = 10^seq(log10(min(Aed$C)), log10(max(Aed$C)), length.out = 100)
   lines(C, exp(predict(fit_diatoms, list(C=C))), lwd=2, col="red")
   lines(C, exp(predict(fit_no_diatoms, list(C=C))), lwd=2, col="blue")
+  
+  m = 10^seq(-9,1,length.out = 100)
+  lines(m, parameters()$alphaJ*(1-parameters()$c * m^(-1/3)), lwd=2)
 }
 
 plotMuAlphaCorrelation = function() {
@@ -273,13 +260,7 @@ plotMuAlphaCorrelation = function() {
   #
   Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
                  sep=";", skip=3, header=TRUE, na.strings = "na")
-  C = 1e-6 * exp(-0.665) * Aed$volume^0.939 # Menden-deyer and Lessard (2000), table 4, for protists. mugC
-  ixSmall = (Aed$volume<3000) & (!is.na(Aed$volume))
-  C[ixSmall] = 1e-6 * exp(-0.583) * Aed$volume[ixSmall]^0.860
-  ixDiatom = (Aed$taxon=="diatom") & (Aed$volume>3000) & (!is.na(Aed$volume))
-  C[ixDiatom] = 1e-6 * exp(-0.933) * Aed$volume[ixDiatom]^0.881 # As above for diatom>3000 mum^3
-  ixDiatom = (Aed$taxon=="diatom") & (Aed$volume<=3000)  & (!is.na(Aed$volume))
-  C[ixDiatom] = 1e-6 * exp(-0.541) * Aed$volume[ixDiatom]^0.811 # As above for diatom>3000 mum^3
+  C = convertVolume2Mass(Aed$volume, Aed$taxon)
   Aed$C = C
   
   A = (Aed$alpha * 4.15) * C * (Aed$daylength/24)
@@ -360,24 +341,36 @@ plotAN = function() {
   # Plot
   #
   defaultplot()
-  loglogpanel(xlim=dat$c_per_cell, ylim=c(Anit,Aamm,Aphos),
+  loglogpanel(xlim=C, ylim=c(Anit,Aamm,Aphos),
               xlab="Mass ($\\mathrm{\\mu g_C}$)",
-              ylab="$Nutrient affinity, \\textit{A_N}$ (L/day)")
+              ylab="Nutrient affinity, $\\textit{A_N}$ (L/day)")
   
   col = 1
-  taxons = unique(dat$taxon[!is.na(C) & !(is.na(Anit) & is.na(Aamm))])
+  taxons = unique(dat$taxon[!is.na(C) & !(is.na(Anit) & is.na(Aamm)  & is.na(Aphos))])
   for (i in taxons) {
     ix = dat$taxon == i
     points(C[ix], Anit[ix], pch=16, col=col)
     points(C[ix], Aamm[ix], pch=17, col=col)
+    points(C[ix], Aphos[ix], pch=18, col=col)
     col = col + 1
   }
   #points(C, Aphos,pch=18)
 
+ 
+  m = 10^seq(-7,1) # mu gC
+  r = 1.5/2*(1e-6*m)^(1/3) # cm
+  Diff = 1.5e-5*60*60*24 # cm^2/day, at 10 degrees (https://www.unisense.com/files/PDF/Diverse/Seawater%20&%20Gases%20table.pdf)
+  ANmax = 4*pi*Diff*r*1e-3 # L/day
+  lines(m, ANmax, lwd=1, lty=dotted)  
+  lines(m, parameters()$AN*m^(1/3), lwd=2)
+  cat( mean(ANmax/(parameters()$AN*m^(1/3)))  )
+  
+  #r = (3*dat$volume/(4*pi))^(1/3) # mu m
+  #m = 0.3e-6*(2*r)^3
+  #ANmax = 4*pi*Diff*(r*1e-4) * 1e-3
+  #points(m, ANmax, col="red")
   legend(x="bottomright",bty="n", 
          legend=taxons, pch=16, col=seq(1,length(taxons)))
- 
-  lines(C, 1e-5*C^0.33)  
 }
 
 plotRstar = function() {
@@ -390,20 +383,20 @@ plotRstar = function() {
   tightaxes()
   defaultplot()
   loglogpanel(xlim=m, 
-              ylim=c(0.0001,10000),
+              ylim=c(0.005,1000),
               xlab = "Cell mass ($\\mu$gC)",
-              ylab = "Limiting concentration ($\\mu$g/l or mu mol photons/m2/s$)")
+              ylab = "Limiting concentration ($\\mu$mol/l or mu mol photons/m2/s$)")
   
   for (i in 1:length(mu)) {
     correct = mu[i]*(1-nu)/((1-nu)-mu[i])
     
     Nstar = m^0.667 /(p$AN*p$rhoCN) * correct
     Nstar[Nstar<0] = Inf
-    lines(m, Nstar, lwd=2, col="blue")
+    lines(m, Nstar/14, lwd=2, col="blue")
     
     DOCstar = m^0.667/(p$AN) * correct
     DOCstar[DOCstar<0] = Inf
-    lines(m, DOCstar, lwd=2, col="magenta")
+    lines(m, DOCstar/12, lwd=2, col="magenta")
     
     #Lstar = m^0.333 * p$alphaJ/(p$AL) * mu[i]/(p$alphaJ*(1-nu)-mu[i])
     #Lstar = p$alphaJ*(p$AL+p$cL*m^(1/3))*mu[i] / (p$AL*p$cL*(p$alphaJ-mu[i])*(1-nu))
@@ -421,6 +414,7 @@ plotRstar = function() {
 calcMufactor = function(p) {
   f0 = 0.6
   delta = p$m[2]/p$m[1]
-  return( (1-0.6)/delta * p$AF *sqrt(2*pi)*p$sigma )
+  cat("Delta = ", delta, "\n")
+  return( (1-0.6) * p$AF *sqrt(2*pi)*p$sigma )
 }
 

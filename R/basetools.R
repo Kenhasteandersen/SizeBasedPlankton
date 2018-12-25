@@ -1,16 +1,12 @@
 #
-# Background tools, mainly for plotting
+# Background tools for plotting
 #
-#require(ggplot2)
-#require(scales)
-#require(caTools)
 require(latex2exp)
-#require(cowplot)
-#require(grImport)
 
 singlewidth <- 8/2.54 # panel width in cm
 doublewidth <- 13/2.54
 height <- 8/1.6/2.54 + 2.5*0.138889
+cex = 1 #  Size of text labels on plots
 
 if(.Platform$OS.type=="windows") {
   quartz<-function(width, height) 
