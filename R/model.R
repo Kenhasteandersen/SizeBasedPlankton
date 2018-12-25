@@ -10,7 +10,7 @@ library(tictoc)
 parameters <- function() {
   p = list()
   
-  p$n = 20; # No of groups
+  p$n = 10; # No of groups
   p$m = 10^seq(-8,1,length.out = p$n)  # Mass bins in mugC
   
   p$rhoCN = 5.68 # C:N mass ratio
@@ -143,6 +143,7 @@ calcRates = function(t,N,DOC,POM,B,p) {
       JNloss=JNloss, JCloss=JCloss,
       Jtot=Jtot, f=f, F=F, JCtot = JCtot, JNtot=JNtot,
       mortpred=mortpred, mort=mort,
+      mort2=mort2*B,
       POMgeneration = POMgeneration,
       totKilled = sum(JFreal/epsilonF*B/m), totEaten = sum(mortpred*B), totGrowth=sum(Jmax*f*B/m)))  
   })
@@ -217,9 +218,9 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   p = sim$p
   m = p$m
   
-  par(cex.axis=cex,
-      cex.lab=cex,
-      mar=c(4, 5, 6, 2) + 0.1)
+#  par(cex.axis=cex,
+#      cex.lab=cex,
+#      mar=c(4, 5, 6, 2) + 0.1)
   
   alpha = 0.25
   colOsmo = rgb(0.5,0,0.5,alpha=alpha)
@@ -244,12 +245,13 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
     r = calcRates(t, N, DOC, 0, B, p)
   }
   
-  plot(m, B, 
-       log="xy", type="b", lwd=8,
-       ylim=ylim, 
-       xlab=TeX("Carbon mass ($\\mu$gC)"),
-       ylab=TeX("Biomass ($\\mu$gC/l)"),
-       mar=c(4,5,8,2)+0.1)
+  defaultplot(mar=c(2.1,2.3,2.1,0))
+  loglogpanel(xlim=p$m, ylim=ylim, 
+              xlab="Carbon mass ($\\mu$gC)",
+              ylab="Biomass ($\\mu$gC/l)")
+  
+  lines(m, B, type="b", lwd=8)
+  #     mar=c(4,5,8,2)+0.1)
   if (p$amplitudeL==0)
     polygon(c(m, m[seq(p$n,1,by = -1)]), c(sim$Bmin, sim$Bmax[seq(p$n,1,by = -1)]), 
             col=rgb(0.5,0.5,0.5,alpha=alpha), border=NA)
@@ -285,7 +287,7 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   axis(side=3, line=0,
        at=0.3e6*d^3,
        labels = c("0.01","0.1","1","10","100","1e3"))
-  mtext(TeX("Diameter ($\\mu$m)"), side=3, line=3, at=1e-3, adj=1,cex=cex)
+  mtext(TeX("Diameter ($\\mu$m)"), side=3, line=1.25, at=1e-3, adj=1,cex=cex)
   
   legend(x="topright", bty="n", cex=cex,
          legend=c("Osmoheterotrophs", "Light limited phototrophs","N limited phototrophs","Mixotrophs","Heterotrophs"),
@@ -331,23 +333,15 @@ plotRates = function(sim, t=max(sim$t)) {
     r = calcRates(t, N, DOC, 0, B, p)
   }
   
-  par(cex.axis=cex,
-      cex.lab=cex,
-      mar=c(4, 5, 6, 2) + 0.1)
-  ylim = c(0,1.5)
-  # plot(mm, p$AL*mm^(2/3)*input$L/mm, lwd=4, type="l", col="green", log="x", xlim=range(p$m),
-  #      ylim=ylim,
-  #      xlab="Carbon mass (mu gC)",
-  #      ylab="Rates (1/day)")
-  # 
-  # lines(mm, p$AN*mm^(1/3)*p$rhoCN*sim$N/mm, lwd=4, col="blue")
-  # lines(mm, p$AN*mm^(1/3)*sim$DOC/mm, lwd=4, col="brown")
-  # #lines(mm, AF*mm*mean(r$F)/mm, lty=3, lwd=1, col="red")
-  # lines(p$m, p$AFm*r$F/p$m, lwd=4, col="red")
-  plot(p$m, p$Jmax/p$m*r$f, lwd=10, type="l", col="black", log="x", xlim=range(p$m),
-       ylim=ylim,
-       xlab=TeX("Carbon mass ($\\mu$gC)"),
-       ylab="Rates (1/day)")
+  defaultplot()
+  ylim = c(-1.5,1.5)
+  semilogxpanel(xlim=p$m, ylim=ylim,
+                xlab="Carbon mass ($\\mu$gC)",
+                ylab="Rates (1/day)")
+  #
+  # Gains
+  #
+  lines(p$m, p$Jmax/p$m*r$f, lwd=10, type="l", col="black")# log="x", xlim=range(p$m),
   lines(p$m, p$Jmax/p$m, lty=3)
   
   #lines(mm, p$AL*mm^(2/3)*input$L/mm, lty=3, lwd=1, col="green")
@@ -361,16 +355,36 @@ plotRates = function(sim, t=max(sim$t)) {
   lines(p$m, r$JDOCreal/p$m, lwd=4, col="brown")
   
   lines(p$m, r$JFreal/p$m,lwd=4,col="red")
-  
+
   legend(x="topright", cex=cex,
          legend=c("Light harvesting","Nutrient uptake","DOC uptake","Food consumption","Division rate"),
          col=c("green","blue","brown","red","black"),
          lwd=4,
          bty="n")
-  # plot(m, r$dBdt/B, log="x", type="l", lwd=2, ylim=c(-0.2,1))
-  #  lines(m, r$mortpred, col="red")
-  #  lines(m, r$mort, col="red", lty=2)
-  #  lines(m,0*m,lty=3)
+  #
+  # Losses
+  #
+  polygon(c(1e-9,10,10,1e-9), c(-1.5,-1.5,0,0), 
+          col=rgb(1,0,0,alpha=0.25), border=NA)
+  
+  mortHTL = p$mortHTL*(p$m>p$mHTL)
+  
+  lines(p$m, -(sim$rates$mortpred + mortHTL + sim$rates$mort2 + p$mort), lwd=10)
+  lines(p$m, -sim$rates$mortpred, col="red", lwd=4)
+  lines(p$m[p$m>=p$mHTL], -p$mortHTL*sign(p$m[p$m>p$mHTL]), col="magenta", lwd=4)
+  lines(p$m, -sim$rates$mort2, col="orange", lwd=4)
+  
+  BSheldon =exp(mean(log(sim$B)))
+  mortPredTheoretical = BSheldon * (1-0.6) * p$AF *sqrt(2*pi)*p$sigma / (p$m[2]/p$m[1])
+  lines(range(p$m), -mortPredTheoretical*c(1,1), lty=dotted, col="red")
+
+  legend(x="bottomright", cex=cex,
+         legend=c("Predation", "Virulysis", "Higher trophic levels"),
+         col=c("red", "orange", "magenta"),
+         lwd=4, bty="n")
+  
+  lines(p$m, 0*p$m, col="white", lwd=4)
+  lines(p$m, 0*p$m, lty=dashed, lwd=2)
 }
 
 plotComplexRates = function(sim, t=max(sim$t)) {

@@ -6,7 +6,6 @@ require(latex2exp)
 singlewidth <- 8/2.54 # panel width in cm
 doublewidth <- 13/2.54
 height <- 8/1.6/2.54 + 2.5*0.138889
-cex = 1 #  Size of text labels on plots
 
 if(.Platform$OS.type=="windows") {
   quartz<-function(width, height) 
@@ -21,8 +20,8 @@ top <- 3
 right <- 4
 ticklength <- 0.2 # tick mark length
 omargin <- 0.7 # outer margins
-cex <- 0.9
-cexaxis <- 0.8 # Scaling of size of numbers on axes
+cex <- 1#0.9
+cexaxis <- 1#0.8 # Scaling of size of numbers on axes
 iPlot <- 1 # Static variable used for labels on plots
 dashed <- 2
 dotted <- 3
@@ -33,7 +32,7 @@ stdgrey <- grey(0.4)
 darkgrey <- grey(0.15)
 lightgrey <- grey(0.7)
 black <- grey(0)
-axis.lwd <- 0.35
+axis.lwd <- 0.8
 
 defaultplot <- function(
   mfcol=c(1,1), 
@@ -134,7 +133,8 @@ semilogxpanel <- function(xlim, ylim, xlab='', ylab='',
   xlim <- range(na.omit(xlim))
   plot(1, type='n', log='x',
        ylim=ylim, 
-       xlim=xlim, axes=FALSE, xlab='',ylab='', xaxs=xaxs, par(new=new))
+       xlim=xlim, axes=FALSE, xlab='',ylab='', xaxs=xaxs, par(new=new),
+       xaxs="i", yaxs="i")
 
   mtext(side=bottom, line=1, TeX(xlab))
   mtext(side=left, line=1, TeX(ylab))
@@ -151,7 +151,7 @@ semilogypanel <- function(xlim, ylim, xlab='', ylab='',
                           xaxis=TRUE, yaxis=TRUE, label=FALSE) {
   plot(1, type='n', log='y',
        ylim=range(ylim[!is.na(ylim)]), 
-       xlim=range(xlim[!is.na(xlim)]), axes=FALSE, xlab='',ylab='')
+       xlim=range(xlim[!is.na(xlim)]), axes=FALSE, xlab='',ylab='',yaxs="i")
   mtext(side=bottom, line=1, TeX(xlab))
   mtext(side=left, line=1.5, TeX(ylab))
   if (label) 
@@ -168,7 +168,8 @@ loglogpanel <- function(xlim, ylim, xlab='', ylab='',
   xlim <- range(na.omit(xlim))
   plot(1, type='n', log='xy',
        ylim=ylim, 
-       xlim=xlim, axes=FALSE, xlab='',ylab='', par(new=new), xaxs=xaxs)
+       xlim=xlim, axes=FALSE, xlab='',ylab='', par(new=new), xaxs=xaxs,
+       xaxs="i",yaxs="i")
   mtext(side=bottom, line=1.1, TeX(xlab))
   mtext(side=left, line=1.5, TeX(ylab))
   if (label) 

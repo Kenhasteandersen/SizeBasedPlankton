@@ -415,6 +415,6 @@ calcMufactor = function(p) {
   f0 = 0.6
   delta = p$m[2]/p$m[1]
   cat("Delta = ", delta, "\n")
-  return( (1-0.6) * p$AF *sqrt(2*pi)*p$sigma )
+  return( (1-f0) * p$AF *sqrt(2*pi)*p$sigma )
 }
 

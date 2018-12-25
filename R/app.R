@@ -10,15 +10,11 @@
 library(shiny)
 source("model.R")
 
-
-
 # ===================================================
 # Define UI for application
 # ===================================================
 
 ui <- fluidPage(
-  
-  # Application title
   h1('Size-based plankton simulator'),
   p('Simulate a plankton ecosystem in the upper part of a watercolumn. 
    Cell size is the only trait characterizing each plankton group.
@@ -97,11 +93,11 @@ ui <- fluidPage(
                     max=365,
                     step=1,
                     value=120,
-                    width="700px")),
-      plotOutput("plotSpectrum", width="700px"),
-      plotOutput("plotRates", width="700px"),
+                    width="600px")),
+      plotOutput("plotSpectrum", width="600px"),
+      plotOutput("plotRates", width="600px"),
       plotOutput("plotFunction", width="600px"),
-      plotOutput("plotTime", width="700px")#,
+      plotOutput("plotTime", width="600px")#,
       #plotOutput("plotComplexRates", width="700px")
     )
   )
@@ -136,6 +132,7 @@ server <- function(input, output) {
     if (p$amplitudeL>0)
       p$tEnd = 2*365
     
+    # Simulate
     return(simulate(p))   
   })
   #
