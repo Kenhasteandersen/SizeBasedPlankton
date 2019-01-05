@@ -9,6 +9,7 @@
 
 library(shiny)
 source("model.R")
+source("plots.R")
 
 # ===================================================
 # Define UI for application
@@ -94,8 +95,9 @@ ui <- fluidPage(
                     step=1,
                     value=120,
                     width="600px")),
-      plotOutput("plotSpectrum", width="600px"),
-      plotOutput("plotRates", width="600px"),
+      plotOutput("plotSpectrum", width="600px", height="300px"),
+      plotOutput("plotRates", width="600px", height="300px"),
+      plotOutput("plotLeaks", width="600px", height="200px"),
       plotOutput("plotFunction", width="600px"),
       plotOutput("plotTime", width="600px")#,
       #plotOutput("plotComplexRates", width="700px")
@@ -140,6 +142,7 @@ server <- function(input, output) {
   #
   output$plotSpectrum <- renderPlot(plotSpectrum(sim(), input$t))
   output$plotRates <- renderPlot(plotRates(sim(), input$t))
+  output$plotLeaks = renderPlot(plotLeaks(sim(), input$t))
   output$plotComplexRates <- renderPlot(plotComplexRates(sim(), input$t))
   output$plotTime <- renderPlot(plotTimeline(sim(), input$t))
   output$plotFunction <- renderPlot(plotFunctions(sim()))
