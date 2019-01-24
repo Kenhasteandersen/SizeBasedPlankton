@@ -34,7 +34,7 @@ parameters <- function() {
   p$ANm = p$AN*p$m^(1/3)
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
   #p$ALm = p$cL*p$m * p$AL*p$m^(2/3) / ( p$cL*p$m + p$AL*p$m^(2/3) )  # shading formula
-  p$ALm = p$AL*p$m^(2/3) * exp(1 -p$cL*p$m^(1/3) )  # shading formula
+  p$ALm = p$AL*p$m^(2/3) * (1-exp(- p$cL*p$m^(1/3) ))  # shading formula
   p$AFm = p$AF*p$m
   #
   # Prey encounter
@@ -49,7 +49,8 @@ parameters <- function() {
   #
   p$alphaJ = 1
   p$Jmax = p$alphaJ * p$m * (1-nu) # mugC/day
-  p$Jresp = 0.1*p$Jmax
+  p$cR = 0.1
+  p$Jresp = p$cR*p$Jmax
   #
   # Losses:
   #
@@ -61,14 +62,14 @@ parameters <- function() {
   p$dPOM = 10 # Loss rate of POM
   p$epsilonPOM = 0.5 # fraction of mortality losses reminerilized to N and DOC
   
-  p$d = 2 # diffusion rate
-  p$M = 30 # Thickness of the mixed layer
+  p$d = 0.5  # diffusion rate, m/day
+  p$M = 30   # Thickness of the mixed layer, m
   p$N0 = 150 # Deep nutrient levels
   
   p$DOC0 = 0
   p$POM0 = 0
   p$B0 = rep(10,p$n)
-  p$L = 125  # PAR
+  p$L = 20  # PAR, mu E/m2/s
   p$amplitudeL = 0 # amplitude of seasonal light variation in fractions of L
   
   p$tEnd = 365 # Simulation length (days)
@@ -95,7 +96,7 @@ calcRates = function(t,N,DOC,POM,B,p) {
     JNtot = JN+JF/rhoCN # In units of N
     Jtot = pmin( JCtot, JNtot*rhoCN )  # Liebigs law; units of C
     
-    f = (Jtot) / (Jtot + Jmax) # feeding level
+    f = Jtot / (Jtot + Jmax) # feeding level
     #
     # Actual uptakes:
     #
@@ -180,8 +181,8 @@ simulate = function(p=parameters()) {
   Bmin = 0*p$m
   Bmax = 0*p$m
   for (i in 1:p$n) {
-    Bmin[i] = min(out[ix,ixB[i]])
-    Bmax[i] = max(out[ix,ixB[i]])
+    Bmin[i] = max(1e-20, min(out[ix,ixB[i]]))
+    Bmax[i] = max(1e-20, out[ix,ixB[i]])
   }
   
   result = list(

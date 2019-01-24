@@ -27,9 +27,9 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       sliderInput("L",
-                  "Light (PAR; mu mol photons/m2/s)",
+                  "Light (PAR; uE/m2/s)",
                   min = 0,
-                  max = 500,
+                  max = 70,
                   step=1,
                   value = parameters()$L)
       ,
@@ -47,10 +47,10 @@ ui <- fluidPage(
       #            step = 0.1,
       #            value = 14)
       sliderInput("d",
-                  "Diffusion rate (m/day)",
+                  "Exchange rate (m/day)",
                   min = 0,
-                  max = 5,
-                  step = 0.1,
+                  max = 1,
+                  step = 0.025,
                   value = parameters()$d)
       ,
       sliderInput("M",

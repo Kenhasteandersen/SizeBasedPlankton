@@ -67,7 +67,7 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   colMixo = rgb(1,0.5,0.5,alpha=alpha)
   colHetero = rgb(1,0,0,alpha=alpha)
   
-  ylim = c(5,1000)
+  ylim = c(1,500)
   fac = sqrt(m[2]/m[1])
   
   ixt = which(floor(sim$t)==t+365)[1]
@@ -90,6 +90,9 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   
   lines(m, B, type="b", lwd=8)
   #     mar=c(4,5,8,2)+0.1)
+  #
+  # Add gray-scale variation
+  #
   if (p$amplitudeL==0)
     polygon(c(m, m[seq(p$n,1,by = -1)]), c(sim$Bmin, sim$Bmax[seq(p$n,1,by = -1)]), 
             col=rgb(0.5,0.5,0.5,alpha=alpha), border=NA)
@@ -131,23 +134,25 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
          legend=c("Osmoheterotrophs", "Light limited phototrophs","N limited phototrophs","Mixotrophs","Heterotrophs"),
          fill=c(colOsmo, colPhoto,colN,colMixo,colHetero,"transparent"),
          border=c("black","black","black","black","black","transparent"),
-         lwd = c(0,0,0,0,0,3))
-  
-  text(x=m[1], y=10, labels=TeX(sprintf("DIN: %2.2f $\\mu$mol N/l", N/14)) , cex=cex, pos=4, col=grey(0.5))
-  text(x=m[1], y=7, labels=TeX(sprintf("DOC: %2.2f $\\mu$mol C/l", DOC/12)), cex=cex, pos=4, col=grey(0.5))
+         lwd = c(0,0,0,0,0,3),
+         col=c(NA,NA,NA,NA,NA,1))
+  #
+  # Summary state variables: 
+  #
+  text(x=m[1], y=2.25, labels=TeX(sprintf("DIN: %2.2f $\\mu$mol N/l", N/14)) , cex=cex, pos=4, col=grey(0.5))
+  text(x=m[1], y=1.5, labels=TeX(sprintf("DOC: %2.2f $mmol C/l", 1000*DOC/12)), cex=cex, pos=4, col=grey(0.5))
   
   func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
-  text(x=1e-2, 14, 
-       labels=TeX(sprintf("Picoplankton: %2.2f $gC/m$^2$", func$Bpico)),
-       cex=cex, pos=4, col=grey(0.5))
-  text(x=1e-2, 10, 
-       labels=TeX(sprintf("Nanoplankton: %2.2f $gC/m$^2$", func$Bnano)),
-       cex=cex, pos=4, col=grey(0.5))
-  text(x=1e-2, 7, 
-       labels=TeX(sprintf("Microplankton: %2.2f $gC/m$^2$", func$Bmicro)),
-       cex=cex, pos=4, col=grey(0.5))
-  #text(x=m[1], y=7 , labels=sprintf("POM: %2.2f mugC/l",sim$POM ), cex=cex, pos=4, col=grey(0.5))
-  
+  text(x=10, 3.3, 
+       labels=TeX(sprintf("Picoplankton: %2.2f $mgC/m$^2$", 1000*func$Bpico)),
+       cex=cex, pos=2, col=grey(0.5))
+  text(x=10, 2.25, 
+       labels=TeX(sprintf("Nanoplankton: %2.2f $mgC/m$^2$", 1000*func$Bnano)),
+       cex=cex, pos=2, col=grey(0.5))
+  text(x=10, 1.5, 
+       labels=TeX(sprintf("Microplankton: %2.2f $mgC/m$^2$", 1000*func$Bmicro)),
+       cex=cex, pos=2, col=grey(0.5))
+
   box()
 }
 
@@ -219,7 +224,7 @@ plotRates = function(sim, t=max(sim$t)) {
   
   legend(x="bottomright", cex=cex,
          legend=c("Losses:", "Predation", "Virulysis", "Higher trophic levels"),
-         col=c("white","red", "orange", "magenta"),
+         col=c(NA,"red", "orange", "magenta"),
          lwd=c(0,4,4,4), bty="n")
   
   lines(p$m, 0*p$m, col="white", lwd=4)

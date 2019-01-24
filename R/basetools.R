@@ -18,13 +18,19 @@ bottom <- 1
 left <- 2
 top <- 3
 right <- 4
+
 ticklength <- 0.2 # tick mark length
 omargin <- 0.7 # outer margins
 cex <- 1#0.9
 cexaxis <- 1#0.8 # Scaling of size of numbers on axes
+axis.lwd <- 0.8
+
 iPlot <- 1 # Static variable used for labels on plots
+
+solid = 1
 dashed <- 2
 dotted <- 3
+dashdotted = 4
 dots <- 16
 triangles <- 17
 squares <- 15
@@ -32,7 +38,7 @@ stdgrey <- grey(0.4)
 darkgrey <- grey(0.15)
 lightgrey <- grey(0.7)
 black <- grey(0)
-axis.lwd <- 0.8
+
 
 defaultplot <- function(
   mfcol=c(1,1), 
@@ -128,7 +134,8 @@ defaultpanel <- function(xlim, ylim,
 }
 
 semilogxpanel <- function(xlim, ylim, xlab='', ylab='', 
-                          xaxis=TRUE, yaxis=TRUE, label=FALSE, new=FALSE, xaxs="r") {
+                          xaxis=TRUE, yaxis=TRUE, label=FALSE, new=FALSE, 
+                          bty="o", xaxs="r") {
   ylim <- range(na.omit(ylim))
   xlim <- range(na.omit(xlim))
   plot(1, type='n', log='x',
@@ -144,21 +151,26 @@ semilogxpanel <- function(xlim, ylim, xlab='', ylab='',
   logaxes(bottom, lim=xlim, labels=xaxis)
 #  if (yaxis)
   axis(left, labels=yaxis, lwd=axis.lwd, lwd.ticks=axis.lwd)
-  box(lwd=axis.lwd)
+  if (bty=="o")
+    box(lwd=axis.lwd)
 }
 
 semilogypanel <- function(xlim, ylim, xlab='', ylab='', 
-                          xaxis=TRUE, yaxis=TRUE, label=FALSE) {
+                          xaxis=TRUE, yaxis=TRUE, label=FALSE,
+                          bty="o") {
   plot(1, type='n', log='y',
        ylim=range(ylim[!is.na(ylim)]), 
-       xlim=range(xlim[!is.na(xlim)]), axes=FALSE, xlab='',ylab='',yaxs="i")
+       xlim=range(xlim[!is.na(xlim)]), axes=FALSE, xlab='',ylab='',yaxs="i",
+       bty=bty)
   mtext(side=bottom, line=1, TeX(xlab))
   mtext(side=left, line=1.5, TeX(ylab))
   if (label) 
     makepanellabel()
-  axis(bottom, labels=xaxis, lwd=axis.lwd, lwd.ticks=axis.lwd)
+  if (xaxis)
+    axis(bottom, labels=xaxis, lwd=axis.lwd, lwd.ticks=axis.lwd)
   logaxes(left, lim=ylim, labels=yaxis)
-  box(lwd=axis.lwd)
+  if (bty=="o")
+    box(lwd=axis.lwd)
 }
 
 loglogpanel <- function(xlim, ylim, xlab='', ylab='', 

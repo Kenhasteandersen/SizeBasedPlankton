@@ -12,10 +12,22 @@ plotAll = function() {
   pdfplot("../Mumax.pdf", plotMumax, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Rstar.pdf", plotRstar, width=doublewidth, height = height)
   
+  plotSimulationExamples()
+  
+  pdf(file="../VaryLightAndDiffusion.pdf", width=doublewidth+0.5, height=height+.3)
+  fontsize = trellis.par.get("fontsize")
+  fontsize$text = 10
+  trellis.par.set("fontsize",fontsize)
+  plotVaryLightAndDiffusion()
+  dev.off()
+  
+  pdfplot("../Functions.pdf", plotFunctions,n=25, width=doublewidth, height=2*height)
+  
+  system("cp ../*pdf ../dropbox")
   #system2("cp *pdf ~/Dropbox/Apps/Overleaf/A\ minimal\ size-based\ model\ of\ unicellular\ plankton/")
 }
 
-convertVolume2Mass = function(vol, taxon) {
+convertVolume2Mass = function(vol, taxon="other") {
   C = 1e-6 * exp(-0.665) * vol^0.939 # Menden-deyer and Lessard (2000), table 4, for protists. mugC
   ixSmall = (vol<3000) & (!is.na(vol))
   C[ixSmall] = 1e-6 * exp(-0.583) * vol[ixSmall]^0.860
@@ -46,9 +58,9 @@ plotAL = function() {
   C = convertVolume2Mass(Aed$volume, Aed$taxon)
   
   A = Aed$alpha * C * (Aed$daylength/24) # convert to units of mu gC/(mu mol photons/m2/s),
-                                         # corrected for daylength.
+  # corrected for daylength.
   data = data.frame(C=C, taxon=Aed$taxon, A=A, source="Edwards")#rbind(data, 
-               
+  
   #
   # Sort our nans:
   #
@@ -66,13 +78,13 @@ plotAL = function() {
             start = list(Cmax = .001, a=0.001),
             lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
   fit_diatoms = nls(form,
-            data = data[ixDiatom,],
-            start = list(Cmax = .001, a=0.001),
-            lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
+                    data = data[ixDiatom,],
+                    start = list(Cmax = .001, a=0.001),
+                    lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
   fit_no_diatoms = nls(form,
-            data = data[!ixDiatom,],
-            start = list(Cmax = .001, a=0.001),
-            lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
+                       data = data[!ixDiatom,],
+                       start = list(Cmax = .001, a=0.001),
+                       lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
   
   print(summary(fit_no_diatoms))
   #
@@ -98,11 +110,11 @@ plotAL = function() {
   lines(C, exp(predict(fit, list(C=C))), lwd=2)
   lines(C, exp(predict(fit_diatoms, list(C=C))), lwd=2, col="red")
   lines(C, exp(predict(fit_no_diatoms, list(C=C))), lwd=3, col="blue")
-
+  
   lines(C, AL * C^(2/3), lty=dotted)
   lines(C, AL_diatoms * C^(2/3), col="red", lty=dotted)
   lines(C, AL_no_diatoms * C^(2/3), col="blue", lty=dotted)
-
+  
   legend(x="bottomright", bty="n",
          legend=c("Diatoms", "Other phototrophs"),
          pch=16, col=c("red","Blue"))
@@ -224,7 +236,7 @@ plotMumax = function() {
                  sep=";", skip=3, header=TRUE, na.strings = "na")
   C = convertVolume2Mass(Aed$volume, Aed$taxon)
   Aed$C =   C
-
+  
   #
   # Sort our nans:
   #
@@ -235,7 +247,7 @@ plotMumax = function() {
   #
   fit_diatoms = lm(log(mu_max) ~ log(C), data=Aed[ixDiatom,])
   fit_no_diatoms = lm(log(mu_max) ~ log(C), data=Aed[!ixDiatom,])
-    
+  
   print(fit_diatoms)
   print(fit_no_diatoms)
   
@@ -277,9 +289,9 @@ plotMuAlphaCorrelation = function() {
   fit_mu = lm(log(mumax) ~ log(C), data=data)
   form = formula(log(A) ~ log( Cmax*C * a*C^(2/3) / (Cmax*C + a*C^(2/3))))
   fit_alpha = nls(form,
-            data = data,
-            start = list(Cmax = .001, a=0.001),
-            lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
+                  data = data,
+                  start = list(Cmax = .001, a=0.001),
+                  lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
   #
   # Plot corrected values
   #
@@ -304,7 +316,7 @@ plotAF = function() {
     (data$Group=="Dinoflagellate") | 
     (data$Group=="Ciliates") | 
     (data$Group=="Ciliate")
-    
+  
   x = data$beta/data$w
   x = x[ixProtist]
   x = x[!is.na(x)]
@@ -341,7 +353,7 @@ plotAN = function() {
   # Plot
   #
   defaultplot()
-  loglogpanel(xlim=C, ylim=c(Anit,Aamm,Aphos),
+  loglogpanel(xlim=C, ylim=c(1e-9,1e-3),
               xlab="Mass ($\\mathrm{\\mu g_C}$)",
               ylab="Nutrient affinity, $\\textit{A_N}$ (L/day)")
   
@@ -355,22 +367,37 @@ plotAN = function() {
     col = col + 1
   }
   #points(C, Aphos,pch=18)
-
- 
+  legend(x="bottomright",bty="n", 
+         legend=taxons, pch=16, col=seq(1,length(taxons)))
+  
+  
   m = 10^seq(-7,1) # mu gC
   r = 1.5/2*(1e-6*m)^(1/3) # cm
   Diff = 1.5e-5*60*60*24 # cm^2/day, at 10 degrees (https://www.unisense.com/files/PDF/Diverse/Seawater%20&%20Gases%20table.pdf)
   ANmax = 4*pi*Diff*r*1e-3 # L/day
+  cat("alphaN_max = ", (ANmax/m^(1/3))[1], "\n")
   lines(m, ANmax, lwd=1, lty=dotted)  
   lines(m, parameters()$AN*m^(1/3), lwd=2)
-  cat( mean(ANmax/(parameters()$AN*m^(1/3)))  )
+  #cat( mean(ANmax/(parameters()$AN*m^(1/3))) ,"\n" )
+  cat("alphaN = ", mean(parameters()$AN*m^(1/3)), "\n")
+  
+  V = 10^seq(-2,8,length.out = 100)
+  alphaN_Ward2018 = 1.1 * 1000 / 1000 / 12 # convert from m3->liter, from mmol->umol, from mol->g 
+  lines(convertVolume2Mass(V), alphaN_Ward2018*V^-0.35*convertVolume2Mass(V), col="blue", lty=dashed)
+  
+  #alphaN_Banas2011 = 2.6/0.1 / 14 / 6 # convert from uM N-> ugN, from gN->gC
+  #lines(m , alphaN_Banas2011*m^(1-0.45), col="blue", lty=dashdotted)
+  
+  legend(x="topleft", bty="n",
+         legend=c("Fit","Theoretical limit","Ward et al (2018)"),
+         lty=c(solid,dotted,dashed),
+         lwd=c(2,1,1),
+         col=c("black","black","blue"))
   
   #r = (3*dat$volume/(4*pi))^(1/3) # mu m
   #m = 0.3e-6*(2*r)^3
   #ANmax = 4*pi*Diff*(r*1e-4) * 1e-3
   #points(m, ANmax, col="red")
-  legend(x="bottomright",bty="n", 
-         legend=taxons, pch=16, col=seq(1,length(taxons)))
 }
 
 plotRstar = function() {
@@ -385,7 +412,7 @@ plotRstar = function() {
   loglogpanel(xlim=m, 
               ylim=c(0.005,1000),
               xlab = "Cell mass ($\\mu$gC)",
-              ylab = "Limiting concentration ($\\mu$mol/l or mu mol photons/m2/s$)")
+              ylab = "Limiting concentration ($\\mu$mol/l) or ($\\mu$E/m$^2$/s)")
   
   for (i in 1:length(mu)) {
     correct = mu[i]*(1-nu)/((1-nu)-mu[i])
@@ -400,13 +427,13 @@ plotRstar = function() {
     
     #Lstar = m^0.333 * p$alphaJ/(p$AL) * mu[i]/(p$alphaJ*(1-nu)-mu[i])
     #Lstar = p$alphaJ*(p$AL+p$cL*m^(1/3))*mu[i] / (p$AL*p$cL*(p$alphaJ-mu[i])*(1-nu))
-    Lstar = m^(1/3)/p$AL *  1/(1-exp(-p$cL*m^(1/3))) * correct
+    Lstar = m^(1/3)/(p$epsilonL*p$AL) *  1/(1-exp(-p$cL*m^(1/3))) * correct
     Lstar[Lstar<0] = Inf
     lines(m , Lstar, lwd=2, col="green")
   }
   
   legend(x="bottomright", bty="n",
-         legend=c(TeX("$N^*$"), TeX("$DOC^*$"), TeX("$L^*$")),
+         legend=c(TeX("$\\textit{N}^*$"), TeX("$$DOC^*$"), TeX("$$\\textit{L}^*$")),
          col=c("magenta","blue","green"),
          lwd=2)
 }
@@ -418,3 +445,141 @@ calcMufactor = function(p) {
   return( (1-f0) * p$AF *sqrt(2*pi)*p$sigma )
 }
 
+plotSimulationExamples = function() {
+  #
+  # Oligotrophic
+  #
+  p = parameters()
+  p$d = 0.025
+  p$L = 40
+  p$mortHTL = 0.05
+  
+  sim = simulate(p)
+  pdfplot("../spectrum1.pdf",FUN=plotSpectrum, sim=sim, width=doublewidth, height=1.5*height)
+  pdfplot("../rates1.pdf", FUN=plotRates, sim=sim, width=doublewidth, height=1.5*height)
+  #
+  # Eutrophic
+  #
+  p = parameters()
+  p$d = 0.5
+  p$L = 18
+  p$mortHTL = 0.18
+  
+  sim = simulate(p)
+  pdfplot("../spectrum2.pdf",FUN=plotSpectrum, sim=sim, width=doublewidth, height=1.5*height)
+  pdfplot("../rates2.pdf", FUN=plotRates, sim=sim, width=doublewidth, height=1.5*height)
+}
+
+
+plotVaryLightAndDiffusion = function() {
+  library(lattice)
+  library(latticeExtra)
+  library(reshape)
+  
+  d = seq(0.02,2,length.out=10) #10^seq(-2,log10(2),length.out = 10)
+  L = seq(1,70,length.out=10)
+  #
+  # Simulations
+  #
+  df = data.frame(size=NULL, d=NULL, L=NULL, biomass=NULL)
+  df2 = data.frame(func=NULL, d=NULL, L=NULL, z=NULL)
+  #B = array(dim=c(3,length(d), length(L)))
+  for (i in 1:length(d))
+    for (j in 1:length(L)) {
+      p = parameters()
+      p$d = d[i]
+      p$L = L[j]
+      #p$mHTL = 0.008
+      sim = simulate(p)
+      func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
+      
+      df = rbind(df, data.frame(size="Pico",d=d[i],L=L[j],biomass=func$Bpico))
+      df = rbind(df, data.frame(size="Nano",d=d[i],L=L[j],biomass=func$Bnano))
+      df = rbind(df, data.frame(size="Micro",d=d[i],L=L[j],biomass=func$Bmicro))
+      df2 = rbind(df2, data.frame(func="Biomass", d=d[i],L=L[j],
+                                  z=func$Bpico+func$Bnano+func$Bmicro))
+      df2 = rbind(df2, data.frame(func="N", d=d[i],L=L[j], z=sim$N))
+      df2 = rbind(df2, data.frame(func="DOC", d=d[i],L=L[j], z=sim$DOC))
+      
+      #B[1,i,j] = func$Bpico+func$Bnano+func$Bmicro
+      #B[2,i,j] = sim$N
+      #B[3,i,j] = sim$DOC
+    }
+  #
+  # Plots
+  #
+  plt=levelplot(biomass ~ d*L | size, data=df,
+                aspect=1, region=TRUE, 
+                col.regions = terrain.colors(100),
+                #scales = list(x = list(log = 10, at=c(0.01,0.1,1))),
+                #xscale.components = xscale.components.logpower,#10ticks(n=5,n2=10),
+                layout=c(3,1),
+                ylab=TeX("Light (${\\mu}E m^{-2}s^{-1}$)"), xlab=TeX("Exchange rate (day$^{-1}$)"))
+  
+  plt2 = levelplot(z ~ d*L | func, data=df2,
+                   aspect=1, region=TRUE,
+                   col.regions = terrain.colors(100),
+                   layout=c(3,1),
+                   ylab=TeX("Light (${\\mu}E m^{-2}s^{-1}$)"), 
+                   xlab=TeX("Exchange rate (day$^{-1}$)"))
+  
+  return(plt)
+}
+
+plotFunctions = function(L=c(20,50), n=10) {
+  
+  
+  panelsFunctions = function(L=c(18,40), n=10) {
+    d = 10^seq(-2,log10(2),length.out = n) #seq(0.02,2,length.out=n) #
+    
+    p = parameters()
+    p$L = L
+    
+    F = data.frame()
+    for (i in 1:length(d)) {
+      p$d = d[i]
+      sim = simulate(p)
+      func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
+      func$d = d[i]
+      func$N = sim$N
+      func$DOC = sim$DOC
+      
+      F = rbind(F, as.data.frame(func))
+    }
+    
+    # Biomass
+    B = F$Bpico+F$Bnano+F$Bmicro
+    defaultpanel(xlim=d, ylim=c(0,0.15), xaxis=FALSE, bty="l",
+                 ylab="Biomass")
+    lines(F$d, B, lwd=2)
+    
+    # N
+    semilogypanel(xlim=d, ylim=c(0.001,150), xaxis=FALSE, bty="l",
+                  ylab="N")
+    lines(F$d, F$N, lwd=2)
+    
+    #DOC
+    semilogypanel(xlim=d, ylim=c(0.01,5), xaxis=FALSE, bty="l",
+                  ylab="DOC")
+    lines(F$d, F$DOC, lwd=2)
+    
+    #Production:
+    semilogypanel(xlim=d, ylim=c(0.1,10), xaxis=FALSE, bty="l",
+                  ylab="Prod.")
+    lines(F$d, F$prodCgross)
+    lines(F$d, F$prodCnet, col="blue")
+    lines(F$d, F$prodNew, col="green")
+    lines(F$d, F$prodHTL, col="red")
+    
+    # Eff
+    defaultpanel(xlim=d, ylim=c(0,1), bty="l",
+                 ylab="$\\epsilon_{HTL}$",
+                 xlab="Exchange rate (day$^{-1}$)")
+    lines(F$d, F$effHTL, lwd=2)
+  }
+  
+  defaultplotvertical(mfcol=c(5,2))
+  
+  panelsFunctions(L=L[1])
+  panelsFunctions(L=L[2])
+}
