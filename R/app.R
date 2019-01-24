@@ -1,13 +1,10 @@
 #
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+# Install app:
+#  ssh ken@172.23.130.112:
 
 library(shiny)
+options(shiny.sanitize.errors = FALSE)
+
 source("model.R")
 source("plots.R")
 

@@ -1,4 +1,3 @@
-require(latex2exp)
 source("basetools.R")
 source("model.R")
 
