@@ -528,7 +528,6 @@ plotVaryLightAndDiffusion = function() {
 
 plotFunctions = function(L=c(20,50), n=10) {
   
-  
   panelsFunctions = function(L=c(18,40), n=10) {
     d = 10^seq(-2,log10(2),length.out = n) #seq(0.02,2,length.out=n) #
     

@@ -61,14 +61,21 @@ parameters <- function() {
   
   p$dPOM = 10 # Loss rate of POM
   p$epsilonPOM = 0.5 # fraction of mortality losses reminerilized to N and DOC
-  
+  #
+  # Biogeochemical model:
+  #
   p$d = 0.5  # diffusion rate, m/day
   p$M = 30   # Thickness of the mixed layer, m
   p$N0 = 150 # Deep nutrient levels
-  
+  #
+  # Initial conditions:
+  #
   p$DOC0 = 0
   p$POM0 = 0
   p$B0 = rep(10,p$n)
+  #
+  # Light:
+  #
   p$L = 20  # PAR, mu E/m2/s
   p$amplitudeL = 0 # amplitude of seasonal light variation in fractions of L
   

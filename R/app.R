@@ -1,6 +1,10 @@
 #
 # Install app:
-#  ssh ken@172.23.130.112:
+#  ssh ken@172.23.130.112
+#  update the git
+#  cp to /srv/shiny-server/Plankton
+#  If using new packages install them by running R as root
+#
 
 library(shiny)
 options(shiny.sanitize.errors = FALSE)
@@ -18,7 +22,7 @@ ui <- fluidPage(
    Cell size is the only trait characterizing each plankton group.
     All groups are able to perform photoharvesting, taking up dissolve nutrients and carbon, and do phagotrophy.
     The trophic strategy is an emergent property.'),
-  p('THIS IS WORK IN PROGRESS. Version 0.5. November 2018.')
+  p('THIS IS WORK IN PROGRESS. Version 0.6. January 2019.')
   ,
   # Sidebar with a slider inputs
   sidebarLayout(
