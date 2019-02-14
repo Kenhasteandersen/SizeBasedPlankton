@@ -71,7 +71,6 @@ parameters <- function() {
   # Initial conditions:
   #
   p$DOC0 = 0
-  p$POM0 = 0
   p$B0 = rep(10,p$n)
   #
   # Light:
@@ -87,7 +86,7 @@ parameters <- function() {
 phi = function(z, beta, sigma)
   exp( -(log(z/beta))^2/(2*sigma^2) )
 
-calcRates = function(t,N,DOC,POM,B,p) {
+calcRates = function(t,N,DOC,B,p) {
   with(p, {
     #
     # Potential uptakes:
@@ -130,13 +129,10 @@ calcRates = function(t,N,DOC,POM,B,p) {
     #
     # System:
     #
-    POMgeneration = sum(mort2*B*B) + sum(mortHTL*(m>=mHTL)*B)
-    
     dBdt = (Jmax*f/m  - (mort + mortpred + mort2*B + mortHTL*(m>=mHTL)))*B
-    dNdt   =  d/M*(N0-N) - sum(JNreal*B/m)   + sum(JNloss*B/m) + epsilonPOM*POMgeneration/rhoCN
-    dDOCdt =           - sum(JDOCreal*B/m) + sum(JCloss*B/m) + epsilonPOM*POMgeneration  # 
-    dPOMdt = -dPOM*POM + 0*sum(mort2*B*B) + 0*sum(mortHTL*(m>=mHTL)*B) - epsilonPOM*POM
-    
+    dNdt   =  d/M*(N0-N) - sum(JNreal*B/m)   + sum(JNloss*B/m)
+    dDOCdt =           - sum(JDOCreal*B/m) + sum(JCloss*B/m)
+
     # Check of nutrient conservation; should be close to zero
     #Nin = d*(N0-N)
     #Nout = (1-remin) * ( sum(mort2*B*B) + sum(mortHTL*(m>=mHTL)*B) ) / rhoCN
@@ -144,7 +140,7 @@ calcRates = function(t,N,DOC,POM,B,p) {
     #print(NcheckSystem)
     
     return(list( 
-      dNdt=dNdt, dDOCdt=dDOCdt, dPOMdt=dPOMdt, dBdt=dBdt, 
+      dNdt=dNdt, dDOCdt=dDOCdt, dBdt=dBdt, 
       JN=JN, JDOC=JDOC, JL=JL, JF=JF,
       JNreal=JNreal, JDOCreal=JDOCreal, JLreal=JLreal, JFreal=JFreal, 
       JNloss_piss=JNloss_piss, JNloss=JNloss, 
@@ -152,7 +148,6 @@ calcRates = function(t,N,DOC,POM,B,p) {
       Jtot=Jtot, f=f, F=F, JCtot = JCtot, JNtot=JNtot,
       mortpred=mortpred, mort=mort,
       mort2=mort2*B,
-      POMgeneration = POMgeneration,
       totKilled = sum(JFreal/epsilonF*B/m), totEaten = sum(mortpred*B), totGrowth=sum(Jmax*f*B/m)))  
   })
 }
@@ -160,30 +155,28 @@ calcRates = function(t,N,DOC,POM,B,p) {
 derivative = function(t,y,p) {
   N = y[1]
   DOC = y[2]
-  POM = y[3]
-  B = y[4:(3+p$n)]
+  B = y[3:(2+p$n)]
   
-  rates = calcRates(t,N,DOC,POM,B,p)
+  rates = calcRates(t,N,DOC,B,p)
   
   # Check. Expensive to evaluate, so commented out  
   #  if ( sum(c( is.nan(unlist(rates)), is.infinite(unlist(rates)), rates$N<0, rates$B<0))>0)
   #    browser()
   
-  return(list(c(rates$dNdt, rates$dDOCdt, rates$dPOMdt, rates$dBdt)))
+  return(list(c(rates$dNdt, rates$dDOCdt, rates$dBdt)))
 }
 
 simulate = function(p=parameters()) {
-  #out = ode(c(0.1*p$N0, p$DOC0, p$POM0, p$B0), seq(0, p$tEnd, length.out = 100), derivative, p)
-  out = cvode(seq(0, p$tEnd, length.out = p$tEnd),
-              c(0.1*p$N0, p$DOC0, p$POM0, p$B0),
-              function(t,y) derivative(t,y,p)[[1]],
+  out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+              IC = c(0.1*p$N0, p$DOC0, p$B0),
+              input_function = function(t,y) derivative(t,y,p)[[1]],
               reltolerance = 1e-4,
-              abstolerance = 1e-10+1e-4*c(0.1*p$N0, p$DOC0, p$POM0, p$B0))
+              abstolerance = 1e-10+1e-4*c(0.1*p$N0, p$DOC0, p$B0))
   
   nSave = dim(out)[1]
   # Assemble results:
   ix = seq(floor(nSave/2),nSave)
-  ixB = 5:(p$n+4)
+  ixB = 4:(p$n+3)
   
   Bmin = 0*p$m
   Bmax = 0*p$m
@@ -195,17 +188,16 @@ simulate = function(p=parameters()) {
   result = list(
     p = p,
     t = out[,1],
-    y = out[,2:(p$n+4)],
+    y = out[,2:(p$n+3)],
     
     N = mean(out[ix,2]),
     DOC = mean(out[ix,3]),
-    POM = mean(out[ix,4]),
     B = colMeans(out[ix,ixB]),
     
     Bmin = Bmin,
     Bmax = Bmax)
   
-  result = c(result, list(rates = calcRates(max(result$t), result$N, result$DOC, result$POM, result$B,p)))
+  result = c(result, list(rates = calcRates(max(result$t), result$N, result$DOC, result$B,p)))
   return(result)
 }
 
