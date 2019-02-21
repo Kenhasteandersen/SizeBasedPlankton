@@ -20,7 +20,7 @@ calcFunctions = function(param,r,N,B) {
     #
     # Loss to depth:
     #
-    prodSeq = conversion * r$POMgeneration * (1-epsilonPOM)
+    prodSeq = 0#conversion * r$POMgeneration * (1-epsilonPOM)
     #
     # Respiration
     #
@@ -48,6 +48,19 @@ calcFunctions = function(param,r,N,B) {
       Bpico=Bpico, Bnano=Bnano, Bmicro=Bmicro
     ))
   })
+}
+#
+# Returns the trophic strategy as one of: osmoheterotroph, light or nutrient-limited
+# phototroph, mixotroph, or heterotroph.
+#
+calcStrategy = function(p,r) {
+  strategy = rep('Unknown', p$n)
+  strategy[r$JN>r$JLreal] = "Light limited"
+  strategy[r$JLreal>=r$JN] = "Nutrient limited"
+  strategy[r$JDOC > r$JL] = "Osmoheterotroph"
+  strategy[(r$JNloss>1e-5) & (r$JN<r$JF/p$rhoCN)] = "Heterotroph"
+  strategy[(r$JF/r$JL > 0.25) & !strategy=="Heterotroph"] = "Mixotroph"  
+  return(strategy)
 }
 
 
@@ -97,25 +110,20 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
             col=rgb(0.5,0.5,0.5,alpha=alpha), border=NA)
   
   # Determine limiting process:
-  ixOsmotroph = (r$JDOCreal > r$JLreal)
-  ixLlimited = ((r$JCtot < r$JNtot*p$rhoCN) & !ixOsmotroph)
-  ixHetero = (r$JNloss_piss>0)
-  ixMixo = ((r$JFreal/r$JLreal > 0.25) & !ixHetero)
-  ixMixo[is.na(ixMixo)] = 0
-  
+  strategy = calcStrategy(p,r)
+  cat(strategy)
   for (i in 1:p$n) {
-    col = colN
-    if (ixOsmotroph[i])
-      col = colOsmo  
-    if (ixHetero[i])
+    if (strategy[i]=="Heterotroph")
       col = colHetero
-    if (ixMixo[i])
+    if (strategy[i]=="Mixotroph")
       col = colMixo
-    if ((!ixMixo[i]) & !ixHetero[i] & ixLlimited[i])
+    if (strategy[i]=="Light limited")
       col = colPhoto
-    
-    #if ((!ixPhototroph[i]) & ixMixo[i])
-    #  col = colMixo
+    if (strategy[i]=="Nutrient limited")
+      col = colN
+    if (strategy[i]=="Osmoheterotroph")
+      col = colOsmo
+  
     polygon(m[i]*c(1/fac,fac,fac,1/fac), c(0.5*ylim[1], 0.5*ylim[1], 2*ylim[2], 2*ylim[2]),
             col=col,
             lty=0)
@@ -183,20 +191,21 @@ plotRates = function(sim, t=max(sim$t)) {
   #
   # Gains
   #
-  lines(p$m, p$Jmax/p$m*r$f, lwd=10, type="l", col="black")# log="x", xlim=range(p$m),
+  lines(p$m, r$Jtot/p$m, lwd=10, type="l", col="black")# log="x", xlim=range(p$m),
   lines(p$m, p$Jmax/p$m, lty=3)
   
   #lines(mm, p$AL*mm^(2/3)*input$L/mm, lty=3, lwd=1, col="green")
-  lines(p$m, p$ALm*p$L/p$m, lty=3, lwd=1, col="green")
+  #JLreal = r$Jtot - r$JF+p$Jresp-r$JDOC
+  lines(p$m, p$ALm*p$L/p$m, lty=dotted, lwd=1, col="green")
   lines(p$m, r$JLreal/p$m, lwd=4, col="green")
   
   lines(mm, p$AN*mm^(1/3)*p$rhoCN*sim$N/mm, lwd=1, lty=3, col="blue")
-  lines(p$m, r$JNreal/p$m*p$rhoCN, lwd=4, col="blue")
+  lines(p$m, r$JN/p$m*p$rhoCN, lwd=4, col="blue")
   
   lines(mm, p$AN*mm^(1/3)*sim$DOC/mm, lwd=1, lty=3, col="brown")
-  lines(p$m, r$JDOCreal/p$m, lwd=4, col="brown")
+  lines(p$m, r$JDOC/p$m, lwd=4, col="brown")
   
-  lines(p$m, r$JFreal/p$m,lwd=4,col="red")
+  lines(p$m, r$JF/p$m,lwd=4,col="red")
   
   legend(x="topright", cex=cex,
          legend=c("Gains:","Light harvesting","Nutrient uptake","DOC uptake","Food consumption","Division rate"),
@@ -204,7 +213,7 @@ plotRates = function(sim, t=max(sim$t)) {
          lwd=c(0,4,4,4,4,4),
          bty="n")
   #
-  # Mortality losses
+  # Losses
   #
   polygon(c(1e-9,10,10,1e-9), c(-1.5,-1.5,0,0), 
           col=rgb(1,0,0,alpha=0.25), border=NA)
@@ -215,6 +224,7 @@ plotRates = function(sim, t=max(sim$t)) {
   lines(p$m, -sim$rates$mortpred, col="red", lwd=4)
   lines(p$m[p$m>=p$mHTL], -p$mortHTL*sign(p$m[p$m>p$mHTL]), col="magenta", lwd=4)
   lines(p$m, -sim$rates$mort2, col="orange", lwd=4)
+  lines(p$m, -p$Jresp/p$m, col="grey", lwd=4)
   
   BSheldon =exp(mean(log(sim$B)))
   delta = (p$m[2]-p$m[1]) / sqrt(p$m[2]*p$m[1])
@@ -222,9 +232,9 @@ plotRates = function(sim, t=max(sim$t)) {
   lines(range(p$m), -mortPredTheoretical*c(1,1), lty=dotted, col="red")
   
   legend(x="bottomright", cex=cex,
-         legend=c("Losses:", "Predation", "Virulysis", "Higher trophic levels"),
-         col=c(NA,"red", "orange", "magenta"),
-         lwd=c(0,4,4,4), bty="n")
+         legend=c("Losses:", "Predation", "Virulysis", "Higher trophic levels","Respiration"),
+         col=c(NA,"red", "orange", "magenta","grey"),
+         lwd=c(0,4,4,4,4), bty="n")
   
   lines(p$m, 0*p$m, col="white", lwd=4)
   lines(p$m, 0*p$m, lty=dashed, lwd=2)
@@ -254,10 +264,10 @@ plotLeaks = function(sim, t=max(sim$t)) {
                 xlab="Carbon mass ($\\mu$gC)",
                 ylab="Loss rates (1/day)")
   
-  lines(m, r$JNloss_piss*p$rhoCN/m, col="blue", lwd=4)
+  lines(m, (r$JNloss*p$rhoCN-r$Jloss_feeding)/m, col="blue", lwd=4)
   #lines(m, (r$JNloss-r$JNloss_piss)/m, col="blue", lwd=3, lty=dashed)
-  lines(m, r$JCloss_feeding/m, col="red", lwd=4)
-  lines(m, (r$JCloss-r$JCloss_feeding)/m, col="green", lwd=4)
+  lines(m, r$Jloss_feeding/m, col="red", lwd=4)
+  lines(m, (r$JCloss-r$Jloss_feeding)/m, col="green", lwd=4)
   
   legend(x="topright", cex=cex,
          legend=c("Leaks:","N exudation", "C exudation", "N+C sloppy feeding"),

@@ -47,7 +47,7 @@ parameters <- function() {
   #
   # Metabolism:
   #
-  p$alphaJ = 1
+  p$alphaJ = 1.5
   p$Jmax = p$alphaJ * p$m * (1-nu) # mugC/day
   p$cR = 0.1
   p$Jresp = p$cR*p$Jmax
@@ -59,8 +59,7 @@ parameters <- function() {
   p$mortHTL = 0.2
   p$mHTL = max(p$m)/p$beta # Bins affecte by HTL mortality
   
-  p$dPOM = 10 # Loss rate of POM
-  p$epsilonPOM = 0.5 # fraction of mortality losses reminerilized to N and DOC
+  p$remin = 0.0 # fraction of mortality losses reminerilized to N and DOC
   #
   # Biogeochemical model:
   #
@@ -87,6 +86,73 @@ phi = function(z, beta, sigma)
   exp( -(log(z/beta))^2/(2*sigma^2) )
 
 calcRates = function(t,N,DOC,B,p) {
+  with(p, {
+    B = pmax(0,B)
+    #
+    # Uptakes
+    #
+    JN =   Jmax * ANm*N / (Jmax + ANm*N) # Diffusive nutrient uptake
+    
+    JDOC = Jmax * ANm*DOC / (Jmax + ANm*DOC) # Diffusive DOC uptake
+    
+    LL = L*(1+amplitudeL*(-cos(t*2*pi/365)))
+    JL =   epsilonL * Jmax * ALm*LL / (Jmax + ALm*LL)  # Photoharvesting
+    
+    F = theta %*% B
+    JF = epsilonF * Jmax * AFm*F / (Jmax + AFm*F)        # Feeding
+    
+    JCtot = JL+JF-Jresp+JDOC # Total carbon intake
+    JNtot = JN+JF/rhoCN # In units of N
+    Jtot = pmin( JCtot, JNtot*rhoCN )  # Liebigs law; units of C
+    
+    JLreal = Jtot - JF+p$Jresp-JDOC
+    # 
+    # Losses:
+    #
+    Jloss_feeding = (1-epsilonF)/epsilonF*JF # Incomplete feeding (units of carbon per time)
+    JNlossLiebig = pmax(0, JNtot*rhoCN-JCtot)/rhoCN  # N losses from Liebig
+    JClossLiebig = pmax(0, JF-Jresp+JDOC-JNtot*rhoCN) # C losses from Liebig, not counting losses from photoharvesting
+    #JClossLiebig = pmin(JClossLiebig, JDOC) # However, light surplus is not leaked but is downregulated
+
+    JNloss = Jloss_feeding/rhoCN + JNlossLiebig
+    JCloss = Jloss_feeding + JClossLiebig + (1-epsilonL)/epsilonL*JL
+    
+    if (sum(c(JNloss,JCloss,B)<0))
+      browser()
+    #
+    # Mortality:
+    #
+    mortpred =  t(theta) %*% (JF/epsilonF*B/m/F)
+    #
+    # System:
+    #
+    dBdt = (Jtot/m  - (mort+ mortpred + mort2*B + mortHTL*(m>=mHTL)))*B
+    mortloss = sum(B*(mort + mort2*B + mortHTL*(m>=mHTL)))
+    dNdt   =  d/M*(N0-N)  - sum(JN*B/m)   + sum(JNloss*B/m) + remin*mortloss/rhoCN
+    dDOCdt =  d/M*(0-DOC) - sum(JDOC*B/m) + sum(JCloss*B/m) + remin*mortloss
+    
+    # Check of nutrient conservation; should be close to zero
+    #Nin = d*(N0-N)/M
+    #Nout = (1-remin) * mortloss / rhoCN
+    #NcheckSystem = Nin - Nout - sum(dBdt)/rhoCN - dNdt
+    #print(NcheckSystem)
+    
+    return(list( 
+      dNdt=dNdt, dDOCdt=dDOCdt, dBdt=dBdt, 
+      JN=JN, JDOC=JDOC, JL=JL, JF=JF,
+      JLreal = JLreal,
+      JNlossLiebig=JNlossLiebig, JClossLiebig=JClossLiebig,
+      Jloss_feeding=Jloss_feeding, JCloss=JCloss, JNloss=JNloss,
+      Jtot=Jtot, F=F, JCtot = JCtot, JNtot=JNtot,
+      mortpred=mortpred, mort=mort,
+      mort2=mort2*B,
+      totKilled = sum(JF/epsilonF*B/m), totEaten = sum(mortpred*B), totGrowth=sum(Jtot*B/m)))  
+  })
+}
+#
+# Version 1. Heuristic down-regulation; first of feeding,
+#
+calcRatesOld = function(t,N,DOC,B,p) {
   with(p, {
     #
     # Potential uptakes:
@@ -170,8 +236,8 @@ simulate = function(p=parameters()) {
   out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
               IC = c(0.1*p$N0, p$DOC0, p$B0),
               input_function = function(t,y) derivative(t,y,p)[[1]],
-              reltolerance = 1e-4,
-              abstolerance = 1e-10+1e-4*c(0.1*p$N0, p$DOC0, p$B0))
+              reltolerance = 1e-6,
+              abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
   
   nSave = dim(out)[1]
   # Assemble results:
