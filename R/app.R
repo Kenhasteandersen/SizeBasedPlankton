@@ -34,6 +34,13 @@ ui <- fluidPage(
                   step=1,
                   value = parameters()$L)
       ,
+      sliderInput("d",
+                  "Mixing rate (1/day)",
+                  min = 0,
+                  max = .1,
+                  step = 0.0025,
+                  value = parameters()$d)
+      ,
       sliderInput("amplitudeL",
                   "Seasonal variation (experimental)",
                   min = 0,
@@ -47,13 +54,6 @@ ui <- fluidPage(
       #            max = 200,
       #            step = 0.1,
       #            value = 14)
-      sliderInput("d",
-                  "Exchange rate (m/day)",
-                  min = 0,
-                  max = 1,
-                  step = 0.025,
-                  value = parameters()$d)
-      ,
       sliderInput("M",
                   "Thickness of productive layer (m)",
                   min = 0,
@@ -69,18 +69,18 @@ ui <- fluidPage(
                   value = parameters()$mortHTL)
       ,
       sliderInput("mort2",
-                  "Quadratic mortality coef. (1/day/mugC)",
+                  "Quadratic mortality coef. (virulysis; 1/day/mugC)",
                   min = 0,
                   max = 0.001,
                   step = 0.00001,
                   value = 0.0002)
-      #,
-      #sliderInput("AF",
-      #             "AF (mugC^(1/3)/(W/m^2)^(-1)/d",
-      #             min = 0,
-      #             max = 0.02,
-      #             value = 0.006,
-      #             step = 0.001)
+      ,
+      sliderInput("epsilon_r",
+                   "Remineralisation of virulysis and HTL losses",
+                   min = 0,
+                   max = 1,
+                   value = 0,
+                   step = 0.1)
       
     ),
     #
@@ -120,6 +120,7 @@ server <- function(input, output) {
     input$M
     input$mort2
     input$mortHTL
+    input$epsilon_r
   },
   {
     # get all base parameters
@@ -131,6 +132,7 @@ server <- function(input, output) {
     p$mort2 = input$mort2*p$n
     p$mortHTL = input$mortHTL
     p$M = input$M
+    p$remin = input$epsilon_r
 
     if (p$amplitudeL>0)
       p$tEnd = 2*365

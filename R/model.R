@@ -63,7 +63,7 @@ parameters <- function() {
   #
   # Biogeochemical model:
   #
-  p$d = 0.5  # diffusion rate, m/day
+  p$d = 0.05  # diffusion rate, m/day
   p$M = 30   # Thickness of the mixed layer, m
   p$N0 = 150 # Deep nutrient levels
   #
@@ -91,9 +91,9 @@ calcRates = function(t,N,DOC,B,p) {
     #
     # Uptakes
     #
-    JN =   Jmax * ANm*N / (Jmax + ANm*N) # Diffusive nutrient uptake
-    
-    JDOC = Jmax * ANm*DOC / (Jmax + ANm*DOC) # Diffusive DOC uptake
+    JN =   Jmax/p$rhoCN * ANm*N / (Jmax/p$rhoCN + ANm*N) # Diffusive nutrient uptake
+                                                        # in units of N/time
+    JDOC = Jmax * ANm*DOC / (Jmax + ANm*DOC) # Diffusive DOC uptake, units of C/time
     
     LL = L*(1+amplitudeL*(-cos(t*2*pi/365)))
     JL =   epsilonL * Jmax * ALm*LL / (Jmax + ALm*LL)  # Photoharvesting
@@ -115,10 +115,10 @@ calcRates = function(t,N,DOC,B,p) {
     #JClossLiebig = pmin(JClossLiebig, JDOC) # However, light surplus is not leaked but is downregulated
 
     JNloss = Jloss_feeding/rhoCN + JNlossLiebig
-    JCloss = Jloss_feeding + JClossLiebig + (1-epsilonL)/epsilonL*JL
+    JCloss = Jloss_feeding + JClossLiebig + (1-epsilonL)/epsilonL*JLreal
     
-    if (sum(c(JNloss,JCloss,B)<0))
-      browser()
+    #if (sum(c(JNloss,JCloss,B)<0))
+    #  browser()
     #
     # Mortality:
     #
@@ -126,16 +126,23 @@ calcRates = function(t,N,DOC,B,p) {
     #
     # System:
     #
+    
+    #dSeason = function(t,dmax) 
+    #  0.5*(1+tanh(8*(2-t/365*2*pi))) + 0.5*(1 - tanh(2*(5-t/365*2*pi)))
+    #d = d + dSeason(t,1)
+    
     dBdt = (Jtot/m  - (mort+ mortpred + mort2*B + mortHTL*(m>=mHTL)))*B
-    mortloss = sum(B*(mort + mort2*B + mortHTL*(m>=mHTL)))
-    dNdt   =  d/M*(N0-N)  - sum(JN*B/m)   + sum(JNloss*B/m) + remin*mortloss/rhoCN
-    dDOCdt =  d/M*(0-DOC) - sum(JDOC*B/m) + sum(JCloss*B/m) + remin*mortloss
+    mortloss = sum(B*(mort2*B + mortHTL*(m>=mHTL)))
+    dNdt   =  d*(N0-N)  - sum(JN*B/m)   + sum(JNloss*B/m) + remin*mortloss/rhoCN
+    dDOCdt =  d*(0-DOC) - sum(JDOC*B/m) + sum(JCloss*B/m) + remin*mortloss
     
     # Check of nutrient conservation; should be close to zero
-    #Nin = d*(N0-N)/M
+    #Nin = d*(N0-N)
     #Nout = (1-remin) * mortloss / rhoCN
     #NcheckSystem = Nin - Nout - sum(dBdt)/rhoCN - dNdt
     #print(NcheckSystem)
+    
+    #print(sum(JF/epsilonF*B/m) - sum(mortpred*B))
     
     return(list( 
       dNdt=dNdt, dDOCdt=dDOCdt, dBdt=dBdt, 
@@ -196,8 +203,8 @@ calcRatesOld = function(t,N,DOC,B,p) {
     # System:
     #
     dBdt = (Jmax*f/m  - (mort + mortpred + mort2*B + mortHTL*(m>=mHTL)))*B
-    dNdt   =  d/M*(N0-N) - sum(JNreal*B/m)   + sum(JNloss*B/m)
-    dDOCdt =           - sum(JDOCreal*B/m) + sum(JCloss*B/m)
+    dNdt   =  d*(N0-N)  - sum(JNreal*B/m)   + sum(JNloss*B/m)
+    dDOCdt =  d*(0-DOC) - sum(JDOCreal*B/m) + sum(JCloss*B/m)
 
     # Check of nutrient conservation; should be close to zero
     #Nin = d*(N0-N)

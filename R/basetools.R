@@ -120,8 +120,10 @@ defaultpanel <- function(xlim, ylim,
        ylim=range(ylim[!is.na(ylim)]), 
        xlim=range(xlim[!is.na(xlim)]), axes=FALSE, xlab='', ylab='', par(new=new),
        bty=bty, xaxs=xaxs)
-  mtext(side=bottom, line=1, TeX(xlab), cex=par()$cex)
-  mtext(side=left, line=1, TeX(ylab), cex=par()$cex)
+  if (xaxis)
+    mtext(side=bottom, line=1, TeX(xlab), cex=par()$cex)
+  if (yaxis)
+    mtext(side=left, line=1, TeX(ylab), cex=par()$cex)
   if (label) 
     makepanellabel()
   if (xaxis)
@@ -143,8 +145,10 @@ semilogxpanel <- function(xlim, ylim, xlab='', ylab='',
        xlim=xlim, axes=FALSE, xlab='',ylab='', xaxs=xaxs, par(new=new),
        xaxs="i", yaxs="i")
 
-  mtext(side=bottom, line=1, TeX(xlab))
-  mtext(side=left, line=1, TeX(ylab))
+  if (xaxis)
+    mtext(side=bottom, line=1, TeX(xlab))
+  if (yaxis)
+    mtext(side=left, line=1, TeX(ylab))
   if (label) 
     makepanellabel()
 #  if (xaxis)
@@ -162,13 +166,15 @@ semilogypanel <- function(xlim, ylim, xlab='', ylab='',
        ylim=range(ylim[!is.na(ylim)]), 
        xlim=range(xlim[!is.na(xlim)]), axes=FALSE, xlab='',ylab='',yaxs="i",
        bty=bty)
-  mtext(side=bottom, line=1, TeX(xlab))
-  mtext(side=left, line=1.5, TeX(ylab))
+  if (xaxis)
+    mtext(side=bottom, line=1, TeX(xlab))
+  if (yaxis) 
+    mtext(side=left, line=1.5, TeX(ylab))
   if (label) 
     makepanellabel()
   if (xaxis)
     axis(bottom, labels=xaxis, lwd=axis.lwd, lwd.ticks=axis.lwd)
-  logaxes(left, lim=ylim, labels=yaxis)
+  logaxes(left, lim=ylim, labels=yaxis, drawaxis=yaxis)
   if (bty=="o")
     box(lwd=axis.lwd)
 }
@@ -196,13 +202,13 @@ loglogpanel <- function(xlim, ylim, xlab='', ylab='',
 ## labels: logical, if TRUE, adds them
 ## las: integer in [0,1,2,3] see ?par
 logaxes <- function(side = bottom, 
-                    lim, pow = NA,
+                    lim, pow = NA, drawaxis=TRUE,
                     labels=TRUE, las = 1, col = 1, bExponential=TRUE) {
   poww <- pow
   if (is.na(pow[1]))
     poww = ceiling(min(log10(lim))):floor(max(log10(lim)))
   
-  axis(side, at = 10^poww, lwd=0, labels = FALSE, tcl=ticklength, lwd.ticks = axis.lwd, col = col)
+  #axis(side, at = 10^poww, lwd=0, labels = FALSE, tcl=ticklength, lwd.ticks = axis.lwd, col = col)
 
   if (labels) 
     axis(side, at = 10^poww, lwd=0, labels = FALSE, tcl=-0., lwd.ticks = axis.lwd)
@@ -223,7 +229,7 @@ logaxes <- function(side = bottom,
     }
   }
   # Minor ticks:
-  if (is.na(pow[1])) {
+  if ((is.na(pow[1])) & drawaxis) {
     at <- as.vector(sapply(seq(range(poww)[1]-1, range(poww)[2]), function(p) (2:9)*10^p))
     axis(side, at = at, labels = FALSE, tcl=0.5*ticklength, lwd=0, lwd.ticks=axis.lwd, col = col)
   }

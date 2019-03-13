@@ -1,5 +1,8 @@
 require(latex2exp)
+require(lattice)
 source("basetools.R")
+source("model.R")
+source("plots.R")
 
 # ===================================================
 # Plots for documentation
@@ -115,9 +118,16 @@ plotAL = function() {
   lines(C, AL_diatoms * C^(2/3), col="red", lty=dotted)
   lines(C, AL_no_diatoms * C^(2/3), col="blue", lty=dotted)
   
+  # Camila's parameters:
+  cL=0.08733
+  AL=0.004864  
+  lines(C, cL*C * AL*C^(2/3) / ( cL*C + AL*C^(2/3) ) , col="orange")
+  
   legend(x="bottomright", bty="n",
-         legend=c("Diatoms", "Other phototrophs"),
-         pch=16, col=c("red","Blue"))
+         legend=c("Diatoms", "Other phototrophs", "Camila"),
+         pch=c(16,16,NA),
+         lwd=c(0,0,2),
+         col=c("red","Blue","Orange"))
 }
 
 plotALvolume = function() {
@@ -263,7 +273,19 @@ plotMumax = function() {
   lines(C, exp(predict(fit_no_diatoms, list(C=C))), lwd=2, col="blue")
   
   m = 10^seq(-9,1,length.out = 100)
-  lines(m, parameters()$alphaJ*(1-parameters()$c * m^(-1/3)), lwd=2)
+  lines(m, parameters()$alphaJ*(1-parameters()$c * m^(-1/3)), lwd=1)
+  lines(m, parameters()$alphaJ*(1-parameters()$c * m^(-1/3)) - parameters()$cR, lwd=2)
+  
+  
+  # Camila
+  lines(C, 0.12*C^-0.25, col="orange", lwd=1)
+  lines(C, (0.12-0.03)*C^-0.25, col="orange", lwd=2)
+  
+  legend(x="bottomleft", bty="n",
+                  legend=c("Diatoms","Others","Used in model", "Camila"),
+                  lty=solid,
+                  lwd=2,
+                  col=c("red","blue","black","orange"))
 }
 
 plotMuAlphaCorrelation = function() {
@@ -328,6 +350,12 @@ plotAF = function() {
               xlab = "Mass ($\\mu$gC)", ylab="Clearance rate $\\textit{A_F}$ (l/d)")
   points(data$w[ixProtist], data$beta[ixProtist])
   lines(data$w[ixProtist], SpecificBeta*data$w[ixProtist], lwd=2)
+  
+  # Camila
+  C = range(data$w[ixProtist])
+  lines(C, 0.018*C, col="orange")
+  
+  
 }
 
 plotAN = function() {
@@ -385,14 +413,17 @@ plotAN = function() {
   alphaN_Ward2018 = 1.1 * 1000 / 1000 / 12 # convert from m3->liter, from mmol->umol, from mol->g 
   lines(convertVolume2Mass(V), alphaN_Ward2018*V^-0.35*convertVolume2Mass(V), col="blue", lty=dashed)
   
+  # Camila's parameters:
+  lines(C, 3.75e-5*C^(1/3), col="orange")
+  
   #alphaN_Banas2011 = 2.6/0.1 / 14 / 6 # convert from uM N-> ugN, from gN->gC
   #lines(m , alphaN_Banas2011*m^(1-0.45), col="blue", lty=dashdotted)
   
   legend(x="topleft", bty="n",
-         legend=c("Fit","Theoretical limit","Ward et al (2018)"),
-         lty=c(solid,dotted,dashed),
-         lwd=c(2,1,1),
-         col=c("black","black","blue"))
+         legend=c("Fit","Theoretical limit","Ward et al (2018)", "Camila"),
+         lty=c(solid,dotted,dashed,solid),
+         lwd=c(2,1,1,1),
+         col=c("black","black","blue","orange"))
   
   #r = (3*dat$volume/(4*pi))^(1/3) # mu m
   #m = 0.3e-6*(2*r)^3
@@ -450,9 +481,9 @@ plotSimulationExamples = function() {
   # Oligotrophic
   #
   p = parameters()
-  p$d = 0.025
+  p$d = 0.0025
   p$L = 40
-  p$mortHTL = 0.05
+  p$mortHTL = 0.03
   
   sim = simulate(p)
   pdfplot("../spectrum1.pdf",FUN=plotSpectrum, sim=sim, width=doublewidth, height=1.5*height)
@@ -461,9 +492,9 @@ plotSimulationExamples = function() {
   # Eutrophic
   #
   p = parameters()
-  p$d = 0.5
-  p$L = 18
-  p$mortHTL = 0.18
+  p$d = 0.08
+  p$L = 20
+  p$mortHTL = 0.1
   
   sim = simulate(p)
   pdfplot("../spectrum2.pdf",FUN=plotSpectrum, sim=sim, width=doublewidth, height=1.5*height)
@@ -476,7 +507,7 @@ plotVaryLightAndDiffusion = function() {
   library(latticeExtra)
   library(reshape)
   
-  d = seq(0.02,2,length.out=10) #10^seq(-2,log10(2),length.out = 10)
+  d = seq(0.002,.2,length.out=10) #10^seq(-2,log10(2),length.out = 10)
   L = seq(1,70,length.out=10)
   #
   # Simulations
@@ -528,8 +559,8 @@ plotVaryLightAndDiffusion = function() {
 
 plotFunctions = function(L=c(20,50), n=10) {
   
-  panelsFunctions = function(L=c(18,40), n=10) {
-    d = 10^seq(-2,log10(2),length.out = n) #seq(0.02,2,length.out=n) #
+  panelsFunctions = function(L=c(18,40), n=10, yaxis=TRUE) {
+    d = 10^seq(-3,log10(.2),length.out = n) #seq(0.02,2,length.out=n) #
     
     p = parameters()
     p$L = L
@@ -548,23 +579,23 @@ plotFunctions = function(L=c(20,50), n=10) {
     
     # Biomass
     B = F$Bpico+F$Bnano+F$Bmicro
-    defaultpanel(xlim=d, ylim=c(0,0.15), xaxis=FALSE, bty="l",
-                 ylab="Biomass")
+    defaultpanel(xlim=d, ylim=c(0,0.15), xaxis=FALSE, yaxis=yaxis, bty="l",
+                 ylab="Biomass ($\\mu$gC/l)")
     lines(F$d, B, lwd=2)
     
     # N
-    semilogypanel(xlim=d, ylim=c(0.001,150), xaxis=FALSE, bty="l",
-                  ylab="N")
-    lines(F$d, F$N, lwd=2)
+    semilogypanel(xlim=d, ylim=c(0.0001,10), xaxis=FALSE, yaxis=yaxis, bty="l",
+                  ylab="N ($\\mu$mol N/l)")
+    lines(F$d, F$N/14, lwd=2)
     
     #DOC
-    semilogypanel(xlim=d, ylim=c(0.01,5), xaxis=FALSE, bty="l",
-                  ylab="DOC")
-    lines(F$d, F$DOC, lwd=2)
+    semilogypanel(xlim=d, ylim=c(1,500), xaxis=FALSE, yaxis=yaxis, bty="l",
+                  ylab="DOC  ($\\mu$mol C/l)")
+    lines(F$d, 1000*F$DOC/12, lwd=2)
     
     #Production:
-    semilogypanel(xlim=d, ylim=c(0.1,10), xaxis=FALSE, bty="l",
-                  ylab="Prod.")
+    semilogypanel(xlim=d, ylim=c(1,2000), xaxis=FALSE, yaxis=yaxis, bty="l",
+                  ylab="Prod. (gC/m$^2$/yr)")
     lines(F$d, F$prodCgross)
     lines(F$d, F$prodCnet, col="blue")
     lines(F$d, F$prodNew, col="green")
@@ -573,12 +604,13 @@ plotFunctions = function(L=c(20,50), n=10) {
     # Eff
     defaultpanel(xlim=d, ylim=c(0,1), bty="l",
                  ylab="$\\epsilon_{HTL}$",
-                 xlab="Exchange rate (day$^{-1}$)")
+                 xlab="Exchange rate (day$^{-1}$)",
+                 yaxis=yaxis)
     lines(F$d, F$effHTL, lwd=2)
   }
   
   defaultplotvertical(mfcol=c(5,2))
   
-  panelsFunctions(L=L[1])
-  panelsFunctions(L=L[2])
+  panelsFunctions(L=L[1],n=20)
+  panelsFunctions(L=L[2], yaxis=FALSE,n=20)
 }

@@ -3,16 +3,16 @@ source("model.R")
 
 calcFunctions = function(param,r,N,B) {
   with(param, {
-    conversion = 365*M/10*100*1e-6 # Convert to gC/yr/m2
+    conversion  = 365*M*1e-6*1000 # Convert to gC/yr/m2
     #
     # New production calculated as the flux of nitrogen into the system. Units of carbon:
     #
-    prodNew = conversion * d*(N0-N)/M * rhoCN  
+    prodNew = conversion * d*(N0-N) * rhoCN  
     #
     # Primary production (carbon fixed)
     #
     prodCgross = conversion * sum(r$JLreal*B/m)/epsilonL
-    prodCnet = conversion * sum(r$JLreal*B/m)
+    prodCnet = conversion * sum( (r$JLreal-Jresp)*B/m )
     #
     # Loss to HTL:
     #
@@ -55,8 +55,8 @@ calcFunctions = function(param,r,N,B) {
 #
 calcStrategy = function(p,r) {
   strategy = rep('Unknown', p$n)
-  strategy[r$JN>r$JLreal] = "Light limited"
-  strategy[r$JLreal>=r$JN] = "Nutrient limited"
+  strategy[r$JN*p$rhoCN>r$JL] = "Light limited"
+  strategy[r$JL>=r$JN*p$rhoCN] = "Nutrient limited"
   strategy[r$JDOC > r$JL] = "Osmoheterotroph"
   strategy[(r$JNloss>1e-5) & (r$JN<r$JF/p$rhoCN)] = "Heterotroph"
   strategy[(r$JF/r$JL > 0.25) & !strategy=="Heterotroph"] = "Mixotroph"  
@@ -89,10 +89,10 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
     DOC = sim$DOC
     r = sim$rates
   } else {
-    B = sim$y[ixt, 4:(p$n+3)]
+    B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
-    r = calcRates(t, N, DOC, 0, B, p)
+    r = calcRates(t, N, DOC, B, p)
   }
   
   defaultplot(mar=c(2.1,2.3,2.1,0))
@@ -111,7 +111,6 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   
   # Determine limiting process:
   strategy = calcStrategy(p,r)
-  cat(strategy)
   for (i in 1:p$n) {
     if (strategy[i]=="Heterotroph")
       col = colHetero
@@ -177,10 +176,10 @@ plotRates = function(sim, t=max(sim$t)) {
     r = sim$rates
   } else {
     L = p$L*0.5*(1+p$amplitudeL*(-cos(t*2*pi/365))) 
-    B = sim$y[ixt, 4:(p$n+3)]
+    B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
-    r = calcRates(t, N, DOC, 0, B, p)
+    r = calcRates(t, N, DOC, B, p)
   }
   
   defaultplot()
@@ -219,7 +218,7 @@ plotRates = function(sim, t=max(sim$t)) {
           col=rgb(1,0,0,alpha=0.25), border=NA)
   
   mortHTL = p$mortHTL*(p$m>p$mHTL)
-  
+  JNexude = r$JNloss 
   lines(p$m, -(sim$rates$mortpred + mortHTL + sim$rates$mort2 + p$mort), lwd=10)
   lines(p$m, -sim$rates$mortpred, col="red", lwd=4)
   lines(p$m[p$m>=p$mHTL], -p$mortHTL*sign(p$m[p$m>p$mHTL]), col="magenta", lwd=4)
@@ -253,10 +252,10 @@ plotLeaks = function(sim, t=max(sim$t)) {
     r = sim$rates
   } else {
     L = p$L*0.5*(1+p$amplitudeL*(-cos(t*2*pi/365))) 
-    B = sim$y[ixt, 4:(p$n+3)]
+    B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
-    r = calcRates(t, N, DOC, 0, B, p)
+    r = calcRates(t, N, DOC, B, p)
   }
   
   defaultplot()
@@ -287,10 +286,10 @@ plotComplexRates = function(sim, t=max(sim$t)) {
     r = sim$rates
   } else {
     L = p$L*0.5*(1+p$amplitudeL*(-cos(t*2*pi/365))) 
-    B = sim$y[ixt, 4:(p$n+3)]
+    B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
-    r = calcRates(t, N, DOC, 0, B, p)
+    r = calcRates(t, N, DOC, B, p)
   }
   
   par(cex.axis=cex,
@@ -321,7 +320,7 @@ plotComplexRates = function(sim, t=max(sim$t)) {
          lwd=c(3,3,3,1,1,2,1,1,1,1,1,1))
 }
 
-plotTimeline = function(sim, t=max(sim$t)) {
+plotTimeline = function(sim, time=max(sim$t)) {
   p = sim$p
   t = sim$t
   
@@ -340,24 +339,43 @@ plotTimeline = function(sim, t=max(sim$t)) {
     t = 365+t-max(t)
   }
   
-  plot(t, y[,2], log="y", type="l", col="magenta", 
+  plot(t, y[,1], log="y", type="l", col="blue", 
        ylim=ylim, xlim=xlim, lwd=2,
        xlab="Time (day)", ylab=TeX("Biomass ($\\mu$gC/l)"))
-  lines(t, y[,1], col="blue", lwd=2)
-  lines(t, y[,3], col="orange", lwd=2)
+  lines(t, y[,2], col="magenta", lwd=2)
+  #lines(t, y[,3], col="orange", lwd=2)
   for (i in 1:p$n)
-    lines(t, y[,i+3], lwd=i/p$n*3, col="black")
+    lines(t, y[,i+2], lwd=i/p$n*3, col="black")
   
   if (p$amplitudeL>0) {
-    lines(t*c(1,1), ylim, lty=dotted)
+    lines(time*c(1,1), ylim, lty=dotted)
     lines(t, p$L*0.5*(1+p$amplitudeL*(-cos(t*2*pi/365))),
           col="orange", lwd=2)
   }
 }
+
+plotSeasonalTimeline = function(sim) {
+  p = sim$p
+  ix = sim$t>max(sim$t-365)
+  t = sim$t[ix]
+  
+  image(
+    x=t,
+    y=log10(p$m),
+    z=(log10(sim$y[ix,3:(p$n+2)])),
+    #log="y", 
+    #ylim=range(p$m),
+    xlab = "Time (days)",
+    ylab = TeX("Carbon mass ($\\mu$gC)"),
+    las = "1",
+    xaxs="i", yaxs="i"
+  )
+}
+
 #
 # Plot functions:
 #
-plotFunctions <- function(sim) {
+s=plotFunctions <- function(sim) {
   func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
   par(mar=c(5,12,4,2))
   barplot(height=c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL),
