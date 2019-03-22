@@ -83,7 +83,7 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   fac = sqrt(m[2]/m[1])
   
   ixt = which(floor(sim$t)==t+365)[1]
-  if (p$amplitudeL==0) {
+  if (p$latitude==0) {
     B = sim$B
     N = sim$N
     DOC = sim$DOC
@@ -105,7 +105,7 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   #
   # Add gray-scale variation
   #
-  if (p$amplitudeL==0)
+  if (p$latitude==0)
     polygon(c(m, m[seq(p$n,1,by = -1)]), c(sim$Bmin, sim$Bmax[seq(p$n,1,by = -1)]), 
             col=rgb(0.5,0.5,0.5,alpha=alpha), border=NA)
   
@@ -168,14 +168,14 @@ plotRates = function(sim, t=max(sim$t)) {
   mm = 10^seq(-8,2, length.out = 100)  
   
   ixt = which(floor(sim$t)==t+365)[1]
-  if (p$amplitudeL==0) {
+  if (p$latitude==0) {
     L = p$L
     B = sim$B
     N = sim$N
     DOC = sim$DOC
     r = sim$rates
   } else {
-    L = p$L*0.5*(1+p$amplitudeL*(-cos(t*2*pi/365))) 
+    L = SeasonalLight(p,t)
     B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
@@ -195,10 +195,12 @@ plotRates = function(sim, t=max(sim$t)) {
   
   #lines(mm, p$AL*mm^(2/3)*input$L/mm, lty=3, lwd=1, col="green")
   #JLreal = r$Jtot - r$JF+p$Jresp-r$JDOC
-  lines(p$m, p$ALm*p$L/p$m, lty=dotted, lwd=1, col="green")
+  #lines(p$m, p$ALm*p$L/p$m, lty=dotted, lwd=1, col="green")
+  lines(p$m, p$epsilonL*p$Jmax*p$ALm*L / (p$Jmax + p$ALm*L)/p$m , lty=dotted, lwd=1, col="green")
   lines(p$m, r$JLreal/p$m, lwd=4, col="green")
   
-  lines(mm, p$AN*mm^(1/3)*p$rhoCN*sim$N/mm, lwd=1, lty=3, col="blue")
+  #lines(mm, p$AN*mm^(1/3)*p$rhoCN*sim$N/mm, lwd=1, lty=3, col="blue")
+  lines(p$m, p$Jmax * p$ANm*N / (p$Jmax/p$rhoCN + p$ANm*N)/p$m, lwd=1, lty=3, col="blue")
   lines(p$m, r$JN/p$m*p$rhoCN, lwd=4, col="blue")
   
   lines(mm, p$AN*mm^(1/3)*sim$DOC/mm, lwd=1, lty=3, col="brown")
@@ -244,14 +246,14 @@ plotLeaks = function(sim, t=max(sim$t)) {
   
   m = p$m
   ixt = which(floor(sim$t)==t+365)[1]
-  if (p$amplitudeL==0) {
+  if (p$latitude==0) {
     L = p$L
     B = sim$B
     N = sim$N
     DOC = sim$DOC
     r = sim$rates
   } else {
-    L = p$L*0.5*(1+p$amplitudeL*(-cos(t*2*pi/365))) 
+    L = SeasonalLight(p,t)
     B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
@@ -278,14 +280,14 @@ plotComplexRates = function(sim, t=max(sim$t)) {
   p = sim$p
   
   ixt = which(floor(sim$t)==t+365)[1]
-  if (p$amplitudeL==0) {
+  if (p$latitude==0) {
     L = p$L
     B = sim$B
     N = sim$N
     DOC = sim$DOC
     r = sim$rates
   } else {
-    L = p$L*0.5*(1+p$amplitudeL*(-cos(t*2*pi/365))) 
+    L = SeasonalLight(p,t)
     B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
@@ -332,7 +334,7 @@ plotTimeline = function(sim, time=max(sim$t)) {
   y[y <= 0] = 1e-30
   
   ylim = c(max(1e-5, min(sim$y)), max(sim$y))
-  if (p$amplitudeL==0) {
+  if (p$latitude==0) {
     xlim = range(t)  
   } else {
     xlim = c(0,365)
@@ -347,28 +349,49 @@ plotTimeline = function(sim, time=max(sim$t)) {
   for (i in 1:p$n)
     lines(t, y[,i+2], lwd=i/p$n*3, col="black")
   
-  if (p$amplitudeL>0) {
+  if (p$latitude>0) {
     lines(time*c(1,1), ylim, lty=dotted)
-    lines(t, p$L*0.5*(1+p$amplitudeL*(-cos(t*2*pi/365))),
+    lines(t, SeasonalLight(p,t),
           col="orange", lwd=2)
   }
 }
 
+plotSeasonal = function(p,time) {
+  defaultplot()
+  defaultpanel(xlim=c(0,365),
+               ylim=c(0,1),
+               xlab="Time (days)",
+               ylab="d/max(d) / L/max(L)")
+
+  t = seq(0,365,length.out = 100)
+  lines(t, SeasonalExchange(p$latitude, t)/max(SeasonalExchange(p$latitude, t)),col="red", lwd=3)
+  lines(t, SeasonalLight(p, t)/p$L, col="green", lwd=3)
+  vline(x=time)
+}
+
 plotSeasonalTimeline = function(sim) {
+  require(lattice)
+  require(latticeExtra)
+  
   p = sim$p
   ix = sim$t>max(sim$t-365)
   t = sim$t[ix]
   
-  image(
-    x=t,
-    y=log10(p$m),
-    z=(log10(sim$y[ix,3:(p$n+2)])),
-    #log="y", 
-    #ylim=range(p$m),
+  B = log10(sim$y[ix,3:(p$n+2)])
+  B[B<(-1)] = -1
+  B[B>3] = 3
+  
+  levelplot(
+    B, 
+    column.values=(p$m), 
+    row.values = t, 
+    aspect="fill",
+    scales = list(y = list(log = 10)),
+    yscale.components = yscale.components.log10ticks,
     xlab = "Time (days)",
     ylab = TeX("Carbon mass ($\\mu$gC)"),
-    las = "1",
-    xaxs="i", yaxs="i"
+    col.regions = terrain.colors(100),
+    ylim=c(p$m[1]/3, max(p$m)*3)
   )
 }
 

@@ -22,7 +22,7 @@ ui <- fluidPage(
    Cell size is the only trait characterizing each plankton group.
     All groups are able to perform photoharvesting, taking up dissolve nutrients and carbon, and do phagotrophy.
     The trophic strategy is an emergent property.'),
-  p('THIS IS WORK IN PROGRESS. Version 0.6. January 2019.')
+  p('THIS IS WORK IN PROGRESS. Version 0.7. March 2019.')
   ,
   # Sidebar with a slider inputs
   sidebarLayout(
@@ -41,11 +41,11 @@ ui <- fluidPage(
                   step = 0.0025,
                   value = parameters()$d)
       ,
-      sliderInput("amplitudeL",
-                  "Seasonal variation (experimental)",
+      sliderInput("latitude",
+                  "Latitude (degrees; experimental)",
                   min = 0,
-                  max = 1,
-                  step=0.1,
+                  max = 90,
+                  step=1,
                   value = 0)
       ,
       #sliderInput("N0",
@@ -88,18 +88,24 @@ ui <- fluidPage(
     #
     mainPanel(
       conditionalPanel(
-        condition = "input.amplitudeL>0",
-        sliderInput("t",
+        condition = "input.latitude>0",
+          sliderInput("t",
                     "Time (day)",
                     min=0, 
                     max=365,
                     step=1,
                     value=120,
-                    width="600px")),
+                    width="600px"),
+          plotOutput("plotSeasonal", width="600px", height="100px")  
+        ),
       plotOutput("plotSpectrum", width="600px", height="300px"),
       plotOutput("plotRates", width="600px", height="300px"),
       plotOutput("plotLeaks", width="600px", height="200px"),
       plotOutput("plotFunction", width="600px"),
+      conditionalPanel(
+        condition="input.latitude>0",
+        plotOutput("plotSeasonalTimeline", width="600px")
+      ),
       plotOutput("plotTime", width="600px")#,
       #plotOutput("plotComplexRates", width="700px")
     )
@@ -109,13 +115,12 @@ ui <- fluidPage(
 # Define server logic
 #
 server <- function(input, output) {
-  
   #
   # Simulate the system when a parameter is changed:
   #
   sim <- eventReactive({
     input$L
-    input$amplitudeL
+    input$latitude
     input$d
     input$M
     input$mort2
@@ -127,14 +132,14 @@ server <- function(input, output) {
     p <- parameters() 
     # Update parameters with user input:
     p$L = input$L
-    p$amplitudeL = input$amplitudeL
+    p$latitude = input$latitude
     p$d = input$d
     p$mort2 = input$mort2*p$n
     p$mortHTL = input$mortHTL
     p$M = input$M
     p$remin = input$epsilon_r
 
-    if (p$amplitudeL>0)
+    if (p$latitude>0)
       p$tEnd = 2*365
     
     # Simulate
@@ -148,7 +153,9 @@ server <- function(input, output) {
   output$plotLeaks = renderPlot(plotLeaks(sim(), input$t))
   output$plotComplexRates <- renderPlot(plotComplexRates(sim(), input$t))
   output$plotTime <- renderPlot(plotTimeline(sim(), input$t))
+  output$plotSeasonalTimeline <- renderPlot(plotSeasonalTimeline(sim()))
   output$plotFunction <- renderPlot(plotFunctions(sim()))
+  output$plotSeasonal <- renderPlot(plotSeasonal(p, input$t))
 }
 
 # Run the application 

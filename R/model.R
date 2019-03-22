@@ -75,15 +75,43 @@ parameters <- function() {
   # Light:
   #
   p$L = 20  # PAR, mu E/m2/s
-  p$amplitudeL = 0 # amplitude of seasonal light variation in fractions of L
+  p$latitude = 0 # amplitude of seasonal light variation in fractions of L
   
   p$tEnd = 365 # Simulation length (days)
   
   return(p)
 }
 
-phi = function(z, beta, sigma)
+phi = function(z, beta, sigma) {
   exp( -(log(z/beta))^2/(2*sigma^2) )
+}
+#
+# Seasonal variation in exchange rate as a function of latitude (degrees)
+# and time (days)
+#
+SeasonalExchange = function(latitude, t) {
+  t = t %% 365
+  
+  dmax = 0.05*(1+tanh(0.05*(latitude-40)))
+  dsummer = 0.01
+  tspring = 180 * latitude/120
+  tautumn = 200 + 180 *(90-latitude)/90
+  widthautumn = 1
+  
+  summer = 1-0.5*(1+tanh(8*((t-tspring)/365*2*pi)))
+  winter = 1-0.5*(1 - tanh(widthautumn*((t-tautumn)/365*2*pi)))
+  spring = 1-0.5*(1 - tanh(widthautumn*(((t+365)-tautumn)/365*2*pi)))
+  summer = pmin(summer, spring)
+  
+  d = dsummer + dmax*(winter + summer)
+}
+#
+# Seasonal variation in light. Roughly taken from Evans and Parslows. 
+# M is the depth of the mixed layer.
+#
+SeasonalLight = function(p,t) {
+  p$L*exp(-0.025*p$M)*(1 - 0.8*sin(pi*p$latitude/180)*cos(2*pi*t/365))
+}
 
 calcRates = function(t,N,DOC,B,p) {
   with(p, {
@@ -95,7 +123,10 @@ calcRates = function(t,N,DOC,B,p) {
                                                         # in units of N/time
     JDOC = Jmax * ANm*DOC / (Jmax + ANm*DOC) # Diffusive DOC uptake, units of C/time
     
-    LL = L*(1+amplitudeL*(-cos(t*2*pi/365)))
+    if (p$latitude > 0)
+      LL = SeasonalLight(p,t)
+    else
+      LL = L
     JL =   epsilonL * Jmax * ALm*LL / (Jmax + ALm*LL)  # Photoharvesting
     
     F = theta %*% B
@@ -126,15 +157,16 @@ calcRates = function(t,N,DOC,B,p) {
     #
     # System:
     #
+    if (p$latitude>0)
+      diff = SeasonalExchange(p$latitude, t)
+    else
+      diff = d
     
-    #dSeason = function(t,dmax) 
-    #  0.5*(1+tanh(8*(2-t/365*2*pi))) + 0.5*(1 - tanh(2*(5-t/365*2*pi)))
-    #d = d + dSeason(t,1)
-    
-    dBdt = (Jtot/m  - (mort+ mortpred + mort2*B + mortHTL*(m>=mHTL)))*B
+    dBdt = diff*(0-B) + (Jtot/m  - (mort+ mortpred + mort2*B + mortHTL*(m>=mHTL)))*B
+    dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
     mortloss = sum(B*(mort2*B + mortHTL*(m>=mHTL)))
-    dNdt   =  d*(N0-N)  - sum(JN*B/m)   + sum(JNloss*B/m) + remin*mortloss/rhoCN
-    dDOCdt =  d*(0-DOC) - sum(JDOC*B/m) + sum(JCloss*B/m) + remin*mortloss
+    dNdt   =  diff*(N0-N)  - sum(JN*B/m)   + sum(JNloss*B/m) + remin*mortloss/rhoCN
+    dDOCdt =  diff*(0-DOC) - sum(JDOC*B/m) + sum(JCloss*B/m) + remin*mortloss
     
     # Check of nutrient conservation; should be close to zero
     #Nin = d*(N0-N)
@@ -281,3 +313,4 @@ baserun = function(p = parameters()) {
   
   return(sim)
 }
+
