@@ -12,7 +12,7 @@ parameters <- function() {
   p$m = 10^seq(-8,1,length.out = p$n)  # Mass bins in mugC
   
   p$rhoCN = 5.68 # C:N mass ratio
-  p$epsilonL = 0.9 # Light uptake efficiency
+  p$epsilonL = 0.8 # Light uptake efficiency
   p$epsilonF = 0.8 # Assimilation efficiency
   #
   # Cell wall fraction of mass:
@@ -131,22 +131,28 @@ calcRates = function(t,N,DOC,B,p) {
     
     F = theta %*% B
     JF = epsilonF * Jmax * AFm*F / (Jmax + AFm*F)        # Feeding
-    
-    JCtot = JL+JF-Jresp+JDOC # Total carbon intake
+
+    # Total nitrogen uptake:    
     JNtot = JN+JF/rhoCN # In units of N
-    Jtot = pmin( JCtot, JNtot*rhoCN )  # Liebigs law; units of C
     
-    JLreal = Jtot - JF+p$Jresp-JDOC
+    # Down-regulation of light uptake:
+    JLreal = pmin(JL, pmax(0, JNtot*rhoCN - (JF+JDOC-Jresp)))
+                     
+    JCtot = JLreal+JF+JDOC-Jresp # Total carbon untake
+
+    Jtot = pmin( JCtot, JNtot*rhoCN )  # Liebigs law; units of C
     # 
     # Losses:
     #
-    Jloss_feeding = (1-epsilonF)/epsilonF*JF # Incomplete feeding (units of carbon per time)
+    JCloss_feeding = (1-epsilonF)/epsilonF*JF # Incomplete feeding (units of carbon per time)
+    JCloss_photouptake = (1-epsilonL)/epsilonL*JLreal
     JNlossLiebig = pmax(0, JNtot*rhoCN-JCtot)/rhoCN  # N losses from Liebig
-    JClossLiebig = pmax(0, JF-Jresp+JDOC-JNtot*rhoCN) # C losses from Liebig, not counting losses from photoharvesting
+    JClossLiebig = pmax(0, JCtot-JNtot*rhoCN) # C losses from Liebig, not counting losses from photoharvesting
+    #JClossLiebig = pmax(0, Jtot - JNtot*rhoCN) # C losses from Liebig, not counting losses from photoharvesting
     #JClossLiebig = pmin(JClossLiebig, JDOC) # However, light surplus is not leaked but is downregulated
 
-    JNloss = Jloss_feeding/rhoCN + JNlossLiebig
-    JCloss = Jloss_feeding + JClossLiebig + (1-epsilonL)/epsilonL*JLreal
+    JNloss = JCloss_feeding/rhoCN + JNlossLiebig
+    JCloss = JCloss_feeding + JCloss_photouptake + JClossLiebig
     
     #if (sum(c(JNloss,JCloss,B)<0))
     #  browser()
@@ -181,7 +187,8 @@ calcRates = function(t,N,DOC,B,p) {
       JN=JN, JDOC=JDOC, JL=JL, JF=JF,
       JLreal = JLreal,
       JNlossLiebig=JNlossLiebig, JClossLiebig=JClossLiebig,
-      Jloss_feeding=Jloss_feeding, JCloss=JCloss, JNloss=JNloss,
+      JCloss_photouptake=JCloss_photouptake,
+      JCloss_feeding=JCloss_feeding, JCloss=JCloss, JNloss=JNloss,
       Jtot=Jtot, F=F, JCtot = JCtot, JNtot=JNtot,
       mortpred=mortpred, mort=mort,
       mort2=mort2*B,

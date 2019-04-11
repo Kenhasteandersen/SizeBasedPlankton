@@ -265,10 +265,10 @@ plotLeaks = function(sim, t=max(sim$t)) {
                 xlab="Carbon mass ($\\mu$gC)",
                 ylab="Loss rates (1/day)")
   
-  lines(m, (r$JNloss*p$rhoCN-r$Jloss_feeding)/m, col="blue", lwd=4)
+  lines(m, (r$JNloss*p$rhoCN-r$JCloss_feeding)/m, col="blue", lwd=4)
   #lines(m, (r$JNloss-r$JNloss_piss)/m, col="blue", lwd=3, lty=dashed)
-  lines(m, r$Jloss_feeding/m, col="red", lwd=4)
-  lines(m, (r$JCloss-r$Jloss_feeding)/m, col="green", lwd=4)
+  lines(m, r$JCloss_feeding/m, col="red", lwd=4)
+  lines(m, r$JCloss_photouptake/m, col="green", lwd=4)
   
   legend(x="topright", cex=cex,
          legend=c("Leaks:","N exudation", "C exudation", "N+C sloppy feeding"),
@@ -345,7 +345,7 @@ plotTimeline = function(sim, time=max(sim$t)) {
        ylim=ylim, xlim=xlim, lwd=2,
        xlab="Time (day)", ylab=TeX("Biomass ($\\mu$gC/l)"))
   lines(t, y[,2], col="magenta", lwd=2)
-  #lines(t, y[,3], col="orange", lwd=2)
+  lines(t, y[,3], col="orange", lwd=2)
   for (i in 1:p$n)
     lines(t, y[,i+2], lwd=i/p$n*3, col="black")
   
