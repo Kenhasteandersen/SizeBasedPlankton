@@ -17,6 +17,10 @@ source("plots.R")
 # ===================================================
 
 ui <- fluidPage(
+  tags$head(
+    tags$style(HTML("hr {border-top: 1px solid #000000;}"))
+  )
+  ,
   h1('Size-based plankton simulator'),
   p('Simulate a plankton ecosystem in the upper part of a watercolumn. 
    Cell size is the only trait characterizing each plankton group.
@@ -55,6 +59,8 @@ ui <- fluidPage(
                   step=1,
                   value = 0)
       ,
+      hr()
+      ,
       #sliderInput("N0",
       #            "Deep nutrients (mugN/l)",
       #            min = 0,
@@ -83,90 +89,105 @@ ui <- fluidPage(
                   value = 0.0002)
       ,
       sliderInput("epsilon_r",
-                   "Remineralisation of virulysis and HTL losses",
-                   min = 0,
-                   max = 1,
-                   value = 0,
-                   step = 0.1)
+                  "Remineralisation of virulysis and HTL losses",
+                  min = 0,
+                  max = 1,
+                  value = 0,
+                  step = 0.1)
       
     ),
     #
     # Show plots:
     #
     mainPanel(
-      conditionalPanel(
-        condition = "input.latitude>0",
-          sliderInput("t",
-                    "Time (day)",
-                    min=0, 
-                    max=365,
-                    step=1,
-                    value=120,
-                    width="600px"),
-          plotOutput("plotSeasonal", width="600px", height="100px")  
-        ),
-      plotOutput("plotSpectrum", width="600px", height="300px"),
-      plotOutput("plotRates", width="600px", height="300px"),
-      plotOutput("plotLeaks", width="600px", height="200px"),
-      plotOutput("plotFunction", width="600px"),
-      conditionalPanel(
-        condition="input.latitude>0",
-        plotOutput("plotSeasonalTimeline", width="600px")
-      ),
-      plotOutput("plotTime", width="600px")#,
-      #plotOutput("plotComplexRates", width="700px")
-    )
-  )
-)
-#
-# Define server logic
-#
-server <- function(input, output) {
-  #
-  # Simulate the system when a parameter is changed:
-  #
-  sim <- eventReactive({
-    input$L
-    input$latitude
-    input$d
-    input$T
-    input$M
-    input$mort2
-    input$mortHTL
-    input$epsilon_r
-  },
-  {
-    # get all base parameters
-    p <- parameters() 
-    # Update parameters with user input:
-    p$L = input$L
-    p$latitude = input$latitude
-    p$d = input$d
-    p$T = input$T
-    p$mort2 = input$mort2*p$n
-    p$mortHTL = input$mortHTL
-    p$M = input$M
-    p$remin = input$epsilon_r
-
-    if (p$latitude>0)
-      p$tEnd = 2*365
+      #
+      # Main output panel
+      #
+      tabsetPanel(
+        tabPanel(
+          "Main output",
+          conditionalPanel(
+            condition = "input.latitude>0",
+            sliderInput("t",
+                        "Time (day)",
+                        min=0, 
+                        max=365,
+                        step=1,
+                        value=120,
+                        width="600px"),
+            plotOutput("plotSeasonal", width="600px", height="100px")  
+          ),
+          plotOutput("plotSpectrum", width="600px", height="300px"),
+          plotOutput("plotRates", width="600px", height="300px"),
+          plotOutput("plotLeaks", width="600px", height="200px")
+        )
+        ,
+        tabPanel(
+          "Ecosystem functions",
+          plotOutput("plotFunction", width="600px")
+        )
+        ,
+        tabPanel(
+          "Dynamics",
+          conditionalPanel(
+            condition="input.latitude>0",
+            plotOutput("plotSeasonalTimeline", width="600px")
+          ),
+          plotOutput("plotTime", width="600px")#,
+          #plotOutput("plotComplexRates", width="700px")
+        )
+      )
+    )))
+    #
+    # Define server logic
+    #
+    server <- function(input, output) {
+      #
+      # Simulate the system when a parameter is changed:
+      #
+      sim <- eventReactive({
+        input$L
+        input$latitude
+        input$d
+        input$T
+        input$M
+        input$mort2
+        input$mortHTL
+        input$epsilon_r
+      },
+      {
+        # get all base parameters
+        p <- parameters() 
+        # Update parameters with user input:
+        p$L = input$L
+        p$latitude = input$latitude
+        p$d = input$d
+        p$T = input$T
+        p$mort2 = input$mort2*p$n
+        p$mortHTL = input$mortHTL
+        p$M = input$M
+        p$remin = input$epsilon_r
+        
+        if (p$latitude>0)
+          p$tEnd = 2*365
+        
+        # Simulate
+        return(simulate(p))   
+      })
+      #
+      # Plots:
+      #
+      output$plotSpectrum <- renderPlot(plotSpectrum(sim(), input$t))
+      output$plotRates <- renderPlot(plotRates(sim(), input$t))
+      output$plotLeaks = renderPlot(plotLeaks(sim(), input$t))
+      output$plotComplexRates <- renderPlot(plotComplexRates(sim(), input$t))
+      output$plotTime <- renderPlot(plotTimeline(sim(), input$t))
+      output$plotSeasonalTimeline <- renderPlot(plotSeasonalTimeline(sim()))
+      output$plotFunction <- renderPlot(plotFunctions(sim()))
+      output$plotSeasonal <- renderPlot(plotSeasonal(p, input$t))
+    }
     
-    # Simulate
-    return(simulate(p))   
-  })
-  #
-  # Plots:
-  #
-  output$plotSpectrum <- renderPlot(plotSpectrum(sim(), input$t))
-  output$plotRates <- renderPlot(plotRates(sim(), input$t))
-  output$plotLeaks = renderPlot(plotLeaks(sim(), input$t))
-  output$plotComplexRates <- renderPlot(plotComplexRates(sim(), input$t))
-  output$plotTime <- renderPlot(plotTimeline(sim(), input$t))
-  output$plotSeasonalTimeline <- renderPlot(plotSeasonalTimeline(sim()))
-  output$plotFunction <- renderPlot(plotFunctions(sim()))
-  output$plotSeasonal <- renderPlot(plotSeasonal(p, input$t))
-}
-
-# Run the application 
-shinyApp(ui = ui, server = server)
-
+    # Run the application 
+    shinyApp(ui = ui, server = server)
+    
+    
