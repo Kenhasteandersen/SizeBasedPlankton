@@ -50,7 +50,7 @@ parameters <- function() {
   p$alphaJ = 1.5
   p$Jmax = p$alphaJ * p$m * (1-nu) # mugC/day
   p$cR = 0.1
-  p$Jresp = p$cR*p$Jmax
+  p$Jresp = p$cR*p$alphaJ*p$m
   #
   # Losses:
   #
@@ -65,6 +65,7 @@ parameters <- function() {
   #
   p$d = 0.05  # diffusion rate, m/day
   p$M = 30   # Thickness of the mixed layer, m
+  p$T = 10   # Temperature
   p$N0 = 150 # Deep nutrient levels
   #
   # Initial conditions:
@@ -81,11 +82,19 @@ parameters <- function() {
   
   return(p)
 }
-
+#
+# Prey size preference function:
+#
 phi = function(z, beta, sigma) {
   exp( -(log(z/beta))^2/(2*sigma^2) )
 }
 #
+# Q10 temperature function:
+#
+fTemp = function(Q10, T) {
+  return(Q10^(T/10-1))
+}
+
 # Seasonal variation in exchange rate as a function of latitude (degrees)
 # and time (days)
 #
@@ -117,28 +126,34 @@ calcRates = function(t,N,DOC,B,p) {
   with(p, {
     B = pmax(0,B)
     #
+    # Temperature corrections:
+    #
+    ANmT = ANm*fTemp(1.5,p$T)
+    JmaxT = Jmax*fTemp(2,p$T)
+    JR = Jresp*fTemp(2,p$T)
+    #
     # Uptakes
     #
-    JN =   Jmax/p$rhoCN * ANm*N / (Jmax/p$rhoCN + ANm*N) # Diffusive nutrient uptake
+    JN =   JmaxT/p$rhoCN * ANmT*N / (JmaxT/p$rhoCN + ANmT*N) # Diffusive nutrient uptake
                                                         # in units of N/time
-    JDOC = Jmax * ANm*DOC / (Jmax + ANm*DOC) # Diffusive DOC uptake, units of C/time
+    JDOC = JmaxT * ANmT*DOC / (JmaxT + ANmT*DOC) # Diffusive DOC uptake, units of C/time
     
     if (p$latitude > 0)
       LL = SeasonalLight(p,t)
     else
       LL = L
-    JL =   epsilonL * Jmax * ALm*LL / (Jmax + ALm*LL)  # Photoharvesting
+    JL =   epsilonL * JmaxT * ALm*LL / (JmaxT + ALm*LL)  # Photoharvesting
     
     F = theta %*% B
-    JF = epsilonF * Jmax * AFm*F / (Jmax + AFm*F)        # Feeding
+    JF = epsilonF * JmaxT * AFm*F / (JmaxT + AFm*F)        # Feeding
 
     # Total nitrogen uptake:    
     JNtot = JN+JF/rhoCN # In units of N
     
     # Down-regulation of light uptake:
-    JLreal = pmin(JL, pmax(0, JNtot*rhoCN - (JF+JDOC-Jresp)))
+    JLreal = pmin(JL, pmax(0, JNtot*rhoCN - (JF+JDOC-JR)))
                      
-    JCtot = JLreal+JF+JDOC-Jresp # Total carbon untake
+    JCtot = JLreal+JF+JDOC-JR # Total carbon untake
 
     Jtot = pmin( JCtot, JNtot*rhoCN )  # Liebigs law; units of C
     # 

@@ -22,7 +22,7 @@ ui <- fluidPage(
    Cell size is the only trait characterizing each plankton group.
     All groups are able to perform photoharvesting, taking up dissolve nutrients and carbon, and do phagotrophy.
     The trophic strategy is an emergent property.'),
-  p('THIS IS WORK IN PROGRESS. Version 0.7. March 2019.')
+  p('THIS IS WORK IN PROGRESS. Version 0.8. May 2019.')
   ,
   # Sidebar with a slider inputs
   sidebarLayout(
@@ -40,6 +40,13 @@ ui <- fluidPage(
                   max = .1,
                   step = 0.0025,
                   value = parameters()$d)
+      ,
+      sliderInput("T",
+                  "Temperature",
+                  min = 0,
+                  max = 25,
+                  step = 0.5,
+                  value = 10)
       ,
       sliderInput("latitude",
                   "Latitude (degrees; experimental)",
@@ -122,6 +129,7 @@ server <- function(input, output) {
     input$L
     input$latitude
     input$d
+    input$T
     input$M
     input$mort2
     input$mortHTL
@@ -134,6 +142,7 @@ server <- function(input, output) {
     p$L = input$L
     p$latitude = input$latitude
     p$d = input$d
+    p$T = input$T
     p$mort2 = input$mort2*p$n
     p$mortHTL = input$mortHTL
     p$M = input$M
