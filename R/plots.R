@@ -398,12 +398,26 @@ plotSeasonalTimeline = function(sim) {
 #
 # Plot functions:
 #
-s=plotFunctions <- function(sim) {
+plotFunctions <- function(sim) {
+  # Get the func value from the previous call:
+  oldfunc = attr(plotFunctions, "oldfunc")
+  if (is.null(oldfunc))
+    oldfunc = c(0,0,0,0)
+  
   func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
+  fnc = c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL)
+  attr(plotFunctions, "oldfunc") <<- fnc
+  heights = matrix(c(fnc, oldfunc), nrow=2, byrow = TRUE)
+  
   par(mar=c(5,12,4,2))
-  barplot(height=c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL),
+  barplot(height=heights,
           names.arg = c("New production", "Gross PP", "Net PP", "HTL"),
           xlab = TeX("Production (gC/m$^2$/yr)"),
+          beside=TRUE, col=c("black","grey"),
           horiz=TRUE, las=1,
           border=NA)
+  legend("topright",
+         c("This simulation","Previous simulation"),
+         fill=c("black","grey"),
+         bty="n")
 }
