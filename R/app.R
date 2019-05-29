@@ -1,9 +1,10 @@
 #
 # Install app:
-#  ssh ken@172.23.130.112
+#  ssh ken@oceanlife.dtuaqua.dk
 #  update the git
 #  cp to /srv/shiny-server/Plankton
 #  If using new packages install them by running R as root
+# sudo systemctl restart shiny-server
 #
 
 library(shiny)

@@ -57,7 +57,7 @@ parameters <- function() {
   p$mort = 0*0.005*(p$Jmax/p$m) * p$m^(-1/4)
   p$mort2 = 0.0002*p$n
   p$mortHTL = 0.2
-  p$mHTL = max(p$m)/p$beta # Bins affecte by HTL mortality
+  p$mHTL = max(p$m)/p$beta # Bins affected by HTL mortality
   
   p$remin = 0.0 # fraction of mortality losses reminerilized to N and DOC
   #
@@ -75,7 +75,7 @@ parameters <- function() {
   #
   # Light:
   #
-  p$L = 20  # PAR, mu E/m2/s
+  p$L = 40  # PAR, mu E/m2/s
   p$latitude = 0 # amplitude of seasonal light variation in fractions of L
   
   p$tEnd = 365 # Simulation length (days)
