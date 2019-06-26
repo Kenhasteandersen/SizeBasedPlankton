@@ -75,7 +75,7 @@ parameters <- function() {
   #
   # Light:
   #
-  p$L = 40  # PAR, mu E/m2/s
+  p$L = 60  # PAR, mu E/m2/s
   p$latitude = 0 # amplitude of seasonal light variation in fractions of L
   
   p$tEnd = 365 # Simulation length (days)

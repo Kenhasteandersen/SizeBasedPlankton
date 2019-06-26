@@ -130,6 +130,96 @@ plotAL = function() {
          col=c("red","Blue","Orange"))
 }
 
+plotALsimple = function() {
+  data = data.frame(C=NA,taxon=NA,AL=NA)
+  #
+  # Taguchi
+  #
+  #Ata=read.csv("../data/Taguchi.dat",  header=FALSE, col.names=c("V ((mum)^3)", "err", "C (pgC", "CperChl", "alpha (mgC/(mg chlA) /h /W m^2)"), sep=" ")
+  #C = (Ata$C..pgC)*1e-6 # mugC
+  #chl = 1e-3 * C/Ata$CperChl # mg chl
+  #A = 24 * 1000* Ata$alpha * chl # mugC/d/(Wm2)
+  #data = data.frame(C=C, taxon="diatom", A=A, source="Taguchi")
+  #ALtaguchi = exp(mean(log(A/(C^(2/3)))))
+  #cat("AL = ", AL, "mugC/d/(wm2)\n")
+  #
+  # Edwards:
+  #
+  Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
+                 sep=";", skip=3, header=TRUE, na.strings = "na")
+  C = convertVolume2Mass(Aed$volume, Aed$taxon)
+  
+  A = Aed$alpha * C * (Aed$daylength/24) # convert to units of mu gC/(mu mol photons/m2/s),
+  # corrected for daylength.
+  data = data.frame(C=C, taxon=Aed$taxon, A=A, source="Edwards")#rbind(data, 
+  
+  #
+  # Sort our nans:
+  #
+  data = data[(!is.na(data$A) & !is.na(data$C)), ]
+  # 
+  # Fits to complex shading formula:
+  #
+  ixDiatom = data$taxon=="diatom"
+  
+  #form = formula(log(A) ~ log( a*C^(2/3) * Cmax*C / (a*C^(2/3) + Cmax*C)))
+  form = formula(log(A) ~ log( a*C^(2/3) * (1 - exp(-Cmax*C^(1/3)) ) ))
+  
+  fit = nls(form,
+            data = data,
+            start = list(Cmax = .001, a=0.001),
+            lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
+  fit_diatoms = nls(form,
+                    data = data[ixDiatom,],
+                    start = list(Cmax = .001, a=0.001),
+                    lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
+  fit_no_diatoms = nls(form,
+                       data = data[!ixDiatom,],
+                       start = list(Cmax = .001, a=0.001),
+                       lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
+  
+  print(summary(fit_no_diatoms))
+  #
+  # Fits to 2/3 scaling
+  #
+  AL = exp(mean(log(data$A/data$C^(2/3))))
+  AL_diatoms = exp(mean(log(data$A/data$C^(2/3))[ixDiatom]))
+  AL_no_diatoms = exp(mean(log(data$A/data$C^(2/3))[!ixDiatom]))
+  cat(AL_no_diatoms)
+  #
+  # Plot
+  #
+  defaultplot()
+  loglogpanel(xlim = data$C, 
+              ylim = c(0.9*min(data$A[!is.na(data$A)]), 1.1*max(data$A[!is.na(data$A)])),
+              xlab="Cell weight ($\\mu$gC)",
+              ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/($\\mu$ mol photons m$^{-2}s^{-1})")
+  points(data$C[!ixDiatom], data$A[!ixDiatom],pch=16, col="darkgreen")
+  points(data$C[ixDiatom], data$A[ixDiatom],pch=16, col="darkgreen")
+  points(data$C[data$source=="Taguchi"], data$A[data$source=="Taguchi"], pch=17, col="darkgreen")
+  
+  C = 10^seq(log10(min(data$C)), log10(max(data$C)), length.out = 100)
+  lines(C, exp(predict(fit, list(C=C))), lwd=2)
+  #lines(C, exp(predict(fit_diatoms, list(C=C))), lwd=2, col="red")
+  #lines(C, exp(predict(fit_no_diatoms, list(C=C))), lwd=3, col="blue")
+  
+  lines(C, 2*AL * C^(2/3), lty=dotted)
+  lines(C, 0.026*C, lty=dotted)
+  #lines(C, AL_diatoms * C^(2/3), col="red", lty=dotted)
+  #lines(C, AL_no_diatoms * C^(2/3), col="blue", lty=dotted)
+  
+  # Camila's parameters:
+  #cL=0.08733
+  #AL=0.004864  
+  #lines(C, cL*C * AL*C^(2/3) / ( cL*C + AL*C^(2/3) ) , col="orange")
+  
+  #legend(x="bottomright", bty="n",
+  #       legend=c("Diatoms", "Other phototrophs", "Camila"),
+  #       pch=c(16,16,NA),
+  #       lwd=c(0,0,2),
+  #       col=c("red","Blue","Orange"))
+}
+
 plotALvolume = function() {
   data = data.frame(r=NA, V=NA,taxon=NA,AL=NA)
   #
@@ -429,6 +519,63 @@ plotAN = function() {
   #m = 0.3e-6*(2*r)^3
   #ANmax = 4*pi*Diff*(r*1e-4) * 1e-3
   #points(m, ANmax, col="red")
+}
+
+plotANsimple = function() {
+  dat = read.csv("../data/Nutrient data from Edwards et al (2015b).csv",
+                 header=TRUE,sep=",")
+  #
+  # Convert carbon from mol to g:
+  #
+  dat$c_per_cell = dat$c_per_cell*12
+  #
+  # Convert to weights when only volume is given:
+  # 
+  ix = (!is.na(dat$volume)) & (is.na(dat$c_per_cell))
+  dat$c_per_cell[ix] = convertVolume2Mass(dat$volume[ix], dat$taxon[ix])
+  C = dat$c_per_cell
+  #
+  # Calc affinities
+  #
+  Anit = dat$vmax_nit / dat$k_nit
+  Aamm = dat$vmax_amm / dat$k_amm
+  Aphos = dat$vmax_p / dat$k_p
+  #
+  # Plot
+  #
+  defaultplot()
+  loglogpanel(xlim=C, ylim=c(1e-9,1e-3),
+              xlab="Mass ($\\mathrm{\\mu g_C}$)",
+              ylab="Nutrient affinity, $\\textit{A_N}$ (L/day)")
+  
+  col = 1
+  taxons = unique(dat$taxon[!is.na(C) & !(is.na(Anit) & is.na(Aamm)  & is.na(Aphos))])
+  for (i in taxons) {
+    ix = dat$taxon == i
+    points(C[ix], Anit[ix], pch=16, col="darkblue")
+    points(C[ix], Aamm[ix], pch=17, col="darkblue")
+    #points(C[ix], Aphos[ix], pch=18, col=col)
+    col = col + 1
+  }
+  #points(C, Aphos,pch=18)
+  #legend(x="bottomright",bty="n", 
+  #       legend=taxons, pch=16, col=seq(1,length(taxons)))
+  
+  
+  m = 10^seq(-7,1) # mu gC
+  r = 1.5/2*(1e-6*m)^(1/3) # cm
+  Diff = 1.5e-5*60*60*24 # cm^2/day, at 10 degrees (https://www.unisense.com/files/PDF/Diverse/Seawater%20&%20Gases%20table.pdf)
+  ANmax = 4*pi*Diff*r*1e-3 # L/day
+  cat("alphaN_max = ", (ANmax/m^(1/3))[1], "\n")
+  lines(m, ANmax, lwd=1, lty=dotted)  
+  lines(m, 1e-3*m^(2/3))
+  #lines(m, parameters()$AN*m^(1/3), lwd=2)
+  #cat( mean(ANmax/(parameters()$AN*m^(1/3))) ,"\n" )
+  cat("alphaN = ", mean(parameters()$AN*m^(1/3)), "\n")
+  
+  V = 10^seq(-2,8,length.out = 100)
+  alphaN_Ward2018 = 1.1 * 1000 / 1000 / 12 # convert from m3->liter, from mmol->umol, from mol->g 
+  #lines(convertVolume2Mass(V), alphaN_Ward2018*V^-0.35*convertVolume2Mass(V), col="blue", lty=dashed)
 }
 
 plotRstar = function() {
