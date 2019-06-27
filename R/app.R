@@ -19,6 +19,9 @@ source("plots.R")
 
 ui <- fluidPage(
   tags$head(
+    # Add google analytics tracking:
+    includeHTML(("googleanalytics.html")),
+    # Make rules widers:
     tags$style(HTML("hr {border-top: 1px solid #000000;}"))
   )
   ,
