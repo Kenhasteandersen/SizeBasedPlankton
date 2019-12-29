@@ -1,3 +1,5 @@
+// Build: g++ -O3 -shared model.cpp -o model.so  
+  
 #include <algorithm>
 #include <vector>
 #include <iostream>

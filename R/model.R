@@ -311,7 +311,7 @@ simulate = function(p=parameters(), useC=FALSE) {
              p$m, p$rhoCN, p$epsilonL, p$epsilonF,
              p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
              p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin);
-  
+
     out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
               IC = c(0.1*p$N0, p$DOC0, p$B0),
               input_function = function(t,y) derivativeC(t,y,p),

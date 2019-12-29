@@ -12,6 +12,7 @@ options(shiny.sanitize.errors = FALSE)
 
 source("model.R")
 source("plots.R")
+bUseC = FALSE
 
 # ===================================================
 # Define UI for application
@@ -176,7 +177,7 @@ ui <- fluidPage(
           p$tEnd = 2*365
         
         # Simulate
-        return(simulate(p))   
+        return(simulate(p, bUseC))   
       })
       #
       # Plots:
@@ -191,6 +192,11 @@ ui <- fluidPage(
       output$plotSeasonal <- renderPlot(plotSeasonal(p, input$t))
     }
     
+    # Compile C code:
+    if (system2("g++", "-O3 -shared ../Cpp/model.cpp -o ../Cpp/model.so")==0)  {
+      bUseC = TRUE
+      cat("Using C engine\n")
+    }
     # Run the application 
     shinyApp(ui = ui, server = server)
     
