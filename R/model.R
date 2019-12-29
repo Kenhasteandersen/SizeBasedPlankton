@@ -8,7 +8,7 @@ library(tictoc)
 parameters <- function() {
   p = list()
   
-  p$n = 10; # No of groups
+  p$n = as.integer(10); # No of groups
   p$m = 10^seq(-8,1,length.out = p$n)  # Mass bins in mugC
   
   p$rhoCN = 5.68 # C:N mass ratio
@@ -47,7 +47,7 @@ parameters <- function() {
   #
   # Metabolism:
   #
-  p$alphaJ = 1.5
+  p$alphaJ = 1.5 # per day
   p$Jmax = p$alphaJ * p$m * (1-nu) # mugC/day
   p$cR = 0.1
   p$Jresp = p$cR*p$alphaJ*p$m
@@ -188,7 +188,7 @@ calcRates = function(t,N,DOC,B,p) {
     mortloss = sum(B*(mort2*B + mortHTL*(m>=mHTL)))
     dNdt   =  diff*(N0-N)  - sum(JN*B/m)   + sum(JNloss*B/m) + remin*mortloss/rhoCN
     dDOCdt =  diff*(0-DOC) - sum(JDOC*B/m) + sum(JCloss*B/m) + remin*mortloss
-    
+
     # Check of nutrient conservation; should be close to zero
     #Nin = d*(N0-N)
     #Nout = (1-remin) * mortloss / rhoCN
@@ -290,13 +290,37 @@ derivative = function(t,y,p) {
   #  if ( sum(c( is.nan(unlist(rates)), is.infinite(unlist(rates)), rates$N<0, rates$B<0))>0)
   #    browser()
   
-  return(list(c(rates$dNdt, rates$dDOCdt, rates$dBdt)))
+  return(c(rates$dNdt, rates$dDOCdt, rates$dBdt))
 }
 
-simulate = function(p=parameters()) {
-  out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+dudt = rep(0,12) # Need a static global for speed
+derivativeC = function(t,y,p) {
+  derivC = .C("derivativeChemostat", 
+              L=as.double(p$L), T=as.double(p$T), as.double(p$d), 
+              as.double(p$N0), y=y, dudt=dudt)
+
+  return(derivC$dudt)
+}
+
+simulate = function(p=parameters(), useC=FALSE) {
+  if (useC) {
+    # Load library
+    dyn.load("../Cpp/model.so")
+    # Set parameters
+    dummy = .C("setParameters", as.integer(p$n), 
+             p$m, p$rhoCN, p$epsilonL, p$epsilonF,
+             p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
+             p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin);
+  
+    out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
               IC = c(0.1*p$N0, p$DOC0, p$B0),
-              input_function = function(t,y) derivative(t,y,p)[[1]],
+              input_function = function(t,y) derivativeC(t,y,p),
+              reltolerance = 1e-6,
+              abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
+  } else
+    out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+              IC = c(0.1*p$N0, p$DOC0, p$B0),
+              input_function = function(t,y) derivative(t,y,p),
               reltolerance = 1e-6,
               abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
   
@@ -328,9 +352,9 @@ simulate = function(p=parameters()) {
   return(result)
 }
 
-baserun = function(p = parameters()) {
+baserun = function(p = parameters(), useC=FALSE) {
   tic()
-  sim = simulate(p)
+  sim = simulate(p, useC)
   toc()
   
   return(sim)
