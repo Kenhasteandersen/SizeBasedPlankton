@@ -33,7 +33,7 @@ calcFunctions = function(param,r,N,B) {
     # Biomasses:
     #
     conversion = M/10*100*1e-6  # Convert to gC/m2
-    d = 10000 * 1.5 * (m*1e-6)^(1/3)
+    d = calcESD(m)
     Bpico = conversion * sum( B[d < 2] )
     Bnano = conversion * sum( B[d>=2 & d <20])
     Bmicro = conversion * sum( B[d>=20])

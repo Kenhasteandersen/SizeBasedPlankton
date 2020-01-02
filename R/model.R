@@ -94,7 +94,12 @@ phi = function(z, beta, sigma) {
 fTemp = function(Q10, T) {
   return(Q10^(T/10-1))
 }
-
+#
+# Convert to ESD:
+#
+calcESD = function(m) {
+  10000 * 1.5 * (m*1e-6)^(1/3)
+}
 # Seasonal variation in exchange rate as a function of latitude (degrees)
 # and time (days)
 #

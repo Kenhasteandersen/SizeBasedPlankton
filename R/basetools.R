@@ -28,6 +28,7 @@ axis.lwd <- 0.8
 iPlot <- 1 # Static variable used for labels on plots
 
 solid = 1
+thick = 2
 dashed <- 2
 dotted <- 3
 dashdotted = 4
@@ -273,6 +274,6 @@ ribbon <- function(x,ymin=NA,ymax,col=lightgrey) {
   polygon(x, c(ymin, ymax[seq(length(ymax),1,by = -1)]), col=col, border=NA)
 }
 
-tightaxes <- function()
+tightaxes <- function() {
   par(xaxs="i", yaxs="i")
-
+}
