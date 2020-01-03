@@ -1,7 +1,19 @@
 source("model.R")
 source("basetools.R")
 
-simulateWatercolumn = function(p=parameters(), 
+parametersWatercolumn = function(p = parameters()) {
+  p$tEnd = 2*365
+  p$dt = 0.1
+  p$depth = 80
+  p$Lsurface = 100
+  p$nGrid = 100
+  p$k = 0.1 # Damping of light by water
+  p$diff = 1
+  
+  return(p)
+}
+
+simulateWatercolumn = function(p=parametersWatercolumn(), 
                                tEnd=p$tEnd, dt=p$dt, nGrid=p$nGrid, nTout=110) {
   # Load C engine
   if (!is.loaded("../Cpp/model.so"))
@@ -33,15 +45,15 @@ simulateWatercolumn = function(p=parameters(),
   # Simulate
   tictoc::tic()
   sim = .C("simulateWaterColumnFixed", 
-             L0=as.double(p$L),
-             T=as.double(p$T),
-             Diff=as.double(p$d),
-             N0 = as.double(p$N0),
-             tEnd=as.double(tEnd),
-             dt=as.double(dt),
-             nGrid=as.integer(nGrid),
-             x=x,
-             u=u)
+           L0=as.double(p$L),
+           T=as.double(p$T),
+           Diff=as.double(p$diff),
+           N0 = as.double(p$N0),
+           tEnd=as.double(tEnd),
+           dt=as.double(dt),
+           nGrid=as.integer(nGrid),
+           x=x,
+           u=u)
   tictoc::toc()
   #
   # Extract results:
@@ -59,10 +71,12 @@ simulateWatercolumn = function(p=parameters(),
   
   sim$t = seq(0, tEnd, by=dt)[idxT]
   sim$x = -x[seq(nGrid,1,by=-1)]
+  
+  sim$p = p
   return(sim)
 }
 
-plotWatercolumnTime = function(p, sim) {
+plotWatercolumnTime = function(sim) {
   library(fields)
   #
   # Plot results
@@ -75,49 +89,154 @@ plotWatercolumnTime = function(p, sim) {
   image.plot(sim$t, sim$x, sim$Bmicro, xlab="time (days)")
 }
 
-plotWatercolumn = function(p, sim, idx = length(sim$t)) {
+plotWatercolumn = function(sim, idx = length(sim$t)) {
+  p = sim$p
   defaultplot(mfcol=c(1,2))
-  
-  defaultpanel(xlim=c(0,150), xlab="mu g C/?",
-               ylim=range(sim$x), ylab="depth(m)")
+  #
+  # Rates:
+  #
+  defaultpanel(xlim=c(0,100), xlab="Concentration ($\\mu$g C/l)",
+               ylim=range(sim$x), ylab="Depth (m)")
   tightaxes()  
-  lines(sim$N[idx,], sim$x, col="blue", lwd=thick)
-  lines(sim$DOC[idx,], sim$x, col="magenta", lwd=thick)
+  lines(sim$N[idx,]/10, sim$x, col="blue", lwd=thick)
+  lines(sim$DOC[idx,]*10, sim$x, col="magenta", lwd=thick)
   lines(sim$Bpico[idx,], sim$x, col="black", lwd=1)
   lines(sim$Bnano[idx,], sim$x, col="black", lwd=2)
   lines(sim$Bmicro[idx,], sim$x, col="black", lwd=3)
-
+  
+  title("\nConcentrations")
+  legend(x="bottom", bty="n",
+         legend=c("Nutrients/10", "DOC*10", "Pico", "Nano", "Micro"),
+         lwd=c(thick, thick, 1,2,3),
+         col=c("blue","magenta","black","black","black"))
+  #
+  # Carbon strategy:
+  #
   rates=list()
   col = matrix(0,length(sim$x),p$n)
   pp = p
   for (j in 1:length(sim$x)) {
-    pp$L = p$L*exp(0.1*sim$x[j])
-    rates[[j]] = calcRates(sim$t[idx], sim$N[idx,j], sim$DOC[idx,j],
-                         sim$B[,j,idx],pp)
+    rates[[j]] = calcRates(sim$t[idx], p$Lsurface*exp(p$k*sim$x[j]), sim$N[idx,j], sim$DOC[idx,j],
+                           sim$B[,j,idx],pp)
     for (k in 1:length(p$m))
       col[length(sim$x)-j+1,k] = rgb(min(1,max(0,3*(rates[[j]]$JF/p$m)[k])), 
-                  min(1, max(0,3*(rates[[j]]$JLreal/p$m)[k])),
-                  min(1, max(0,3*(rates[[j]]$JDOC/p$m)[k])))
+                                     min(1, max(0,3*(rates[[j]]$JLreal/p$m)[k])),
+                                     min(1, max(0,3*(rates[[j]]$JDOC/p$m)[k])))
   }
   
   m = log10(p$m)
   dm = 0.5*diff(m)[1]
-  defaultpanel(xlim=m, xlab="size, log10(mu gC)",
+  defaultpanel(xlim=m, xlab="Cell mass (log10($\\mu$gC))",
                ylim=sim$x, ylab="")
   tightaxes()
   rasterImage(as.raster(col), min(m)-dm, min(sim$x), max(m)+dm, max(sim$x),
               interpolate = TRUE)
+  
+  title("\nCarbon strategy", col.main="white")
+  legend(x="bottom", bty="n", cex=cex,
+         legend=c("DOC", "Photoharvesting","Phagotrophy"),
+         text.col="white",
+         fill=c("blue", "green","red","transparent"),
+         border=c("white","white","white","transparent"),
+         lwd = c(0,0,0,3),
+         col=c(NA,NA,NA,1))
 }
 
-baserunWatercolumn = function(p=parameters()) {
-  p$L=300
-  p$tEnd = 200
-  p$dt = 0.1
-  p$nGrid = 100
-  p$depth = 100
+calcFunctionsWatercolumn = function(sim) {
+  param = sim$p
+  idx = length(sim$t)
+  conversion  = 365*1e-6*1000 # Convert to gC/yr/m2
+  dx = diff(sim$x)
+  dx = c(dx, dx[length(dx)])
   
+  prodCgross = 0
+  prodCnet = 0
+  prodHTL = 0
+  resp = 0
+  Bpico = 0
+  Bnano = 0
+  Bmicro = 0
+
+  p = param
+  for (i in 1:param$nGrid) {
+    # Calc rates throughout the water column
+    L = param$Lsurface*exp(-p$k*x[i])
+    rates[[i]] = calcRates(0, L, sim$N[idx,i], sim$DOC[idx,i], sim$B[,i,idx],p)
+    #
+    # Primary production (carbon fixed)
+    #
+    prodCgross = prodCgross + 
+      conversion * sum(rates[[i]]$JLreal*sim$B[,i,idx]/param$m)/param$epsilonL*dx[i]
+    prodCnet = prodCnet + 
+      conversion * sum( (rates[[i]]$JLreal)*sim$B[,i,idx]/param$m )*dx[i]
+    #
+    # Loss to HTL:
+    #
+    prodHTL = prodHTL + 
+      conversion * sum( param$mortHTL*(param$m>=param$mHTL)*sim$B[,i,idx] )*dx[i]
+    #
+    # Loss to depth:
+    #
+    #prodSeq = 0#conversion * r$POMgeneration * (1-epsilonPOM)
+    #
+    # Respiration
+    #
+    resp = resp + conversion * sum( param$Jresp*sim$B[,i,idx]/param$m )*dx[i]
+    #
+    # Biomasses:
+    #
+    conversion2 = 1/10*100*1e-6  # Convert to gC/m2
+    d = calcESD(param$m)
+    Bpico = Bpico + conversion2 * sum( sim$B[d < 2,i,idx] )*dx[i]
+    Bnano = Bnano + conversion2 * sum( sim$B[d>=2 & d <20,i,idx] )*dx[i]
+    Bmicro = Bmicro + conversion2 * sum( sim$B[d>=20,i,idx])*dx[i]
+  }
+  #
+  # Efficiencies:
+  #
+  effHTL = prodHTL/prodCgross*param$epsilonL # NOTE DIFFERENT DEFINITION THAN IN CHEMOSTAT
+  
+  return(list(
+    prodCgross = prodCgross,
+    prodCnet = prodCnet,
+    prodHTL = prodHTL,
+    resp = resp,
+    effHTL = effHTL,
+    Bpico=Bpico, Bnano=Bnano, Bmicro=Bmicro
+  ))
+}
+
+#
+# Plot functions:
+#
+plotFunctionsWatercolumn <- function(sim) {
+  # Get the func value from the previous call:
+  oldfunc = attr(plotFunctionsWatercolumn, "oldfunc")
+  if (is.null(oldfunc))
+    oldfunc = c(0,0,0)
+  
+  func = calcFunctionsWatercolumn(sim)
+  fnc = c(func$prodCgross, func$prodCnet, func$prodHTL)
+  attr(plotFunctionsWatercolumn, "oldfunc") <<- fnc
+  heights = matrix(c(fnc, oldfunc), nrow=2, byrow = TRUE)
+  
+  par(mar=c(5,12,4,2))
+  
+  barplot(height=heights,
+          names.arg = c("Gross PP", "Net PP", "HTL"),
+          xlab = TeX("Production (gC/m$^2$/yr)"),
+          beside=TRUE, col=c("black","grey"),
+          horiz=TRUE, las=1,
+          border=NA)
+  legend("topright",
+         c("This simulation","Previous simulation"),
+         fill=c("black","grey"),
+         bty="n")
+}
+
+baserunWatercolumn = function(p=parametersWatercolumn()) {
   sim = simulateWatercolumn(p)
-  plotWatercolumn(p, sim)
+  plotWatercolumn(sim)
   
   return(sim)
 }

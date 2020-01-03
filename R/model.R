@@ -1,9 +1,9 @@
 library("sundialr")
 library(tictoc)
 
-#--------------------------------------------------
+# --------------------------------------------------
 # Core logic for the model
-#--------------------------------------------------
+# --------------------------------------------------
 
 parameters <- function() {
   p = list()
@@ -56,29 +56,16 @@ parameters <- function() {
   #
   p$mort = 0*0.005*(p$Jmax/p$m) * p$m^(-1/4)
   p$mort2 = 0.0002*p$n
-  p$mortHTL = 0.2
+  p$mortHTL = 0.1
   p$mHTL = max(p$m)/p$beta # Bins affected by HTL mortality
   
   p$remin = 0.0 # fraction of mortality losses reminerilized to N and DOC
   #
-  # Biogeochemical model:
-  #
-  p$d = 0.05  # diffusion rate, m/day
-  p$M = 30   # Thickness of the mixed layer, m
-  p$T = 10   # Temperature
-  p$N0 = 150 # Deep nutrient levels
-  #
   # Initial conditions:
   #
+  p$N0 = 150
   p$DOC0 = 0
   p$B0 = rep(10,p$n)
-  #
-  # Light:
-  #
-  p$L = 60  # PAR, mu E/m2/s
-  p$latitude = 0 # amplitude of seasonal light variation in fractions of L
-  
-  p$tEnd = 365 # Simulation length (days)
   
   return(p)
 }
@@ -100,36 +87,12 @@ fTemp = function(Q10, T) {
 calcESD = function(m) {
   10000 * 1.5 * (m*1e-6)^(1/3)
 }
-# Seasonal variation in exchange rate as a function of latitude (degrees)
-# and time (days)
-#
-SeasonalExchange = function(latitude, t) {
-  t = t %% 365
-  
-  dmax = 0.05*(1+tanh(0.05*(latitude-40)))
-  dsummer = 0.01
-  tspring = 180 * latitude/120
-  tautumn = 200 + 180 *(90-latitude)/90
-  widthautumn = 1
-  
-  summer = 1-0.5*(1+tanh(8*((t-tspring)/365*2*pi)))
-  winter = 1-0.5*(1 - tanh(widthautumn*((t-tautumn)/365*2*pi)))
-  spring = 1-0.5*(1 - tanh(widthautumn*(((t+365)-tautumn)/365*2*pi)))
-  summer = pmin(summer, spring)
-  
-  d = dsummer + dmax*(winter + summer)
-}
-#
-# Seasonal variation in light. Roughly taken from Evans and Parslows. 
-# M is the depth of the mixed layer.
-#
-SeasonalLight = function(p,t) {
-  p$L*exp(-0.025*p$M)*(1 - 0.8*sin(pi*p$latitude/180)*cos(2*pi*t/365))
-}
 
-calcRates = function(t,N,DOC,B,p) {
+calcRates = function(t,L,N,DOC,B,p) {
   with(p, {
     B = pmax(0,B)
+    N = max(0,N)
+    DOC = max(0, DOC)
     #
     # Temperature corrections:
     #
@@ -143,11 +106,7 @@ calcRates = function(t,N,DOC,B,p) {
                                                         # in units of N/time
     JDOC = JmaxT * ANmT*DOC / (JmaxT + ANmT*DOC) # Diffusive DOC uptake, units of C/time
     
-    if (p$latitude > 0)
-      LL = SeasonalLight(p,t)
-    else
-      LL = L
-    JL =   epsilonL * JmaxT * ALm*LL / (JmaxT + ALm*LL)  # Photoharvesting
+    JL =   epsilonL * JmaxT * ALm*L / (JmaxT + ALm*L)  # Photoharvesting
     
     F = theta %*% B
     JF = epsilonF * JmaxT * AFm*F / (JmaxT + AFm*F)        # Feeding
@@ -180,19 +139,6 @@ calcRates = function(t,N,DOC,B,p) {
     # Mortality:
     #
     mortpred =  t(theta) %*% (JF/epsilonF*B/m/F)
-    #
-    # System:
-    #
-    if (p$latitude>0)
-      diff = SeasonalExchange(p$latitude, t)
-    else
-      diff = d
-    
-    dBdt = diff*(0-B) + (Jtot/m  - (mort+ mortpred + mort2*B + mortHTL*(m>=mHTL)))*B
-    dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
-    mortloss = sum(B*(mort2*B + mortHTL*(m>=mHTL)))
-    dNdt   =  diff*(N0-N)  - sum(JN*B/m)   + sum(JNloss*B/m) + remin*mortloss/rhoCN
-    dDOCdt =  diff*(0-DOC) - sum(JDOC*B/m) + sum(JCloss*B/m) + remin*mortloss
 
     # Check of nutrient conservation; should be close to zero
     #Nin = d*(N0-N)
@@ -203,9 +149,8 @@ calcRates = function(t,N,DOC,B,p) {
     #print(sum(JF/epsilonF*B/m) - sum(mortpred*B))
     
     return(list( 
-      dNdt=dNdt, dDOCdt=dDOCdt, dBdt=dBdt, 
       JN=JN, JDOC=JDOC, JL=JL, JF=JF,
-      JLreal = JLreal,
+      JLreal = JLreal, JR=JR,
       JNlossLiebig=JNlossLiebig, JClossLiebig=JClossLiebig,
       JCloss_photouptake=JCloss_photouptake,
       JCloss_feeding=JCloss_feeding, JCloss=JCloss, JNloss=JNloss,
@@ -283,85 +228,3 @@ calcRatesOld = function(t,N,DOC,B,p) {
       totKilled = sum(JFreal/epsilonF*B/m), totEaten = sum(mortpred*B), totGrowth=sum(Jmax*f*B/m)))  
   })
 }
-
-derivative = function(t,y,p) {
-  N = y[1]
-  DOC = y[2]
-  B = y[3:(2+p$n)]
-  
-  rates = calcRates(t,N,DOC,B,p)
-  
-  # Check. Expensive to evaluate, so commented out  
-  #  if ( sum(c( is.nan(unlist(rates)), is.infinite(unlist(rates)), rates$N<0, rates$B<0))>0)
-  #    browser()
-  
-  return(c(rates$dNdt, rates$dDOCdt, rates$dBdt))
-}
-
-dudt = rep(0,12) # Need a static global for speed
-derivativeC = function(t,y,p) {
-  derivC = .C("derivativeChemostat", 
-              L=as.double(p$L), T=as.double(p$T), as.double(p$d), 
-              as.double(p$N0), y=y, dudt=dudt)
-
-  return(derivC$dudt)
-}
-
-simulate = function(p=parameters(), useC=FALSE) {
-  if (useC) {
-    # Load library
-    dyn.load("../Cpp/model.so")
-    # Set parameters
-    dummy = .C("setParameters", as.integer(p$n), 
-             p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-             p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
-             p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin);
-
-    out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
-              IC = c(0.1*p$N0, p$DOC0, p$B0),
-              input_function = function(t,y) derivativeC(t,y,p),
-              reltolerance = 1e-6,
-              abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
-  } else
-    out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
-              IC = c(0.1*p$N0, p$DOC0, p$B0),
-              input_function = function(t,y) derivative(t,y,p),
-              reltolerance = 1e-6,
-              abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
-  
-  nSave = dim(out)[1]
-  # Assemble results:
-  ix = seq(floor(nSave/2),nSave)
-  ixB = 4:(p$n+3)
-  
-  Bmin = 0*p$m
-  Bmax = 0*p$m
-  for (i in 1:p$n) {
-    Bmin[i] = max(1e-20, min(out[ix,ixB[i]]))
-    Bmax[i] = max(1e-20, out[ix,ixB[i]])
-  }
-  
-  result = list(
-    p = p,
-    t = out[,1],
-    y = out[,2:(p$n+3)],
-    
-    N = mean(out[ix,2]),
-    DOC = mean(out[ix,3]),
-    B = colMeans(out[ix,ixB]),
-    
-    Bmin = Bmin,
-    Bmax = Bmax)
-  
-  result = c(result, list(rates = calcRates(max(result$t), result$N, result$DOC, result$B,p)))
-  return(result)
-}
-
-baserun = function(p = parameters(), useC=FALSE) {
-  tic()
-  sim = simulate(p, useC)
-  toc()
-  
-  return(sim)
-}
-

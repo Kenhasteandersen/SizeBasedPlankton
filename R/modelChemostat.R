@@ -1,7 +1,150 @@
-source("basetools.R")
 source("model.R")
+source("plots.R")
 
-calcFunctions = function(param,r,N,B) {
+parametersChemostat = function(p=parameters()) {
+  #
+  # Biogeochemical model:
+  #
+  p$d = 0.05  # diffusion rate, m/day
+  p$M = 30   # Thickness of the mixed layer, m
+  p$T = 10   # Temperature
+  p$N0 = 150 # Deep nutrient levels
+  
+  #
+  # Light:
+  #
+  p$L = 60  # PAR, mu E/m2/s
+  p$latitude = 0 # amplitude of seasonal light variation in fractions of L
+  
+  p$tEnd = 365 # Simulation length (days)
+  
+  return(p)
+}
+
+#
+# Seasonal variation in exchange rate as a function of latitude (degrees)
+# and time (days)
+#
+SeasonalExchange = function(latitude, t) {
+  t = t %% 365
+  
+  dmax = 0.05*(1+tanh(0.05*(latitude-40)))
+  dsummer = 0.01
+  tspring = 180 * latitude/120
+  tautumn = 200 + 180 *(90-latitude)/90
+  widthautumn = 1
+  
+  summer = 1-0.5*(1+tanh(8*((t-tspring)/365*2*pi)))
+  winter = 1-0.5*(1 - tanh(widthautumn*((t-tautumn)/365*2*pi)))
+  spring = 1-0.5*(1 - tanh(widthautumn*(((t+365)-tautumn)/365*2*pi)))
+  summer = pmin(summer, spring)
+  
+  d = dsummer + dmax*(winter + summer)
+}
+#
+# Seasonal variation in light. Roughly taken from Evans and Parslows. 
+# M is the depth of the mixed layer.
+#
+SeasonalLight = function(p,t) {
+  p$L*exp(-0.025*p$M)*(1 - 0.8*sin(pi*p$latitude/180)*cos(2*pi*t/365))
+}
+
+derivative = function(t,y,p) {
+  N = y[1]
+  DOC = y[2]
+  B = y[3:(2+p$n)]
+  
+  if (p$latitude > 0)
+    L = SeasonalLight(p,t)
+  else
+    L = p$L
+  
+  rates = calcRates(t,L,N,DOC,B,p)
+  #
+  # System:
+  #
+  if (p$latitude>0)
+    diff = SeasonalExchange(p$latitude, t)
+  else
+    diff = p$d
+  
+  dBdt = diff*(0-B) + (rates$Jtot/p$m  - 
+                         (rates$mort+ rates$mortpred + rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))*B
+  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
+  mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
+  dNdt   =  diff*(p$N0-N)  - sum(rates$JN*B/p$m)   + sum(rates$JNloss*B/p$m) +
+    p$remin*mortloss/p$rhoCN
+  dDOCdt =  diff*(0-DOC) - sum(rates$JDOC*B/p$m) + sum(rates$JCloss*B/p$m) + 
+    p$remin*mortloss
+  
+  # Check. Expensive to evaluate, so commented out  
+  #  if ( sum(c( is.nan(unlist(rates)), is.infinite(unlist(rates)), rates$N<0, rates$B<0))>0)
+  #    browser()
+  
+  return(c(dNdt, dDOCdt, dBdt))
+}
+
+dudt = rep(0,12) # Need a static global for speed
+derivativeC = function(t,y,p) {
+  derivC = .C("derivativeChemostat", 
+              L=as.double(p$L), T=as.double(p$T), as.double(p$d), 
+              as.double(p$N0), y=y, dudt=dudt)
+  
+  return(derivC$dudt)
+}
+
+simulate = function(p=parametersChemostat(), useC=FALSE) {
+  if (useC) {
+    # Load library
+    dyn.load("../Cpp/model.so")
+    # Set parameters
+    dummy = .C("setParameters", as.integer(p$n), 
+               p$m, p$rhoCN, p$epsilonL, p$epsilonF,
+               p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
+               p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin);
+    
+    out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+                IC = c(0.1*p$N0, p$DOC0, p$B0),
+                input_function = function(t,y) derivativeC(t,y,p),
+                reltolerance = 1e-6,
+                abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
+  } else
+    out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+                IC = c(0.1*p$N0, p$DOC0, p$B0),
+                input_function = function(t,y) derivative(t,y,p),
+                reltolerance = 1e-6,
+                abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
+  
+  nSave = dim(out)[1]
+  # Assemble results:
+  ix = seq(floor(nSave/2),nSave)
+  ixB = 4:(p$n+3)
+  
+  Bmin = 0*p$m
+  Bmax = 0*p$m
+  for (i in 1:p$n) {
+    Bmin[i] = max(1e-20, min(out[ix,ixB[i]]))
+    Bmax[i] = max(1e-20, out[ix,ixB[i]])
+  }
+  
+  result = list(
+    p = p,
+    t = out[,1],
+    y = out[,2:(p$n+3)],
+    
+    N = mean(out[ix,2]),
+    DOC = mean(out[ix,3]),
+    B = colMeans(out[ix,ixB]),
+    
+    Bmin = Bmin,
+    Bmax = Bmax)
+  
+  result = c(result, list(rates = calcRates(max(result$t), p$L, result$N, result$DOC, result$B,p)))
+  return(result)
+}
+
+
+calcFunctionsChemostat = function(param,r,N,B) {
   with(param, {
     conversion  = 365*M*1e-6*1000 # Convert to gC/yr/m2
     #
@@ -28,7 +171,7 @@ calcFunctions = function(param,r,N,B) {
     #
     # Efficiencies:
     #
-    effHTL = prodHTL/prodNew
+    effHTL = prodHTL/prodNew # CHECK: CORRECT uNitS?
     #
     # Biomasses:
     #
@@ -49,6 +192,111 @@ calcFunctions = function(param,r,N,B) {
     ))
   })
 }
+
+plotTimeline = function(sim, time=max(sim$t)) {
+  p = sim$p
+  t = sim$t
+  
+  par(cex.axis=cex,
+      cex.lab=cex,
+      mar=c(4, 5, 6, 2) + 0.1)
+  
+  y = sim$y
+  y[y <= 0] = 1e-30
+  
+  ylim = c(max(1e-5, min(sim$y)), max(sim$y))
+  if (p$latitude==0) {
+    xlim = range(t)  
+  } else {
+    xlim = c(0,365)
+    t = 365+t-max(t)
+  }
+  
+  plot(t, y[,1], log="y", type="l", col="blue", 
+       ylim=ylim, xlim=xlim, lwd=2,
+       xlab="Time (day)", ylab=TeX("Biomass ($\\mu$gC/l)"))
+  lines(t, y[,2], col="magenta", lwd=2)
+  lines(t, y[,3], col="orange", lwd=2)
+  for (i in 1:p$n)
+    lines(t, y[,i+2], lwd=i/p$n*3, col="black")
+  
+  if (p$latitude>0) {
+    lines(time*c(1,1), ylim, lty=dotted)
+    lines(t, SeasonalLight(p,t),
+          col="orange", lwd=2)
+  }
+}
+
+plotSeasonal = function(p,time) {
+  defaultplot()
+  defaultpanel(xlim=c(0,365),
+               ylim=c(0,1),
+               xlab="Time (days)",
+               ylab="d/max(d) / L/max(L)")
+  
+  t = seq(0,365,length.out = 100)
+  lines(t, SeasonalExchange(p$latitude, t)/max(SeasonalExchange(p$latitude, t)),col="red", lwd=3)
+  lines(t, SeasonalLight(p, t)/p$L, col="green", lwd=3)
+  vline(x=time)
+}
+
+plotSeasonalTimeline = function(sim) {
+  require(lattice)
+  require(latticeExtra)
+  
+  p = sim$p
+  ix = sim$t>max(sim$t-365)
+  t = sim$t[ix]
+  
+  B = log10(sim$y[ix,3:(p$n+2)])
+  B[B<(-1)] = -1
+  B[B>3] = 3
+  
+  levelplot(
+    B, 
+    column.values=(p$m), 
+    row.values = t, 
+    aspect="fill",
+    scales = list(y = list(log = 10)),
+    yscale.components = yscale.components.log10ticks,
+    xlab = "Time (days)",
+    ylab = TeX("Carbon mass ($\\mu$gC)"),
+    col.regions = terrain.colors(100),
+    ylim=c(p$m[1]/3, max(p$m)*3)
+  )
+}
+
+#
+# Plot functions:
+#
+plotFunctionsChemostat <- function(sim) {
+  # Get the func value from the previous call:
+  oldfunc = attr(plotFunctions, "oldfunc")
+  if (is.null(oldfunc))
+    oldfunc = c(0,0,0,0)
+  
+  func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
+  fnc = c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL)
+  attr(plotFunctions, "oldfunc") <<- fnc
+  heights = matrix(c(fnc, oldfunc), nrow=2, byrow = TRUE)
+  
+  par(mar=c(5,12,4,2))
+  barplot(height=heights,
+          names.arg = c("New production", "Gross PP", "Net PP", "HTL"),
+          xlab = TeX("Production (gC/m$^2$/yr)"),
+          beside=TRUE, col=c("black","grey"),
+          horiz=TRUE, las=1,
+          border=NA)
+  legend("topright",
+         c("This simulation","Previous simulation"),
+         fill=c("black","grey"),
+         bty="n")
+}
+
+source("basetools.R")
+source("model.R")
+
+
 #
 # Returns the trophic strategy as one of: osmoheterotroph, light or nutrient-limited
 # phototroph, mixotroph, or heterotroph.
@@ -122,7 +370,7 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
       col = colN
     if (strategy[i]=="Osmoheterotroph")
       col = colOsmo
-  
+    
     polygon(m[i]*c(1/fac,fac,fac,1/fac), c(0.5*ylim[1], 0.5*ylim[1], 2*ylim[2], 2*ylim[2]),
             col=col,
             lty=0)
@@ -158,7 +406,7 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   text(x=10, 1.5, 
        labels=TeX(sprintf("Microplankton: %2.2f $mgC/m$^2$", 1000*func$Bmicro)),
        cex=cex, pos=2, col=grey(0.5))
-
+  
   box()
 }
 
@@ -322,102 +570,11 @@ plotComplexRates = function(sim, t=max(sim$t)) {
          lwd=c(3,3,3,1,1,2,1,1,1,1,1,1))
 }
 
-plotTimeline = function(sim, time=max(sim$t)) {
-  p = sim$p
-  t = sim$t
-  
-  par(cex.axis=cex,
-      cex.lab=cex,
-      mar=c(4, 5, 6, 2) + 0.1)
-  
-  y = sim$y
-  y[y <= 0] = 1e-30
-  
-  ylim = c(max(1e-5, min(sim$y)), max(sim$y))
-  if (p$latitude==0) {
-    xlim = range(t)  
-  } else {
-    xlim = c(0,365)
-    t = 365+t-max(t)
-  }
-  
-  plot(t, y[,1], log="y", type="l", col="blue", 
-       ylim=ylim, xlim=xlim, lwd=2,
-       xlab="Time (day)", ylab=TeX("Biomass ($\\mu$gC/l)"))
-  lines(t, y[,2], col="magenta", lwd=2)
-  lines(t, y[,3], col="orange", lwd=2)
-  for (i in 1:p$n)
-    lines(t, y[,i+2], lwd=i/p$n*3, col="black")
-  
-  if (p$latitude>0) {
-    lines(time*c(1,1), ylim, lty=dotted)
-    lines(t, SeasonalLight(p,t),
-          col="orange", lwd=2)
-  }
-}
 
-plotSeasonal = function(p,time) {
-  defaultplot()
-  defaultpanel(xlim=c(0,365),
-               ylim=c(0,1),
-               xlab="Time (days)",
-               ylab="d/max(d) / L/max(L)")
-
-  t = seq(0,365,length.out = 100)
-  lines(t, SeasonalExchange(p$latitude, t)/max(SeasonalExchange(p$latitude, t)),col="red", lwd=3)
-  lines(t, SeasonalLight(p, t)/p$L, col="green", lwd=3)
-  vline(x=time)
-}
-
-plotSeasonalTimeline = function(sim) {
-  require(lattice)
-  require(latticeExtra)
-  
-  p = sim$p
-  ix = sim$t>max(sim$t-365)
-  t = sim$t[ix]
-  
-  B = log10(sim$y[ix,3:(p$n+2)])
-  B[B<(-1)] = -1
-  B[B>3] = 3
-  
-  levelplot(
-    B, 
-    column.values=(p$m), 
-    row.values = t, 
-    aspect="fill",
-    scales = list(y = list(log = 10)),
-    yscale.components = yscale.components.log10ticks,
-    xlab = "Time (days)",
-    ylab = TeX("Carbon mass ($\\mu$gC)"),
-    col.regions = terrain.colors(100),
-    ylim=c(p$m[1]/3, max(p$m)*3)
-  )
-}
-
-#
-# Plot functions:
-#
-plotFunctions <- function(sim) {
-  # Get the func value from the previous call:
-  oldfunc = attr(plotFunctions, "oldfunc")
-  if (is.null(oldfunc))
-    oldfunc = c(0,0,0,0)
-  
-  func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
-  fnc = c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL)
-  attr(plotFunctions, "oldfunc") <<- fnc
-  heights = matrix(c(fnc, oldfunc), nrow=2, byrow = TRUE)
-  
-  par(mar=c(5,12,4,2))
-  barplot(height=heights,
-          names.arg = c("New production", "Gross PP", "Net PP", "HTL"),
-          xlab = TeX("Production (gC/m$^2$/yr)"),
-          beside=TRUE, col=c("black","grey"),
-          horiz=TRUE, las=1,
-          border=NA)
-  legend("topright",
-         c("This simulation","Previous simulation"),
-         fill=c("black","grey"),
-         bty="n")
+baserunChemostat = function(p = parametersChemostat(), useC=FALSE) {
+  tic()
+  sim = simulate(p, useC)
+  toc()
+  plotSpectrum(sim)
+  return(sim)
 }
