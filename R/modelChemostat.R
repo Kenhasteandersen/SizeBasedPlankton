@@ -1,5 +1,5 @@
 source("model.R")
-source("plots.R")
+library("sundialr")
 
 parametersChemostat = function(p=parameters()) {
   #

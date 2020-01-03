@@ -143,62 +143,61 @@ uiChemostat <- fluidPage(
         )
       )
     )))
-    #
-    # Define server logic
-    #
-    serverChemostat <- function(input, output) {
-      #
-      # Simulate the system when a parameter is changed:
-      #
-      sim <- eventReactive({
-        input$L
-        input$latitude
-        input$d
-        input$T
-        input$M
-        input$mort2
-        input$mortHTL
-        input$epsilon_r
-      },
-      {
-        # get all base parameters
-        p <- parametersChemostat() 
-        # Update parameters with user input:
-        p$L = input$L
-        p$latitude = input$latitude
-        p$d = input$d
-        p$T = input$T
-        p$mort2 = input$mort2*p$n
-        p$mortHTL = input$mortHTL
-        p$M = input$M
-        p$remin = input$epsilon_r
-        
-        if (p$latitude>0)
-          p$tEnd = 2*365
-        
-        # Simulate
-        return(simulate(p, bUseC))   
-      })
-      #
-      # Plots:
-      #
-      output$plotSpectrum <- renderPlot(plotSpectrum(sim(), input$t))
-      output$plotRates <- renderPlot(plotRates(sim(), input$t))
-      output$plotLeaks = renderPlot(plotLeaks(sim(), input$t))
-      output$plotComplexRates <- renderPlot(plotComplexRates(sim(), input$t))
-      output$plotTime <- renderPlot(plotTimeline(sim(), input$t))
-      output$plotSeasonalTimeline <- renderPlot(plotSeasonalTimeline(sim()))
-      output$plotFunction <- renderPlot(plotFunctionsChemostat(sim()))
-      output$plotSeasonal <- renderPlot(plotSeasonal(p, input$t))
-    }
+#
+# Define server logic
+#
+serverChemostat <- function(input, output) {
+  #
+  # Simulate the system when a parameter is changed:
+  #
+  sim <- eventReactive({
+    input$L
+    input$latitude
+    input$d
+    input$T
+    input$M
+    input$mort2
+    input$mortHTL
+    input$epsilon_r
+  },
+  {
+    # get all base parameters
+    p <- parametersChemostat() 
+    # Update parameters with user input:
+    p$L = input$L
+    p$latitude = input$latitude
+    p$d = input$d
+    p$T = input$T
+    p$mort2 = input$mort2*p$n
+    p$mortHTL = input$mortHTL
+    p$M = input$M
+    p$remin = input$epsilon_r
     
-    # Compile C code:
-    if (system2("g++", "-O3 -shared ../Cpp/model.cpp -o ../Cpp/model.so")==0)  {
-      bUseC = TRUE
-      cat("Using C engine\n")
-    }
+    if (p$latitude>0)
+      p$tEnd = 2*365
+    
+    # Simulate
+    return(simulate(p, bUseC))   
+  })
+  #
+  # Plots:
+  #
+  output$plotSpectrum <- renderPlot(plotSpectrum(sim(), input$t))
+  output$plotRates <- renderPlot(plotRates(sim(), input$t))
+  output$plotLeaks = renderPlot(plotLeaks(sim(), input$t))
+  output$plotComplexRates <- renderPlot(plotComplexRates(sim(), input$t))
+  output$plotTime <- renderPlot(plotTimeline(sim(), input$t))
+  output$plotSeasonalTimeline <- renderPlot(plotSeasonalTimeline(sim()))
+  output$plotFunction <- renderPlot(plotFunctionsChemostat(sim()))
+  output$plotSeasonal <- renderPlot(plotSeasonal(p, input$t))
+}
 
-    # Run the application 
-    shinyApp(ui = uiChemostat, server = serverChemostat)
-    
-    
+# Compile C code:
+if (system2("g++", "-O3 -shared ../Cpp/model.cpp -o ../Cpp/model.so")==0)  {
+  bUseC = TRUE
+  cat("Using C engine\n")
+}
+
+# Run the application 
+shinyApp(ui = uiChemostat, server = serverChemostat)
+
