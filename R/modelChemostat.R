@@ -396,7 +396,7 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   text(x=m[1], y=2.25, labels=TeX(sprintf("DIN: %2.2f $\\mu$mol N/l", N/14)) , cex=cex, pos=4, col=grey(0.5))
   text(x=m[1], y=1.5, labels=TeX(sprintf("DOC: %2.2f $mmol C/l", 1000*DOC/12)), cex=cex, pos=4, col=grey(0.5))
   
-  func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
+  func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
   text(x=10, 3.3, 
        labels=TeX(sprintf("Picoplankton: %2.2f $mgC/m$^2$", 1000*func$Bpico)),
        cex=cex, pos=2, col=grey(0.5))
