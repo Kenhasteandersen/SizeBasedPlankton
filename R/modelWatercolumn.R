@@ -159,9 +159,10 @@ calcFunctionsWatercolumn = function(sim) {
   Bmicro = 0
 
   p = param
+  rates = NULL
   for (i in 1:param$nGrid) {
     # Calc rates throughout the water column
-    L = param$Lsurface*exp(-p$k*x[i])
+    L = param$Lsurface*exp(-p$k*sim$x[i])
     rates[[i]] = calcRates(0, L, sim$N[idx,i], sim$DOC[idx,i], sim$B[,i,idx],p)
     #
     # Primary production (carbon fixed)
