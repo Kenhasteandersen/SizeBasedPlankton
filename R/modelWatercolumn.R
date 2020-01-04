@@ -242,3 +242,28 @@ baserunWatercolumn = function(p=parametersWatercolumn()) {
   
   return(sim)
 }
+
+#
+# Find cpp-code:
+#
+if (file.exists("../Cpp/model.cpp")) {
+  fileLibrary = "../Cpp/model"
+} else {
+  if (file.exists("model.cpp")) {
+    fileLibrary = "model"
+  } else {
+    stop("Did not find model cpp source code.")
+}}
+#
+# Compile:
+#
+if (!file.exists(paste(fileLibrary,'.so',sep=""))) {
+  if (system2("g++", 
+           paste("-O3 -fPIC -shared ",fileLibrary,".cpp -o ",
+               fileLibrary,".so",sep=""))==1)  {
+    stop("Cannot compile cpp engine")
+  }
+}
+
+
+
