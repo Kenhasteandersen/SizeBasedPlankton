@@ -12,7 +12,7 @@ options(shiny.sanitize.errors = FALSE)
 
 source("modelChemostat.R")
 
-bUseC = FALSE
+bUseC = TRUE
 
 # ===================================================
 # Define UI for application
@@ -193,10 +193,10 @@ serverChemostat <- function(input, output) {
 }
 
 # Compile C code:
-if (system2("g++", "-O3 -shared ../Cpp/model.cpp -o ../Cpp/model.so")==0)  {
-  bUseC = TRUE
-  cat("Using C engine\n")
-}
+#if (system2("g++", "-O3 -shared ../Cpp/model.cpp -o ../Cpp/model.so")==0)  {
+#  bUseC = TRUE
+#  cat("Using C engine\n")
+#}
 
 # Run the application 
 shinyApp(ui = uiChemostat, server = serverChemostat)

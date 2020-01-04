@@ -271,13 +271,13 @@ plotSeasonalTimeline = function(sim) {
 #
 plotFunctionsChemostat <- function(sim) {
   # Get the func value from the previous call:
-  oldfunc = attr(plotFunctions, "oldfunc")
+  oldfunc = attr(plotFunctionsChemostat, "oldfunc")
   if (is.null(oldfunc))
     oldfunc = c(0,0,0,0)
   
-  func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
+  func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
   fnc = c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL)
-  attr(plotFunctions, "oldfunc") <<- fnc
+  attr(plotFunctionsChemostat, "oldfunc") <<- fnc
   heights = matrix(c(fnc, oldfunc), nrow=2, byrow = TRUE)
   
   par(mar=c(5,12,4,2))
