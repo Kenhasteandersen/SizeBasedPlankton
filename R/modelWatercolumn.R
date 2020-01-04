@@ -17,8 +17,8 @@ parametersWatercolumn = function(p = parameters()) {
 simulateWatercolumn = function(p=parametersWatercolumn(), 
                                tEnd=p$tEnd, dt=p$dt, nGrid=p$nGrid, nTout=110) {
   # Load C engine
-  if (!is.loaded("../Cpp/model.so"))
-    dyn.load("../Cpp/model.so")
+  if (!is.loaded(paste(fileLibrary,".so",sep="")))
+    dyn.load(paste(fileLibrary,".so",sep=""))
   # Constants:
   idxN = 1
   idxDOC = 2
@@ -263,6 +263,7 @@ if (!file.exists(paste(fileLibrary,'.so',sep=""))) {
                fileLibrary,".so",sep=""))==1)  {
     stop("Cannot compile cpp engine")
   }
+  
 }
 
 
