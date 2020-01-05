@@ -5,7 +5,7 @@
 #  cp ~/SizeBasedPlankton/R/* to /srv/shiny-server/Plankton
 #  If using new packages install them by running R as root (sudo su; R; install.packages("XXX))
 #  sudo systemctl restart shiny-server
-#
+# 
 
 library(shiny)
 options(shiny.sanitize.errors = FALSE)
