@@ -1,10 +1,11 @@
 #
 # Install app:
 #  ssh ken@oceanlife.dtuaqua.dk
-#  update the git
-#  cp to /srv/shiny-server/Plankton
-#  If using new packages install them by running R as root
-# sudo systemctl restart shiny-server
+#  update the git (git pull)
+#  cp ~/SizeBasedPlankton/R/* to /srv/shiny-server/Watercolumn
+#  cp ~/SizeBasedPlankton/Cpp/model.cpp to /srv/shiny-server/Watercolumn
+#  If using new packages install them by running R as root (sudo su; R; install.packages("XXX))
+#  sudo systemctl restart shiny-server
 #
 
 library(shiny)
@@ -29,11 +30,15 @@ uiWatercolumn <- fluidPage(
     Cell size is the only trait characterizing each plankton group.
     All groups are able to perform photoharvesting, taking up dissolve nutrients and carbon, and do phagotrophy.
     The trophic strategy is an emergent property.'),
-  p('THIS IS WORK IN PROGRESS. Version 0.1. January 2020.')
+  HTML('<p>Made in R with shiny. 
+    Code on <a href="https://github.com/Kenhasteandersen/SizeBasedPlankton">github</a>.</p>'),
+  HTML('<p>THIS IS WORK IN PROGRESS. Version 0.1. January 2020. 
+    See also <a href="http://oceanlife.dtuaqua.dk/Plankton">chemostat version</a>.</p>')
   ,
   # Sidebar with a slider inputs
   sidebarLayout(
     sidebarPanel(
+      HTML("<h3>Environment:</h3>"),
       sliderInput("Lsurface",
                   "Surface light (PAR; uE/m2/s)",
                   min = 0,
@@ -44,7 +49,7 @@ uiWatercolumn <- fluidPage(
       sliderInput("diff",
                   "Diffusion (m2/day)",
                   min = 0,
-                  max = 100,
+                  max = 50,
                   step = 1,
                   value = 1)
       ,
@@ -62,7 +67,15 @@ uiWatercolumn <- fluidPage(
                   step=1,
                   value = 150)
       ,
-      hr()
+      sliderInput("Depth",
+                  "Depth (m)",
+                  min=10,
+                  max=200,
+                  step=1,
+                  value=80)
+      ,
+      hr(),
+      HTML("<h3>Parameters:</h3>")
       ,
       sliderInput("mortHTL",
                   "Mortality by higher trophic levels on the largest sizes (1/day)",
@@ -84,6 +97,23 @@ uiWatercolumn <- fluidPage(
                   max = 1,
                   value = 0,
                   step = 0.1)
+      ,
+      hr(),
+      HTML("<h3>Numerical parameters</h3>")
+      ,
+      sliderInput("dt",
+                  "Time step (days)",
+                  min = 0.02,
+                  max = 0.5,
+                  step=0.01,
+                  value=0.1)
+      ,
+      sliderInput("nGrid",
+                  "No. of grid points",
+                  min=10,
+                  max=200,
+                  step=1,
+                  value=100)
     ),
     #
     # Show plots:
@@ -130,9 +160,12 @@ serverWatercolumn <- function(input, output) {
     input$diff
     input$T
     input$N0
+    input$Depth
     input$mort2
     input$mortHTL
     input$epsilon_r
+    input$dt
+    input$nGrid
   },
   {
     # get all base parameters
@@ -142,10 +175,12 @@ serverWatercolumn <- function(input, output) {
     p$diff = input$diff
     p$T = input$T
     p$N0 = input$N0
+    p$depth = input$Depth
     p$mort2 = input$mort2*p$n
     p$mortHTL = input$mortHTL
     p$remin = input$epsilon_r
-    
+    p$dt = input$dt
+    p$nGrid = input$nGrid
     # Simulate
     return(simulateWatercolumn(p))
   })

@@ -83,11 +83,11 @@ plotWatercolumnTime = function(sim) {
   # Plot results
   #
   defaultplotvertical(nPanels = 5)
-  image.plot(sim$t, sim$x, sim$N)
-  image.plot(sim$t, sim$x, sim$DOC)
-  image.plot(sim$t, sim$x, sim$Bpico)
-  image.plot(sim$t, sim$x, sim$Bnano)
-  image.plot(sim$t, sim$x, sim$Bmicro, xlab="time (days)")
+  image.plot(sim$t, sim$x, sim$N, ylab="N")
+  image.plot(sim$t, sim$x, sim$DOC, ylab="DOC")
+  image.plot(sim$t, sim$x, sim$Bpico, ylab="Bpico")
+  image.plot(sim$t, sim$x, sim$Bnano, ylab="Bnano")
+  image.plot(sim$t, sim$x, sim$Bmicro, xlab="time (days)", ylab="Bmicro")
 }
 
 plotWatercolumn = function(sim, idx = length(sim$t)) {
@@ -263,7 +263,6 @@ if (!file.exists(paste(fileLibrary,'.so',sep=""))) {
                fileLibrary,".so",sep=""))==1)  {
     stop("Cannot compile cpp engine")
   }
-  
 }
 
 

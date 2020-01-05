@@ -3,7 +3,7 @@
 #  ssh ken@oceanlife.dtuaqua.dk
 #  update the git (git pull)
 #  cp ~/SizeBasedPlankton/R/* to /srv/shiny-server/Plankton
-#  If using new packages install them by running R as root
+#  If using new packages install them by running R as root (sudo su; R; install.packages("XXX))
 #  sudo systemctl restart shiny-server
 #
 
