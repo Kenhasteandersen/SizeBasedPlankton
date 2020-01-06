@@ -4,10 +4,10 @@ library(tictoc)
 
 parametersWatercolumn = function(p = parameters()) {
   p$tEnd = 2*365
-  p$dt = 0.1
-  p$depth = 80
+  p$dt = 0.01
+  p$depth = 60
   p$Lsurface = 100
-  p$nGrid = 100
+  p$nGrid = 50
   p$k = 0.1 # Damping of light by water
   p$diff = 1
   
@@ -96,18 +96,18 @@ plotWatercolumn = function(sim, idx = length(sim$t)) {
   #
   # Rates:
   #
-  defaultpanel(xlim=c(0,100), xlab="Concentration ($\\mu$g C/l)",
+  defaultpanel(xlim=c(0,80), xlab="Concentration ($\\mu$g C/l)",
                ylim=range(sim$x), ylab="Depth (m)")
   tightaxes()  
   lines(sim$N[idx,]/10, sim$x, col="blue", lwd=thick)
-  lines(sim$DOC[idx,]*10, sim$x, col="magenta", lwd=thick)
+  lines(sim$DOC[idx,]*100, sim$x, col="magenta", lwd=thick)
   lines(sim$Bpico[idx,], sim$x, col="black", lwd=1)
   lines(sim$Bnano[idx,], sim$x, col="black", lwd=2)
   lines(sim$Bmicro[idx,], sim$x, col="black", lwd=3)
   
   title("\nConcentrations")
   legend(x="bottom", bty="n",
-         legend=c("Nutrients/10", "DOC*10", "Pico", "Nano", "Micro"),
+         legend=c("Nutrients/10", "DOC*100", "Pico", "Nano", "Micro"),
          lwd=c(thick, thick, 1,2,3),
          col=c("blue","magenta","black","black","black"))
   #

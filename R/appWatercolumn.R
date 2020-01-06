@@ -33,7 +33,9 @@ uiWatercolumn <- fluidPage(
   HTML('<p>Made in R with shiny. 
     Code on <a href="https://github.com/Kenhasteandersen/SizeBasedPlankton">github</a>.</p>'),
   HTML('<p>THIS IS WORK IN PROGRESS. Version 0.1. January 2020. 
-    See also <a href="http://oceanlife.dtuaqua.dk/Plankton">chemostat version</a>.</p>')
+    See also <a href="http://oceanlife.dtuaqua.dk/Plankton">chemostat version</a>
+       and other <a href="http://oceanlife.dtuaqua.dk">apps</a>. 
+       By <a href="mailto:kha@aqua.dtu.dk">Ken H Andersen</a>.</p>')
   ,
   # Sidebar with a slider inputs
   sidebarLayout(
@@ -72,7 +74,7 @@ uiWatercolumn <- fluidPage(
                   min=10,
                   max=200,
                   step=1,
-                  value=80)
+                  value=parametersWatercolumn()$depth)
       ,
       hr(),
       HTML("<h3>Parameters:</h3>")
@@ -106,14 +108,14 @@ uiWatercolumn <- fluidPage(
                   min = 0.02,
                   max = 0.5,
                   step=0.01,
-                  value=0.1)
+                  value=0.02)
       ,
       sliderInput("nGrid",
                   "No. of grid points",
                   min=10,
                   max=200,
                   step=1,
-                  value=100)
+                  value=50)
     ),
     #
     # Show plots:
@@ -125,8 +127,8 @@ uiWatercolumn <- fluidPage(
       tabsetPanel(
         tabPanel(
           "Main output",
-          plotOutput("plotWatercolumn", width="600px", height="300px"),
-          plotOutput("plotFunction", width="600px")
+          plotOutput("plotWatercolumn", width="600px", height="400px"),
+          plotOutput("plotFunction", width="600px", height="300px")
           #plotOutput("plotSpectrum", width="600px", height="300px"),
           #plotOutput("plotRates", width="600px", height="300px"),
           #plotOutput("plotLeaks", width="600px", height="200px")

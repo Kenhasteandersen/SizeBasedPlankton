@@ -59,6 +59,8 @@ parameters <- function() {
   p$mHTL = max(p$m)/p$beta # Bins affected by HTL mortality
   
   p$remin = 0.0 # fraction of mortality losses reminerilized to N and DOC
+  
+  p$T = 10
   #
   # Initial conditions:
   #
