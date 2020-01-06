@@ -66,7 +66,7 @@ parameters <- function() {
   #
   p$N0 = 150
   p$DOC0 = 0
-  p$B0 = rep(10,p$n)
+  p$B0 = rep(1,p$n)
   
   return(p)
 }
