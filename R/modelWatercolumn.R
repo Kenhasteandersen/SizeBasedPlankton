@@ -86,10 +86,10 @@ plotWatercolumnTime = function(sim) {
   image(sim$t, sim$x, sim$N, ylab="N", xlab="time", col=topo.colors(20))
   mtext(side=left, line=1, TeX("N"), cex=par()$cex)
   image(sim$t, sim$x, sim$DOC, col=topo.colors(20), 
-        zlim=c(0,max(sim$DOC[(length(s$t/2)):length(s$t),])))
+        zlim=c(0,max(sim$DOC[(length(sim$t/2)):length(sim$t),])))
   mtext(side=left, line=1, TeX("DOC"), cex=par()$cex)
   
-  zlim = c(0, max( (sim$Bpico+sim$Bnano+sim$Bmicro)[(length(s$t/2)):length(s$t),]))
+  zlim = c(0, max( (sim$Bpico+sim$Bnano+sim$Bmicro)[(length(sim$t/2)):length(sim$t),]))
   image(sim$t, sim$x, sim$Bpico, ylab="Bpico", col=topo.colors(20), zlim=zlim)
   mtext(side=left, line=1, TeX("Bpico"), cex=par()$cex)
   image(sim$t, sim$x, sim$Bnano, ylab="Bnano", col=topo.colors(20), zlim=zlim)
