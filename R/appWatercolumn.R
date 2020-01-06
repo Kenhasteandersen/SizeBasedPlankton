@@ -18,13 +18,13 @@ source("modelWatercolumn.R")
 # ===================================================
 
 uiWatercolumn <- fluidPage(
-  # tags$head(
-  #   # Add google analytics tracking:
-  #   includeHTML(("googleanalytics.html")),
-  #   # Make rules widers:
-  #   tags$style(HTML("hr {border-top: 1px solid #000000;}"))
-  # )
-  #,
+  tags$head(
+    # Add google analytics tracking:
+    includeHTML(("googleanalyticsWatercolumn.html")),
+    # Make rules widers:
+    tags$style(HTML("hr {border-top: 1px solid #000000;}"))
+  )
+  ,
   h1('Size-based water column plankton simulator'),
   p('Simulate a plankton ecosystem in a watercolumn. 
     Cell size is the only trait characterizing each plankton group.
