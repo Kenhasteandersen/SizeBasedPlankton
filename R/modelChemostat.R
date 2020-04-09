@@ -105,14 +105,16 @@ simulate = function(p=parametersChemostat(), useC=FALSE) {
     
     out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                 IC = c(0.1*p$N0, p$DOC0, p$B0),
-                input_function = function(t,y) derivativeC(t,y,p),
+                input_function = function(t,y, dummy) derivativeC(t,y,p),
                 reltolerance = 1e-6,
+                Parameters = 0,
                 abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
   } else
     out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                 IC = c(0.1*p$N0, p$DOC0, p$B0),
-                input_function = function(t,y) derivative(t,y,p),
+                input_function = function(t,y, dummy) derivative(t,y,p),
                 reltolerance = 1e-6,
+                Parameters = 0, 
                 abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
   
   nSave = dim(out)[1]
@@ -570,11 +572,10 @@ plotComplexRates = function(sim, t=max(sim$t)) {
          lwd=c(3,3,3,1,1,2,1,1,1,1,1,1))
 }
 
-
 baserunChemostat = function(p = parametersChemostat(), useC=FALSE) {
-  tic()
+  #tic()
   sim = simulate(p, useC)
-  toc()
+  #toc()
   plotSpectrum(sim)
   return(sim)
 }
