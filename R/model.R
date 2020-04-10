@@ -11,8 +11,9 @@ parameters <- function() {
   p$m = 10^seq(-8,1,length.out = p$n)  # Mass bins in mugC
   
   p$rhoCN = 5.68 # C:N mass ratio
-  p$epsilonL = 0.8 # Light uptake efficiency
+  p$epsilonL = 0.9 # Light uptake efficiency
   p$epsilonF = 0.8 # Assimilation efficiency
+  p$cLeakage = 0.00015 # passive leakage of C and N
   #
   # Cell wall fraction of mass:
   #
@@ -116,7 +117,7 @@ calcRates = function(t,L,N,DOC,B,p) {
     JNtot = JN+JF/rhoCN # In units of N
     
     # Down-regulation of light uptake:
-    JLreal = pmin(JL, pmax(0, JNtot*rhoCN - (JF+JDOC-JR)))
+    JLreal = pmin(JL, pmax(0, JNtot*rhoCN - (JDOC-JR)))
                      
     JCtot = JLreal+JF+JDOC-JR # Total carbon untake
 
@@ -131,8 +132,10 @@ calcRates = function(t,L,N,DOC,B,p) {
     #JClossLiebig = pmax(0, Jtot - JNtot*rhoCN) # C losses from Liebig, not counting losses from photoharvesting
     #JClossLiebig = pmin(JClossLiebig, JDOC) # However, light surplus is not leaked but is downregulated
 
-    JNloss = JCloss_feeding/rhoCN + JNlossLiebig
-    JCloss = JCloss_feeding + JCloss_photouptake + JClossLiebig
+    Jloss_passive = p$cLeakage * m^(2/3) # in units of C
+    
+    JNloss = JCloss_feeding/rhoCN + JNlossLiebig + Jloss_passive/rhoCN
+    JCloss = JCloss_feeding + JCloss_photouptake + JClossLiebig + Jloss_passive
     
     #if (sum(c(JNloss,JCloss,B)<0))
     #  browser()
@@ -154,6 +157,7 @@ calcRates = function(t,L,N,DOC,B,p) {
       JLreal = JLreal, JR=JR,
       JNlossLiebig=JNlossLiebig, JClossLiebig=JClossLiebig,
       JCloss_photouptake=JCloss_photouptake,
+      Jloss_passive = Jloss_passive,
       JCloss_feeding=JCloss_feeding, JCloss=JCloss, JNloss=JNloss,
       Jtot=Jtot, F=F, JCtot = JCtot, JNtot=JNtot,
       mortpred=mortpred, mort=mort,

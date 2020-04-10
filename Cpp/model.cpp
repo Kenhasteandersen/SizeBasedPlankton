@@ -129,7 +129,7 @@ inline double fTemp(double Q10, double T) {
   return pow(Q10, T/10-1);
 };
 
-extern "C" void calcRates(const double& T, const double& L, const double* u, double* dudt) {
+void calcRates(const double& T, const double& L, const double* u, double* dudt, const double gammaN, const double gammaDOC) {
   int i;
   
   for (i=0; i<p.n; i++)
@@ -152,12 +152,13 @@ extern "C" void calcRates(const double& T, const double& L, const double* u, dou
     if (u[idxN]<=0)
       rates.JN[i] = 0;
     else
-      rates.JN[i] = JmaxT[i] * ANmT[i]*u[idxN] / (JmaxT[i] + ANmT[i]*u[idxN]*p.rhoCN);
+      rates.JN[i] = gammaN * JmaxT[i] * ANmT[i]*u[idxN] / (JmaxT[i] + ANmT[i]*u[idxN]*p.rhoCN);
     
     if (u[idxDOC]<=0)
       rates.JDOC[i] = 0;
     else
-      rates.JDOC[i] = JmaxT[i] * ANmT[i]*u[idxDOC] / (JmaxT[i] + ANmT[i]*u[idxDOC]);
+      rates.JDOC[i] = gammaDOC * JmaxT[i] * ANmT[i]*u[idxDOC] / (JmaxT[i] + ANmT[i]*u[idxDOC]);
+    
     rates.JL[i] = p.epsilonL * JmaxT[i] * p.ALm[i]*L / (JmaxT[i] + p.ALm[i]*L);
     
     rates.F[i] = 0;
@@ -166,12 +167,15 @@ extern "C" void calcRates(const double& T, const double& L, const double* u, dou
       //std::cout << rates.F[i] << ";";
     }
     rates.JF[i] = p.epsilonF * JmaxT[i] * p.AFm[i]*rates.F[i] / (JmaxT[i] +p.AFm[i]*rates.F[i]);  
+    
     // Downregulation:
     rates.JNtot[i] = rates.JN[i] + rates.JF[i]/p.rhoCN;
-    rates.JLreal[i] = min(rates.JL[i], max(0, rates.JNtot[i]*p.rhoCN - (rates.JF[i]+rates.JDOC[i]-JrespT[i])));
+    rates.JLreal[i] = min(rates.JL[i], max(0, rates.JNtot[i]*p.rhoCN - (rates.JDOC[i]-JrespT[i])));
     rates.JCtot[i] = rates.JLreal[i] + rates.JF[i] + rates.JDOC[i] - JrespT[i];
+
     // Synthesis:
     rates.Jtot[i] = min( rates.JCtot[i], rates.JNtot[i]*p.rhoCN);
+    
     // Losses:
     rates.JCloss_feeding[i] = (1-p.epsilonF)/p.epsilonF*rates.JF[i];
     rates.JCloss_photouptake[i] = (1-p.epsilonL)/p.epsilonL*rates.JLreal[i];
@@ -179,7 +183,7 @@ extern "C" void calcRates(const double& T, const double& L, const double* u, dou
     rates.JClossLiebig[i] = max(0, rates.JCtot[i]-rates.JNtot[i]*p.rhoCN); 
     
     rates.JNloss[i] = rates.JCloss_feeding[i]/p.rhoCN +rates. JNlossLiebig[i];
-    rates.JCloss[i] = rates.JCloss_feeding[i] +rates. JCloss_photouptake[i] + rates.JClossLiebig[i];
+    rates.JCloss[i] = rates.JCloss_feeding[i] + rates.JCloss_photouptake[i] + rates.JClossLiebig[i];
   }
   //
   // Mortality:
@@ -200,10 +204,36 @@ extern "C" void calcRates(const double& T, const double& L, const double* u, dou
     mortloss = B[i]*(p.mort2*B[i] + p.mHTL[i]);
     dudt[idxN] += (-rates.JN[i]+rates.JNloss[i])*B[i]/p.m[i] + p.remin*mortloss/p.rhoCN;
     dudt[idxDOC] += (-rates.JDOC[i] + rates.JCloss[i])*B[i]/p.m[i] + p.remin*mortloss;
-    
     dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  - (p.mort[i] + rates.mortpred[i] + p.mort2*B[i] + p.mHTL[i]))*B[i];
   }
 };
+
+extern "C" void calcRates(const double& T, const double& L, const double* u, double* dudt) {
+  calcRates(T,L,u,dudt,1,1);
+}
+
+void calcRates(const double& T, const double& L, const double* u, double* dudt, const double dt) {
+  calcRates(T, L, u, dudt);
+  
+  double gammaN = 1;
+  double gammaDOC = 1;
+
+  if (u[idxN]+dudt[idxN]*dt<0)
+    gammaN = min(gammaN, -u[idxN]/(dudt[idxN]*dt));
+  
+  if ((u[idxDOC]+dudt[idxDOC]*dt)<0) {
+    //double JDOCtot = 0;
+    //for (int j = 0; j<p.n; j++)
+    //  JDOCtot += rates.JDOC[j];
+    min(gammaDOC, -u[idxDOC]/(dudt[idxDOC]*dt));
+  }
+    
+  if (gammaN<1 | gammaDOC<1) {
+    calcRates(T,L,u,dudt,gammaN,gammaDOC);
+    std::cout << gammaN << "," << gammaDOC << "\n";
+  }
+};
+
 /* ===============================================================
  * Stuff for Chemostat model:
  */
@@ -291,19 +321,21 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
     bN[i] = 1 + 2*Dif;
     cN[i] = -Dif;
     sN[i] = 0;
-    bN[0] = 1 + Dif;
-    sN[nGrid-1] = -cN[nGrid-1]*N0;
   }
+  bN[0] = 1 + Dif;
+  sN[nGrid-1] = -cN[nGrid-1]*N0;
   
   aDOC = aN;
   bDOC = bN;
   cDOC = cN;
+  sDOC = sN;
   sDOC[nGrid-1] = 0;
   
   double adv = 0*dt/dx;
   aPhyto = aN;
   bPhyto = bN; // + adv;
   cPhyto = cN;
+  sPhyto = sN;
   sPhyto[nGrid-1] = 0;
   /*
    * Initialize
@@ -317,7 +349,7 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
   for (i=1; i<tEnd/dt; i++) {
     // Calc reaction:
     for (j=0; j<nGrid; j++) {
-      calcRates(T, calcLight(L0, x[j]), &u[j*(p.n+2) + (i-1)*(p.n+2)*nGrid], &dudt[j*(p.n+2)]);
+      calcRates(T, calcLight(L0, x[j]), &u[j*(p.n+2) + (i-1)*(p.n+2)*nGrid], &dudt[j*(p.n+2)], dt);
     }
     // Invert:
     solveTridiag(aN, bN, cN, sN, 

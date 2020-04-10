@@ -1,4 +1,5 @@
 source("model.R")
+source("basetools.R")
 library("sundialr")
 
 parametersChemostat = function(p=parameters()) {
@@ -69,7 +70,8 @@ derivative = function(t,y,p) {
     diff = p$d
   
   dBdt = diff*(0-B) + (rates$Jtot/p$m  - 
-                         (rates$mort+ rates$mortpred + rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))*B
+                         (rates$Jloss_passive/p$m + rates$mort+ 
+                            rates$mortpred + rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))*B
   dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
   mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
   dNdt   =  diff*(p$N0-N)  - sum(rates$JN*B/p$m)   + sum(rates$JNloss*B/p$m) +
@@ -175,6 +177,15 @@ calcFunctionsChemostat = function(param,r,N,B) {
     #
     effHTL = prodHTL/prodNew # CHECK: CORRECT uNitS?
     #
+    # Losses
+    #
+    lossPassive = sum( r$Jloss_passive/m*B ) 
+    lossPhotouptake = sum( r$JCloss_photouptake/m*B )
+    lossFeeding = sum( r$JCloss_feeding/m*B )
+    lossFeedingHTL = sum( (1-epsilonF)*prodHTL )
+    lossTotalC = lossPassive+lossPhotouptake+lossFeeding+lossFeedingHTL
+    lossTotalN = (lossPassive+lossFeeding+lossFeedingHTL)/rhoCN
+    #
     # Biomasses:
     #
     conversion = M/10*100*1e-6  # Convert to gC/m2
@@ -183,6 +194,7 @@ calcFunctionsChemostat = function(param,r,N,B) {
     Bnano = conversion * sum( B[d>=2 & d <20])
     Bmicro = conversion * sum( B[d>=20])
     
+    
     return(list(
       prodNew = prodNew,
       prodCgross = prodCgross,
@@ -190,6 +202,12 @@ calcFunctionsChemostat = function(param,r,N,B) {
       prodHTL = prodHTL,
       resp = resp,
       effHTL = effHTL,
+      lossPassive = lossPassive,
+      lossPhotouptake = lossPhotouptake,
+      lossFeeding = lossFeeding,
+      lossFeedingHTL = lossFeedingHTL,
+      lossTotalC = lossTotalC,
+      lossTotalN = lossTotalN,
       Bpico=Bpico, Bnano=Bnano, Bmicro=Bmicro
     ))
   })
@@ -272,17 +290,24 @@ plotSeasonalTimeline = function(sim) {
 # Plot functions:
 #
 plotFunctionsChemostat <- function(sim) {
+  #
+  # Get functions
+  # 
+  func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
   # Get the func value from the previous call:
   oldfunc = attr(plotFunctionsChemostat, "oldfunc")
   if (is.null(oldfunc))
-    oldfunc = c(0,0,0,0)
+    oldfunc = func
+  attr(plotFunctionsChemostat, "oldfunc") <<- func
   
-  func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
-  fnc = c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL)
-  attr(plotFunctionsChemostat, "oldfunc") <<- fnc
-  heights = matrix(c(fnc, oldfunc), nrow=2, byrow = TRUE)
+  par(mfcol=c(2,1), mar=c(5,12,1,2))
+  #
+  # Fluxes:
+  #
+  flux = c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL)
+  oldflux = c(oldfunc$prodNew, oldfunc$prodCgross, oldfunc$prodCnet, oldfunc$prodHTL)
   
-  par(mar=c(5,12,4,2))
+  heights = matrix(c(flux, oldflux), nrow=2, byrow = TRUE)
   barplot(height=heights,
           names.arg = c("New production", "Gross PP", "Net PP", "HTL"),
           xlab = TeX("Production (gC/m$^2$/yr)"),
@@ -293,11 +318,55 @@ plotFunctionsChemostat <- function(sim) {
          c("This simulation","Previous simulation"),
          fill=c("black","grey"),
          bty="n")
+  #
+  # Efficiencies:
+  #
+  PP = func$prodCnet
+  eff = c(func$lossPassive/PP, func$lossPhotouptake/PP,
+          func$lossFeeding/PP, func$lossTotalC/PP)
+  PP = oldfunc$prodCnet
+  oldeff = c(oldfunc$lossPassive/PP, oldfunc$lossPhotouptake/PP,
+             oldfunc$lossFeeding/PP, oldfunc$lossTotalC/PP)
+  heights = matrix(c(eff, oldeff), nrow=2, byrow=TRUE)
+  barplot(height=heights,
+          names.arg = c("ePassiveloss", "ePhotoloss", "eFeedingloss", "eTotalloss"),
+          xlab = TeX("Fraction of gross PP"),
+          beside=TRUE, col=c("black","grey"),
+          horiz=TRUE, las=1,
+          border=NA)
 }
 
-source("basetools.R")
-source("model.R")
-
+plotFunctionsChemostatold <- function(sim) {
+  # Get the func value from the previous call:
+  oldfunc = attr(plotFunctionsChemostat, "oldfunc")
+  if (is.null(oldfunc))
+    oldfunc = c(0,0,0,0)
+  
+  func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
+  fnc = c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL)
+  attr(plotFunctionsChemostat, "oldfunc") <<- func
+  heights = matrix(c(fnc, oldfunc), nrow=2, byrow = TRUE)
+  
+  par(mfcol=c(2,1), mar=c(5,12,4,2))
+  #
+  # Fluxes:
+  #
+  barplot(height=heights,
+          names.arg = c("New production", "Gross PP", "Net PP", "HTL"),
+          xlab = TeX("Production (gC/m$^2$/yr)"),
+          beside=TRUE, col=c("black","grey"),
+          horiz=TRUE, las=1,
+          border=NA)
+  legend("topright",
+         c("This simulation","Previous simulation"),
+         fill=c("black","grey"),
+         bty="n")
+  #
+  # Efficiencies:
+  #
+  barplot()
+  
+}
 
 #
 # Returns the trophic strategy as one of: osmoheterotroph, light or nutrient-limited
@@ -314,7 +383,7 @@ calcStrategy = function(p,r) {
 }
 
 
-plotSpectrum <- function(sim, t=max(sim$t)) {
+plotSpectrum <- function(sim, t=max(sim$t), bPlot=TRUE) {
   p = sim$p
   m = p$m
   
@@ -345,7 +414,8 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
     r = calcRates(t, N, DOC, B, p)
   }
   
-  defaultplot(mar=c(2.1,2.3,2.1,0))
+  if (bPlot)
+    defaultplot(mar=c(2.1,2.3,2.1,0))
   loglogpanel(xlim=p$m, ylim=ylim, 
               xlab="Carbon mass ($\\mu$gC)",
               ylab="Biomass ($\\mu$gC/l)")
@@ -412,7 +482,7 @@ plotSpectrum <- function(sim, t=max(sim$t)) {
   box()
 }
 
-plotRates = function(sim, t=max(sim$t)) {
+plotRates = function(sim, t=max(sim$t), bPlot=FALSE) {
   p = sim$p
   
   mm = 10^seq(-8,2, length.out = 100)  
@@ -432,7 +502,8 @@ plotRates = function(sim, t=max(sim$t)) {
     r = calcRates(t, N, DOC, B, p)
   }
   
-  defaultplot()
+  if (bPlot)
+    defaultplot()
   ylim = c(-1.4,1.6)
   semilogxpanel(xlim=p$m, ylim=ylim,
                 xlab="Carbon mass ($\\mu$gC)",
@@ -476,6 +547,7 @@ plotRates = function(sim, t=max(sim$t)) {
   lines(p$m[p$m>=p$mHTL], -p$mortHTL*sign(p$m[p$m>p$mHTL]), col="magenta", lwd=4)
   lines(p$m, -sim$rates$mort2, col="orange", lwd=4)
   lines(p$m, -p$Jresp/p$m, col="grey", lwd=4)
+  lines(p$m, -r$Jloss_passive/p$m, col="blue")
   
   BSheldon =exp(mean(log(sim$B)))
   delta = (p$m[2]-p$m[1]) / sqrt(p$m[2]*p$m[1])
@@ -483,9 +555,10 @@ plotRates = function(sim, t=max(sim$t)) {
   lines(range(p$m), -mortPredTheoretical*c(1,1), lty=dotted, col="red")
   
   legend(x="bottomright", cex=cex,
-         legend=c("Losses:", "Predation", "Virulysis", "Higher trophic levels","Respiration"),
-         col=c(NA,"red", "orange", "magenta","grey"),
-         lwd=c(0,4,4,4,4), bty="n")
+         legend=c("Losses:", "Predation", "Virulysis", 
+                  "Higher trophic levels","Respiration","Passive"),
+         col=c(NA,"red", "orange", "magenta","grey","blue"),
+         lwd=c(0,4,4,4,4,4), bty="n")
   
   lines(p$m, 0*p$m, col="white", lwd=4)
   lines(p$m, 0*p$m, lty=dashed, lwd=2)
@@ -573,9 +646,13 @@ plotComplexRates = function(sim, t=max(sim$t)) {
 }
 
 baserunChemostat = function(p = parametersChemostat(), useC=FALSE) {
-  #tic()
+  tic()
   sim = simulate(p, useC)
-  #toc()
-  plotSpectrum(sim)
+  toc()
+  
+  defaultplot(c(2,1))
+  plotSpectrum(sim, bPlot=FALSE)
+  plotRates(sim, bPlot=FALSE)
+  
   return(sim)
 }
