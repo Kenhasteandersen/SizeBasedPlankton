@@ -79,7 +79,7 @@ extern "C" void setParameters(
   p.epsilonF = _epsilonF;
   p.mort2 = _mort2;
   p.remin = _remin;
-  p.remin2 = _remin;
+  p.remin2 = _remin2;
   p.cLeakage = _cLeakage;
   
   p.m.resize(p.n);
@@ -225,21 +225,22 @@ void calcRates(const double& T, const double& L, const double* u,
     dudt[idxN] += 
       (-rates.JN[i]
       + rates.JNloss[i])*B[i]/p.m[i] 
-      + p.remin2*p.mort2*B[i]/p.rhoCN
+      + p.remin2*p.mort2*B[i]*B[i]/p.rhoCN
       + p.remin*mortloss/p.rhoCN;
       
     dudt[idxDOC] += 
       (-rates.JDOC[i] 
       + rates.JCloss[i])*B[i]/p.m[i] 
-      + p.remin2*p.mort2*B[i]
+      + p.remin2*p.mort2*B[i]*B[i]
       + p.remin*mortloss;
       
     dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  
       - (rates.Jloss_passive[i]/p.m[i] 
-      + p.mort[i] 
-      + rates.mortpred[i] 
-      + p.mort2*B[i] 
-      + p.mHTL[i]))*B[i];
+        + p.mort[i] 
+        + rates.mortpred[i] 
+        + p.mort2*B[i] 
+        + p.mHTL[i]))*B[i];
+
   }
 };
 

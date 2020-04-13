@@ -91,7 +91,7 @@ derivative = function(t,y,p) {
     p$remin2*sum(rates$mort2*B) +
     p$remin*mortloss
   
-  if (TRUE==TRUE) {
+  if (TRUE==FALSE) {
     # Check of nutrient conservation; should be close to zero
     Nin = diff*(p$N0-N) + diff*sum(0-B)/p$rhoCN
     Nout = (1-p$remin) * mortloss / p$rhoCN 
@@ -128,7 +128,17 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
   #
   y = c(N,DOC,B)
   dudtR = derivative(0,y,p)
+  
+  # Load library
+  dyn.load("../Cpp/model.so")
+  # Set parameters
+  dummy = .C("setParameters", as.integer(p$n), 
+             p$m, p$rhoCN, p$epsilonL, p$epsilonF,
+             p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
+             p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin,
+             p$remin2, p$cLeakage);
   dudtC = derivativeC(0,y,p)
+  
   plot(p$m, dudtR[3:(p$n+2)], type="l", log="x", col="red")
   lines(p$m, dudtC[3:(p$n+2)], col="blue", lty=dashed)
   print(dudtR[1:2])
