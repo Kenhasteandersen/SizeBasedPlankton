@@ -129,25 +129,12 @@ uiWatercolumn <- fluidPage(
           "Main output",
           plotOutput("plotWatercolumn", width="600px", height="400px"),
           plotOutput("plotFunction", width="600px", height="300px")
-          #plotOutput("plotSpectrum", width="600px", height="300px"),
-          #plotOutput("plotRates", width="600px", height="300px"),
-          #plotOutput("plotLeaks", width="600px", height="200px")
         )
         ,
         tabPanel(
           "Timeline",
           plotOutput("plotWatercolumnTime", width="600px")
         )
-        #,
-        #tabPanel(
-        #  "Dynamics",
-          # conditionalPanel(
-          #   condition="input.latitude>0",
-          #   plotOutput("plotSeasonalTimeline", width="600px")
-          # ),
-          # plotOutput("plotTime", width="600px")#,
-          # #plotOutput("plotComplexRates", width="700px")
-        #)
       )
     )))
 #
@@ -189,22 +176,11 @@ serverWatercolumn <- function(input, output) {
   #
   # Plots:
   #
-  #output$plotSpectrum <- renderPlot(plotSpectrum(sim(), input$t))
-  #output$plotRates <- renderPlot(plotRates(sim(), input$t))
-  #output$plotLeaks = renderPlot(plotLeaks(sim(), input$t))
-  #output$plotComplexRates <- renderPlot(plotComplexRates(sim(), input$t))
   output$plotWatercolumn <- renderPlot(plotWatercolumn(sim()))
   output$plotWatercolumnTime <- renderPlot(plotWatercolumnTime(sim()))
-  #output$plotSeasonalTimeline <- renderPlot(plotSeasonalTimeline(sim()))
   output$plotFunction <- renderPlot(plotFunctionsWatercolumn(sim()))
-  #output$plotSeasonal <- renderPlot(plotSeasonal(p, input$t))
 }
 
-# Compile C code:
-#if (system2("g++", "-O3 -shared ../Cpp/model.cpp -o ../Cpp/model.so")==0)  {
-#  bUseC = TRUE
-#  cat("Using C engine\n")
-#}
 # Run the application 
 shinyApp(ui = uiWatercolumn, server = serverWatercolumn)
 

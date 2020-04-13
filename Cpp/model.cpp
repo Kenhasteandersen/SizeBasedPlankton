@@ -24,12 +24,14 @@ struct plankton {
   type_mass mHTL;
   
   double remin;
+  double cLeakage;
 };
 
 struct typeRates {
   type_mass JN, JDOC, JL, JF, F;
   type_mass JNtot, JLreal, JCtot, Jtot;
   type_mass JCloss_feeding, JCloss_photouptake, JNlossLiebig, JClossLiebig;
+  type_mass Jloss_passive;
   type_mass JNloss, JCloss;
   type_mass mortpred;
 };
@@ -54,14 +56,21 @@ inline double max(double a, double b) {
 extern "C" void setParameters(
     int& _n, 
     double* _m,
-    double& _rhoCN, double& _epsilonL, double& _epsilonF,
-    double* _ANm, double* _ALm, double* _AFm,
-    double* _Jmax, double* _Jresp,
+    double& _rhoCN, 
+    double& _epsilonL, 
+    double& _epsilonF,
+    double* _ANm, 
+    double* _ALm, 
+    double* _AFm,
+    double* _Jmax, 
+    double* _Jresp,
     double* _theta,
     double* _mort,
     double& _mort2,
     double* _mortHTL,
-    double& _remin) {
+    double& _remin,
+    double& _cLeakage
+  ) {
   
   p.n = _n;
   p.rhoCN = _rhoCN;
@@ -69,6 +78,7 @@ extern "C" void setParameters(
   p.epsilonF = _epsilonF;
   p.mort2 = _mort2;
   p.remin = _remin;
+  p.cLeakage = _cLeakage;
   
   p.m.resize(p.n);
   p.ANm.resize(p.n);
@@ -118,6 +128,7 @@ extern "C" void setParameters(
   rates.JCloss_photouptake.resize(p.n);
   rates.JNlossLiebig.resize(p.n);
   rates.JClossLiebig.resize(p.n);
+  rates.Jloss_passive.resize(p.n);
   
   rates.JNloss.resize(p.n);
   rates.JCloss.resize(p.n);
@@ -129,7 +140,8 @@ inline double fTemp(double Q10, double T) {
   return pow(Q10, T/10-1);
 };
 
-void calcRates(const double& T, const double& L, const double* u, double* dudt, const double gammaN, const double gammaDOC) {
+void calcRates(const double& T, const double& L, const double* u, 
+               double* dudt, const double gammaN, const double gammaDOC) {
   int i;
   
   for (i=0; i<p.n; i++)
@@ -181,9 +193,15 @@ void calcRates(const double& T, const double& L, const double* u, double* dudt, 
     rates.JCloss_photouptake[i] = (1-p.epsilonL)/p.epsilonL*rates.JLreal[i];
     rates.JNlossLiebig[i] = max(0, rates.JNtot[i]*p.rhoCN-rates.JCtot[i])/p.rhoCN;
     rates.JClossLiebig[i] = max(0, rates.JCtot[i]-rates.JNtot[i]*p.rhoCN); 
-    
-    rates.JNloss[i] = rates.JCloss_feeding[i]/p.rhoCN +rates. JNlossLiebig[i];
-    rates.JCloss[i] = rates.JCloss_feeding[i] + rates.JCloss_photouptake[i] + rates.JClossLiebig[i];
+    rates.Jloss_passive[i] = p.cLeakage * pow(p.m[i], 0.66667);
+      
+    rates.JNloss[i] = rates.JCloss_feeding[i]/p.rhoCN 
+      +rates.JNlossLiebig[i]
+      +rates.Jloss_passive[i]/p.rhoCN;
+    rates.JCloss[i] = rates.JCloss_feeding[i] 
+      + rates.JCloss_photouptake[i] 
+      + rates.JClossLiebig[i]
+      + rates.Jloss_passive[i];
   }
   //
   // Mortality:
@@ -202,9 +220,22 @@ void calcRates(const double& T, const double& L, const double* u, double* dudt, 
   for (i=0; i<p.n; i++) {
     double mortloss;
     mortloss = B[i]*(p.mort2*B[i] + p.mHTL[i]);
-    dudt[idxN] += (-rates.JN[i]+rates.JNloss[i])*B[i]/p.m[i] + p.remin*mortloss/p.rhoCN;
-    dudt[idxDOC] += (-rates.JDOC[i] + rates.JCloss[i])*B[i]/p.m[i] + p.remin*mortloss;
-    dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  - (p.mort[i] + rates.mortpred[i] + p.mort2*B[i] + p.mHTL[i]))*B[i];
+    dudt[idxN] += 
+      (-rates.JN[i]
+      +rates.JNloss[i])*B[i]/p.m[i] 
+      + p.remin*mortloss/p.rhoCN;
+      
+    dudt[idxDOC] += 
+      (-rates.JDOC[i] 
+      + rates.JCloss[i])*B[i]/p.m[i] 
+      + p.remin*mortloss;
+      
+    dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  
+      - (rates.Jloss_passive[i]/p.m[i] 
+      + p.mort[i] 
+      + rates.mortpred[i] 
+      + p.mort2*B[i] 
+      + p.mHTL[i]))*B[i];
   }
 };
 

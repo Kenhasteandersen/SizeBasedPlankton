@@ -116,11 +116,12 @@ test <- function() {
 defaultpanel <- function(xlim, ylim, 
                          xlab='', ylab='', 
                          xaxis=TRUE, yaxis=TRUE, label=FALSE, new=FALSE,
-                         bty="o", xaxs="r") {
+                         bty="o", xaxs="r",
+                         main="") {
   plot(1, type='n', 
        ylim=range(ylim[!is.na(ylim)]), 
        xlim=range(xlim[!is.na(xlim)]), axes=FALSE, xlab='', ylab='', par(new=new),
-       bty=bty, xaxs=xaxs)
+       bty=bty, xaxs=xaxs, main=main)
   if (xaxis)
     mtext(side=bottom, line=1, TeX(xlab), cex=par()$cex)
   if (yaxis)

@@ -1,6 +1,7 @@
 source("model.R")
 source("basetools.R")
 library("sundialr")
+library(tictoc)
 
 parametersChemostat = function(p=parameters()) {
   #
@@ -70,14 +71,38 @@ derivative = function(t,y,p) {
     diff = p$d
   
   dBdt = diff*(0-B) + (rates$Jtot/p$m  - 
-                         (rates$Jloss_passive/p$m + rates$mort+ 
-                            rates$mortpred + rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))*B
-  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
+                         (rates$Jloss_passive/p$m + 
+                            rates$mort+ 
+                            rates$mortpred + 
+                            rates$mort2 + 
+                            p$mortHTL*(p$m>=p$mHTL)))*B
+#  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
+  
   mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
-  dNdt   =  diff*(p$N0-N)  - sum(rates$JN*B/p$m)   + sum(rates$JNloss*B/p$m) +
+  dNdt   =  diff*(p$N0-N) -
+    sum(rates$JN*B/p$m) +
+    sum(rates$JNloss*B/p$m) +
+    #sum(rates$mort2*B/p$m)
+    
     p$remin*mortloss/p$rhoCN
-  dDOCdt =  diff*(0-DOC) - sum(rates$JDOC*B/p$m) + sum(rates$JCloss*B/p$m) + 
+  dDOCdt =  diff*(0-DOC) -
+    sum(rates$JDOC*B/p$m) +
+    sum(rates$JCloss*B/p$m) +
     p$remin*mortloss
+  
+  # Check of nutrient conservation; should be close to zero
+  #Nin = diff*(p$N0-N) + diff*sum(0-B)/p$rhoCN
+  #Nout = (1-p$remin) * mortloss / p$rhoCN 
+  #NcheckSystem = Nin - Nout - sum(dBdt)/p$rhoCN - dNdt
+  #print(NcheckSystem)
+  
+  # Check carbon balance; should be close to zero:
+  #Cin = diff*(0-DOC) + diff*sum(0-B) + sum(rates$JLreal/p$m*B/p$epsilonL)
+  #Cout = (1-p$remin) * mortloss + sum(p$Jresp/p$m*B)
+  #CcheckSystem = Cin - Cout - sum(dBdt) - dDOCdt
+  #print(CcheckSystem)
+  
+  #print(sum(rates$JF/p$epsilonF*B/p$m) - sum(rates$mortpred*B))
   
   # Check. Expensive to evaluate, so commented out  
   #  if ( sum(c( is.nan(unlist(rates)), is.infinite(unlist(rates)), rates$N<0, rates$B<0))>0)
@@ -95,6 +120,19 @@ derivativeC = function(t,y,p) {
   return(derivC$dudt)
 }
 
+compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
+  #
+  # Remember to do a "simulate" first to reload library and set parameters
+  #
+  y = c(N,DOC,B)
+  dudtR = derivative(0,y,p)
+  dudtC = derivativeC(0,y,p)
+  plot(p$m, dudtR[3:(p$n+2)], type="l", log="x", col="red")
+  lines(p$m, dudtC[3:(p$n+2)], col="blue", lty=dashed)
+  print(dudtR[1:2])
+  print(dudtC[1:2])
+}
+
 simulate = function(p=parametersChemostat(), useC=FALSE) {
   if (useC) {
     # Load library
@@ -103,7 +141,8 @@ simulate = function(p=parametersChemostat(), useC=FALSE) {
     dummy = .C("setParameters", as.integer(p$n), 
                p$m, p$rhoCN, p$epsilonL, p$epsilonF,
                p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
-               p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin);
+               p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin,
+               p$cLeakage);
     
     out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                 IC = c(0.1*p$N0, p$DOC0, p$B0),
@@ -159,7 +198,8 @@ calcFunctionsChemostat = function(param,r,N,B) {
     # Primary production (carbon fixed)
     #
     prodCgross = conversion * sum(r$JLreal*B/m)/epsilonL
-    prodCnet = conversion * sum( (r$JLreal-Jresp)*B/m )
+    prodCnet = conversion * sum( pmax(0, r$JLreal-r$JR)*B/m )
+    #prodCnet = conversion * sum( r$JLreal*(1 - r$JR/(r$JCtot+r$JR))*B/m )
     #
     # Loss to HTL:
     #
@@ -171,17 +211,23 @@ calcFunctionsChemostat = function(param,r,N,B) {
     #
     # Respiration
     #
-    resp = conversion * sum( r$Jresp*B/m )
+    resp = conversion * sum( r$JR*B/m )
+    #
+    # Bacterial production:
+    #
+    prodBact = conversion * sum( pmin(pmax(0,r$JDOC-r$JR), r$JNtot)*B/m )
+    #prodBact = conversion * sum( r$JDOC*(1-r$JR/(r$JCtot+r$JR))*B/m )
     #
     # Efficiencies:
     #
     effHTL = prodHTL/prodNew # CHECK: CORRECT uNitS?
+    effBact = prodBact / prodCnet
     #
     # Losses
     #
-    lossPassive = sum( r$Jloss_passive/m*B ) 
-    lossPhotouptake = sum( r$JCloss_photouptake/m*B )
-    lossFeeding = sum( r$JCloss_feeding/m*B )
+    lossPassive = conversion * sum( r$Jloss_passive/m*B ) 
+    lossPhotouptake = conversion * sum( r$JCloss_photouptake/m*B )
+    lossFeeding = conversion * sum( r$JCloss_feeding/m*B )
     lossFeedingHTL = sum( (1-epsilonF)*prodHTL )
     lossTotalC = lossPassive+lossPhotouptake+lossFeeding+lossFeedingHTL
     lossTotalN = (lossPassive+lossFeeding+lossFeedingHTL)/rhoCN
@@ -194,14 +240,15 @@ calcFunctionsChemostat = function(param,r,N,B) {
     Bnano = conversion * sum( B[d>=2 & d <20])
     Bmicro = conversion * sum( B[d>=20])
     
-    
     return(list(
       prodNew = prodNew,
       prodCgross = prodCgross,
       prodCnet = prodCnet,
       prodHTL = prodHTL,
+      prodBact = prodBact,
       resp = resp,
       effHTL = effHTL,
+      effBact = effBact,
       lossPassive = lossPassive,
       lossPhotouptake = lossPhotouptake,
       lossFeeding = lossFeeding,
@@ -330,42 +377,10 @@ plotFunctionsChemostat <- function(sim) {
   heights = matrix(c(eff, oldeff), nrow=2, byrow=TRUE)
   barplot(height=heights,
           names.arg = c("ePassiveloss", "ePhotoloss", "eFeedingloss", "eTotalloss"),
-          xlab = TeX("Fraction of gross PP"),
+          xlab = TeX("Fraction of net PP"),
           beside=TRUE, col=c("black","grey"),
           horiz=TRUE, las=1,
           border=NA)
-}
-
-plotFunctionsChemostatold <- function(sim) {
-  # Get the func value from the previous call:
-  oldfunc = attr(plotFunctionsChemostat, "oldfunc")
-  if (is.null(oldfunc))
-    oldfunc = c(0,0,0,0)
-  
-  func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
-  fnc = c(func$prodNew, func$prodCgross, func$prodCnet, func$prodHTL)
-  attr(plotFunctionsChemostat, "oldfunc") <<- func
-  heights = matrix(c(fnc, oldfunc), nrow=2, byrow = TRUE)
-  
-  par(mfcol=c(2,1), mar=c(5,12,4,2))
-  #
-  # Fluxes:
-  #
-  barplot(height=heights,
-          names.arg = c("New production", "Gross PP", "Net PP", "HTL"),
-          xlab = TeX("Production (gC/m$^2$/yr)"),
-          beside=TRUE, col=c("black","grey"),
-          horiz=TRUE, las=1,
-          border=NA)
-  legend("topright",
-         c("This simulation","Previous simulation"),
-         fill=c("black","grey"),
-         bty="n")
-  #
-  # Efficiencies:
-  #
-  barplot()
-  
 }
 
 #
@@ -482,7 +497,7 @@ plotSpectrum <- function(sim, t=max(sim$t), bPlot=TRUE) {
   box()
 }
 
-plotRates = function(sim, t=max(sim$t), bPlot=FALSE) {
+plotRates = function(sim, t=max(sim$t), bPlot=TRUE) {
   p = sim$p
   
   mm = 10^seq(-8,2, length.out = 100)  
@@ -546,8 +561,8 @@ plotRates = function(sim, t=max(sim$t), bPlot=FALSE) {
   lines(p$m, -sim$rates$mortpred, col="red", lwd=4)
   lines(p$m[p$m>=p$mHTL], -p$mortHTL*sign(p$m[p$m>p$mHTL]), col="magenta", lwd=4)
   lines(p$m, -sim$rates$mort2, col="orange", lwd=4)
-  lines(p$m, -p$Jresp/p$m, col="grey", lwd=4)
-  lines(p$m, -r$Jloss_passive/p$m, col="blue")
+  lines(p$m, -r$JR/p$m, col="grey", lwd=4)
+  lines(p$m, -r$Jloss_passive/p$m, col="darkgreen", lwd=4)
   
   BSheldon =exp(mean(log(sim$B)))
   delta = (p$m[2]-p$m[1]) / sqrt(p$m[2]*p$m[1])
@@ -557,7 +572,7 @@ plotRates = function(sim, t=max(sim$t), bPlot=FALSE) {
   legend(x="bottomright", cex=cex,
          legend=c("Losses:", "Predation", "Virulysis", 
                   "Higher trophic levels","Respiration","Passive"),
-         col=c(NA,"red", "orange", "magenta","grey","blue"),
+         col=c(NA,"red", "orange", "magenta","grey","darkgreen"),
          lwd=c(0,4,4,4,4,4), bty="n")
   
   lines(p$m, 0*p$m, col="white", lwd=4)
@@ -592,10 +607,12 @@ plotLeaks = function(sim, t=max(sim$t)) {
   #lines(m, (r$JNloss-r$JNloss_piss)/m, col="blue", lwd=3, lty=dashed)
   lines(m, r$JCloss_feeding/m, col="red", lwd=4)
   lines(m, r$JCloss_photouptake/m, col="green", lwd=4)
+  lines(m, r$Jloss_passive/m, col="darkgreen", lwd=4)
   
   legend(x="topright", cex=cex,
-         legend=c("Leaks:","N exudation", "C exudation", "N+C sloppy feeding"),
-         col=c("white","blue","green","red"),
+         legend=c("Leaks:","N exudation", "C exudation",
+                  "N+C sloppy feeding","Passive exudation"),
+         col=c("white","blue","green","red","darkgreen"),
          lwd=4, bty="n")
 }
 
@@ -635,7 +652,7 @@ plotComplexRates = function(sim, t=max(sim$t)) {
   lines(m, 0*m,lty=3)
   lines(m, -r$mortpred, col="red")
   lines(m, -r$mort, col="red", lty=2)
-  lines(m, -p$Jresp/m, col="magenta")
+  lines(m, -r$JR/m, col="magenta")
   lines(m, -p$mort2*B, col="blue")
   lines(m, -p$mortHTL*(m>=p$mHTL), col="orange")
   legend(x="topright",

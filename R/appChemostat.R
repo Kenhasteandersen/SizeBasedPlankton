@@ -12,7 +12,7 @@ options(shiny.sanitize.errors = FALSE)
 
 source("modelChemostat.R")
 
-bUseC = FALSE
+bUseC = TRUE
 
 # ===================================================
 # Define UI for application
@@ -39,7 +39,7 @@ uiChemostat <- fluidPage(
       sliderInput("L",
                   "Light (PAR; uE/m2/s)",
                   min = 0,
-                  max = 70,
+                  max = 300,
                   step=1,
                   value = parametersChemostat()$L)
       ,

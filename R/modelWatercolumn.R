@@ -78,7 +78,6 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
 }
 
 plotWatercolumnTime = function(sim) {
-  library(fields)
   #
   # Plot results
   #
@@ -98,7 +97,6 @@ plotWatercolumnTime = function(sim) {
         ylab="Bmicro", col=topo.colors(20), zlim=zlim)
   mtext(side=left, line=1, TeX("Bmicro"), cex=par()$cex)
   mtext(side=bottom, line=1, TeX("Time (days)"), cex=par()$cex)
-  
 }
 
 plotWatercolumn = function(sim, idx = length(sim$t)) {
@@ -270,11 +268,8 @@ if (file.exists("../Cpp/model.cpp")) {
 #
 if (!file.exists(paste(fileLibrary,'.so',sep=""))) {
   if (system2("g++", 
-           paste("-O3 -fPIC -shared ",fileLibrary,".cpp -o ",
+           paste("-O2 -fPIC -shared ",fileLibrary,".cpp -o ",
                fileLibrary,".so",sep=""))==1)  {
     stop("Cannot compile cpp engine")
   }
 }
-
-
-

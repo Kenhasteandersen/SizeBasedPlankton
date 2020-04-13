@@ -119,7 +119,7 @@ calcRates = function(t,L,N,DOC,B,p) {
     # Down-regulation of light uptake:
     JLreal = pmin(JL, pmax(0, JNtot*rhoCN - (JDOC-JR)))
                      
-    JCtot = JLreal+JF+JDOC-JR # Total carbon untake
+    JCtot = JLreal+JF+JDOC-JR # Total carbon uptake
 
     Jtot = pmin( JCtot, JNtot*rhoCN )  # Liebigs law; units of C
     # 
@@ -144,14 +144,6 @@ calcRates = function(t,L,N,DOC,B,p) {
     #
     mortpred =  t(theta) %*% (JF/epsilonF*B/m/F)
 
-    # Check of nutrient conservation; should be close to zero
-    #Nin = d*(N0-N)
-    #Nout = (1-remin) * mortloss / rhoCN
-    #NcheckSystem = Nin - Nout - sum(dBdt)/rhoCN - dNdt
-    #print(NcheckSystem)
-    
-    #print(sum(JF/epsilonF*B/m) - sum(mortpred*B))
-    
     return(list( 
       JN=JN, JDOC=JDOC, JL=JL, JF=JF,
       JLreal = JLreal, JR=JR,
@@ -162,7 +154,9 @@ calcRates = function(t,L,N,DOC,B,p) {
       Jtot=Jtot, F=F, JCtot = JCtot, JNtot=JNtot,
       mortpred=mortpred, mort=mort,
       mort2=mort2*B,
-      totKilled = sum(JF/epsilonF*B/m), totEaten = sum(mortpred*B), totGrowth=sum(Jtot*B/m)))  
+      totKilled = sum(JF/epsilonF*B/m), 
+      totEaten = sum(mortpred*B), 
+      totGrowth=sum(Jtot*B/m)))  
   })
 }
 #
