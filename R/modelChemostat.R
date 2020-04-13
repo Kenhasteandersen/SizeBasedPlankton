@@ -76,32 +76,34 @@ derivative = function(t,y,p) {
                             rates$mortpred + 
                             rates$mort2 + 
                             p$mortHTL*(p$m>=p$mHTL)))*B
-#  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
+  #  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
   
-  mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
+  #mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
+  mortloss = sum(B*((1-p$remin2)*rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
   dNdt   =  diff*(p$N0-N) -
     sum(rates$JN*B/p$m) +
     sum(rates$JNloss*B/p$m) +
-    #sum(rates$mort2*B/p$m)
-    
+    p$remin2*sum(rates$mort2*B)/p$rhoCN +
     p$remin*mortloss/p$rhoCN
   dDOCdt =  diff*(0-DOC) -
     sum(rates$JDOC*B/p$m) +
     sum(rates$JCloss*B/p$m) +
+    p$remin2*sum(rates$mort2*B) +
     p$remin*mortloss
   
-  # Check of nutrient conservation; should be close to zero
-  #Nin = diff*(p$N0-N) + diff*sum(0-B)/p$rhoCN
-  #Nout = (1-p$remin) * mortloss / p$rhoCN 
-  #NcheckSystem = Nin - Nout - sum(dBdt)/p$rhoCN - dNdt
-  #print(NcheckSystem)
-  
-  # Check carbon balance; should be close to zero:
-  #Cin = diff*(0-DOC) + diff*sum(0-B) + sum(rates$JLreal/p$m*B/p$epsilonL)
-  #Cout = (1-p$remin) * mortloss + sum(p$Jresp/p$m*B)
-  #CcheckSystem = Cin - Cout - sum(dBdt) - dDOCdt
-  #print(CcheckSystem)
-  
+  if (TRUE==TRUE) {
+    # Check of nutrient conservation; should be close to zero
+    Nin = diff*(p$N0-N) + diff*sum(0-B)/p$rhoCN
+    Nout = (1-p$remin) * mortloss / p$rhoCN 
+    NcheckSystem = Nin - Nout - sum(dBdt)/p$rhoCN - dNdt
+    print(NcheckSystem)
+    
+    # Check carbon balance; should be close to zero:
+    Cin = diff*(0-DOC) + diff*sum(0-B) + sum(rates$JLreal/p$m*B/p$epsilonL)
+    Cout = (1-p$remin) * mortloss + sum(p$Jresp/p$m*B)
+    CcheckSystem = Cin - Cout - sum(dBdt) - dDOCdt
+    print(CcheckSystem)
+  }
   #print(sum(rates$JF/p$epsilonF*B/p$m) - sum(rates$mortpred*B))
   
   # Check. Expensive to evaluate, so commented out  
@@ -142,7 +144,7 @@ simulate = function(p=parametersChemostat(), useC=FALSE) {
                p$m, p$rhoCN, p$epsilonL, p$epsilonF,
                p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
                p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin,
-               p$cLeakage);
+               p$remin2, p$cLeakage);
     
     out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                 IC = c(0.1*p$N0, p$DOC0, p$B0),

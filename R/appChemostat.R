@@ -12,7 +12,7 @@ options(shiny.sanitize.errors = FALSE)
 
 source("modelChemostat.R")
 
-bUseC = TRUE
+bUseC = FALSE
 
 # ===================================================
 # Define UI for application

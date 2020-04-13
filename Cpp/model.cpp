@@ -23,7 +23,7 @@ struct plankton {
   double mort2;
   type_mass mHTL;
   
-  double remin;
+  double remin, remin2;
   double cLeakage;
 };
 
@@ -69,6 +69,7 @@ extern "C" void setParameters(
     double& _mort2,
     double* _mortHTL,
     double& _remin,
+    double& _remin2,
     double& _cLeakage
   ) {
   
@@ -78,6 +79,7 @@ extern "C" void setParameters(
   p.epsilonF = _epsilonF;
   p.mort2 = _mort2;
   p.remin = _remin;
+  p.remin2 = _remin;
   p.cLeakage = _cLeakage;
   
   p.m.resize(p.n);
@@ -219,15 +221,17 @@ void calcRates(const double& T, const double& L, const double* u,
   dudt[idxDOC] = 0;
   for (i=0; i<p.n; i++) {
     double mortloss;
-    mortloss = B[i]*(p.mort2*B[i] + p.mHTL[i]);
+    mortloss = B[i]*((1-p.remin2)*p.mort2*B[i] + p.mHTL[i]);
     dudt[idxN] += 
       (-rates.JN[i]
-      +rates.JNloss[i])*B[i]/p.m[i] 
+      + rates.JNloss[i])*B[i]/p.m[i] 
+      + p.remin2*p.mort2*B[i]/p.rhoCN
       + p.remin*mortloss/p.rhoCN;
       
     dudt[idxDOC] += 
       (-rates.JDOC[i] 
       + rates.JCloss[i])*B[i]/p.m[i] 
+      + p.remin2*p.mort2*B[i]
       + p.remin*mortloss;
       
     dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  
