@@ -1,0 +1,682 @@
+﻿Species,Temperature,Growth Rate,Study,food,volume,volume reported?,Log Volume
+Paraphysomonas imperforata,14,1.37,Caron et al (1986),diatom (Phaeodactylum tricornutum),226,Y,2.354108439
+,18,1.92,,,224,Y,2.350248018
+,22,2.52,,,228,Y,2.357934847
+,26,4.04,,,210,Y,2.322219295
+Stentor polymorphus,8.5,0.116,Finlay (1977),ciliate (Colpidium campylum),1269000,Y,6.103461622
+,15,0.265,,,1933000,Y,6.286231854
+,20,0.387,,,2336000,Y,6.368472838
+Litonotus lamella,5,0.3,Fenchel (1968),ciliate (Uronema marina),5700,Y,3.755874856
+,10,0.6,,,5700,Y,3.755874856
+,23,1.7,,,5700,Y,3.755874856
+Diophrys scutum,15,0.61,,diatom (Phaeodactylum sp),149000,Y,5.173186268
+,20,0.74,,,149000,Y,5.173186268
+,27,1.6,,,149000,Y,5.173186268
+Lacrymaria marina,15,0.43,,ciliate (Uronema marina),5700,Y,3.755874856
+Keronopsis rubra,15,0.29,,diatom (Phaeodactylum sp),71100,Y,4.851869601
+,20,0.51,,,71100,Y,4.851869601
+Condylostoma patulum,15,0.18,,phytoflagellate (Dunaliella),548000,Y,5.738780558
+,20,0.37,,,548000,Y,5.738780558
+Paraphysomonas imperforata,24,2.4,Goldman and Caron (1985),Dunaliella tertiolecta,1000,Y,3
+,24,2.4,,Chlorella stigmataphora,100,Y,2
+,24,2.3,,Chlorella capsulata,525,Y,2.720159303
+,24,2.4,,Porphyridium sp.,525,Y,2.720159303
+,24,2.4,,Isochrysis galbana,525,Y,2.720159303
+,24,2.5,,Phaeodactylum tricornutum,270,Y,2.431363764
+,24,3.5,,Phaeodactylum tricornutum,270,Y,2.431363764
+,24,3.7,,Phaeodactylum tricornutum,270,Y,2.431363764
+,24,3.4,,Phaeodactylum tricornutum,270,Y,2.431363764
+,24,3.4,,Phaeodactylum tricornutum,270,Y,2.431363764
+,24,3.6,,Phaeodactylum tricornutum,270,Y,2.431363764
+Favella sp.,8,0.15,Aelion and Chisholm (1985),dinoflagellate (Heterocapsa triquetra),102000,(Strom and Morello 1998),5.008600172
+,8,0.21,,,102000,(Strom and Morello 1998),5.008600172
+,11.4,0.4,,,102000,(Strom and Morello 1998),5.008600172
+,11.4,0.44,,,102000,(Strom and Morello 1998),5.008600172
+,11.4,0.48,,,102000,(Strom and Morello 1998),5.008600172
+,11.4,0.53,,,102000,(Strom and Morello 1998),5.008600172
+,11.4,0.59,,,102000,(Strom and Morello 1998),5.008600172
+,16.4,0.5,,,102000,(Strom and Morello 1998),5.008600172
+,16.4,0.57,,,102000,(Strom and Morello 1998),5.008600172
+,16.4,0.63,,,102000,(Strom and Morello 1998),5.008600172
+,16.4,0.68,,,102000,(Strom and Morello 1998),5.008600172
+,16.4,0.78,,,102000,(Strom and Morello 1998),5.008600172
+,16.4,0.82,,,102000,(Strom and Morello 1998),5.008600172
+,16.4,0.84,,,102000,(Strom and Morello 1998),5.008600172
+,16.4,0.87,,,102000,(Strom and Morello 1998),5.008600172
+,18.8,0.45,,,102000,(Strom and Morello 1998),5.008600172
+,18.8,0.48,,,102000,(Strom and Morello 1998),5.008600172
+,18.8,0.52,,,102000,(Strom and Morello 1998),5.008600172
+,18.8,0.6,,,102000,(Strom and Morello 1998),5.008600172
+,18.8,0.87,,,102000,(Strom and Morello 1998),5.008600172
+,18.8,0.93,,,102000,(Strom and Morello 1998),5.008600172
+,21.1,0.6,,,102000,(Strom and Morello 1998),5.008600172
+,21.1,0.74,,,102000,(Strom and Morello 1998),5.008600172
+,21.1,0.82,,,102000,(Strom and Morello 1998),5.008600172
+,21.1,0.97,,,102000,(Strom and Morello 1998),5.008600172
+Paraphysomonas imperforata,20,2.55,Caron et al (1985),Phaeodactylum tricornutum,128,Y,2.10720997
+,20,2.52,,Phaeodactylum tricornutum+Halomonas halodurans,128,Y,2.10720997
+,20,2.1,,Phaeodactylum tricornutum,128,Y,2.10720997
+,20,2.31,,Phaeodactylum tricornutum,128,Y,2.10720997
+,24,3.48,,Phaeodactylum tricornutum,128,Y,2.10720997
+,24,3.41,,Phaeodactylum tricornutum,128,Y,2.10720997
+,24,3.5,,Phaeodactylum tricornutum+Halomonas halodurans,128,Y,2.10720997
+Paraphysomonas imperforata,20,2.67,Goldman et al (1987),Phaeodactylum tricornutum,390,(Goldman 1985),2.591064607
+,20,2.52,,Phaeodactylum tricornutum,390,(Goldman 1985),2.591064607
+,20,2.5,,Phaeodactylum tricornutum,390,(Goldman 1985),2.591064607
+,20,1.97,,Dunaliella tertiolecta,390,(Goldman 1985),2.591064607
+,20,2.2,,Dunaliella tertiolecta,390,(Goldman 1985),2.591064607
+,20,2.08,,Dunaliella tertiolecta,390,(Goldman 1985),2.591064607
+,20,2.61,,Phaeodactylum tricornutum,390,(Goldman 1985),2.591064607
+,20,1.98,,Phaeodactylum tricornutum,390,(Goldman 1985),2.591064607
+,20,2.24,,Phaeodactylum tricornutum,390,(Goldman 1985),2.591064607
+,20,2.52,,Dunaliella tertiolecta,390,(Goldman 1985),2.591064607
+,20,2.07,,Dunaliella tertiolecta,390,(Goldman 1985),2.591064607
+,20,1.94,,Dunaliella tertiolecta,390,(Goldman 1985),2.591064607
+Paraphysomonas vestita,18,1.2,John and Davidson (2001),Isochrysis galbana,390,(Goldman 1985),2.591064607
+,18,1.68,,Isochrysis galbana,390,(Goldman 1985),2.591064607
+,18,1.2,,Pavlova lutheri,390,(Goldman 1985),2.591064607
+,18,1.2,,Pavlova lutheri,390,(Goldman 1985),2.591064607
+Pseudobalanion planctonicum,5.5,0.46,Muller and Geller (1993),Rhodomonas sp.,1800,Y,3.255272505
+,9,0.83,,,1800,Y,3.255272505
+,12,0.94,,,1800,Y,3.255272505
+,15.5,1.24,,,1800,Y,3.255272505
+,18.5,1.52,,,1800,Y,3.255272505
+Urotricha farcta,5.5,0.46,,Rhodomonas sp.,3900,Y,3.591064607
+,9,0.52,,,3900,Y,3.591064607
+,12,0.66,,,3900,Y,3.591064607
+,15.5,0.75,,,3900,Y,3.591064607
+,18.5,1.33,,,3900,Y,3.591064607
+,21.5,1.72,,,3900,Y,3.591064607
+Pelagostrombidium fallax,5.5,0.03,,Rhodomonas sp.,50000,Y,4.698970004
+,9,0.21,,,50000,Y,4.698970004
+,12,0.42,,,50000,Y,4.698970004
+,15.5,0.57,,,50000,Y,4.698970004
+,18.5,0.76,,,50000,Y,4.698970004
+,21.5,0.9,,,50000,Y,4.698970004
+Strobilidium lacustris,5.5,0.43,,Rhodomonas sp.,113000,Y,5.053078443
+,9,0.6,,,113000,Y,5.053078443
+,12,0.7,,,113000,Y,5.053078443
+,15.5,0.99,,,113000,Y,5.053078443
+,18.5,1.38,,,113000,Y,5.053078443
+,21.5,1.42,,,113000,Y,5.053078443
+Strombidium sulcatum,20,1.22,(Fenchel and Jonsson (1988),Pteridomonas danica,6500,Y,3.812913357
+,20,2.02,,,6500,Y,3.812913357
+,20,1.92,,,6500,Y,3.812913357
+Strombidium reticulatum,12,0.17,Jonsson (1986),Pyramimonas sp.,40000,Y,4.602059991
+,12,0.34,,,40000,Y,4.602059991
+,12,0.36,,,40000,Y,4.602059991
+,12,0.48,,,40000,Y,4.602059991
+,12,0.67,,,40000,Y,4.602059991
+,12,0.77,,,40000,Y,4.602059991
+,12,0.86,,,40000,Y,4.602059991
+,12,0.74,,,40000,Y,4.602059991
+Lohmanniella spiralis,12,0.23,,,150000,Y,5.176091259
+,12,0.43,,,150000,Y,5.176091259
+,12,0.43,,,150000,Y,5.176091259
+,12,0.62,,,150000,Y,5.176091259
+,12,0.89,,,150000,Y,5.176091259
+,12,1,,,150000,Y,5.176091259
+,12,1.06,,,150000,Y,5.176091259
+Euplotes crassus,23,1.760455209,Dini and Nyberg (1999),Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.481189648,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.184106766,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.012067636,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.49782518,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.445423253,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.295076192,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.210512236,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.283226813,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.154301437,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.055042761,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.027455503,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.311645847,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.432253457,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.059894791,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,2.292376356,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.843494241,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.283847208,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.054488243,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.013176671,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.995016215,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.412429447,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.348382648,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.187153176,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.107926453,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.304367802,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.118396413,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.923067538,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.958140785,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.17093697,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.365919271,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.059894791,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,2.116039713,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.894232615,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.553342832,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.180918289,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.051161137,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.977964794,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.220289049,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.251342042,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.319059085,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.559303897,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.304367802,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.082491389,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.073896364,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.940812106,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.211139506,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.277473691,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.059894791,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,2.071955552,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.725104703,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+Euplotes vannus,23,1.872745052,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.987530226,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.663761177,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.529498569,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.122898433,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.392255427,,Chlorella sp.,33000,Protist Info Server,4.51851394
+,23,1.65939435,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.607200368,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.558957324,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.42580375,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.414020248,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.380749184,,Dunaliella salina,33000,Protist Info Server,4.51851394
+,23,1.825333785,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.90164929,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.742364068,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.59430783,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.476403495,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+,23,1.564849075,,Dunaliella tertiolecta,33000,Protist Info Server,4.51851394
+Euplotes minuta,23,2.098572404,,Chlorella sp.,19000,Protist Info Server,4.278753601
+,23,2.131219636,,Chlorella sp.,19000,Protist Info Server,4.278753601
+,23,1.881478707,,Chlorella sp.,19000,Protist Info Server,4.278753601
+,23,1.91766099,,Chlorella sp.,19000,Protist Info Server,4.278753601
+,23,1.727600033,,Chlorella sp.,19000,Protist Info Server,4.278753601
+,23,1.213839343,,Chlorella sp.,19000,Protist Info Server,4.278753601
+,23,1.726283053,,Chlorella sp.,19000,Protist Info Server,4.278753601
+,23,1.968884566,,Chlorella sp.,19000,Protist Info Server,4.278753601
+,23,1.827205283,,Dunaliella salina,19000,Protist Info Server,4.278753601
+,23,1.862417159,,Dunaliella salina,19000,Protist Info Server,4.278753601
+,23,1.621964403,,Dunaliella salina,19000,Protist Info Server,4.278753601
+,23,1.498861463,,Dunaliella salina,19000,Protist Info Server,4.278753601
+,23,1.634718311,,Dunaliella salina,19000,Protist Info Server,4.278753601
+,23,1.103490311,,Dunaliella salina,19000,Protist Info Server,4.278753601
+,23,1.726283053,,Dunaliella salina,19000,Protist Info Server,4.278753601
+,23,1.761633559,,Dunaliella salina,19000,Protist Info Server,4.278753601
+,23,1.899569848,,Dunaliella tertiolecta,19000,Protist Info Server,4.278753601
+,23,1.900817513,,Dunaliella tertiolecta,19000,Protist Info Server,4.278753601
+,23,2.162619203,,Dunaliella tertiolecta,19000,Protist Info Server,4.278753601
+,23,1.983787231,,Dunaliella tertiolecta,19000,Protist Info Server,4.278753601
+,23,1.5046839,,Dunaliella tertiolecta,19000,Protist Info Server,4.278753601
+,23,1.186252085,,Dunaliella tertiolecta,19000,Protist Info Server,4.278753601
+,23,1.685664628,,Dunaliella tertiolecta,19000,Protist Info Server,4.278753601
+,23,1.658008056,,Dunaliella tertiolecta,19000,Protist Info Server,4.278753601
+Urotricha farcta,9,0.79,Weisse et al (2002),Cryptomonas sp.,"4,460",Y,3.649334859
+,12,1.2,,,"6,380",Y,3.804820679
+,15,1.3,,,"3,860",Y,3.586587305
+,18,1.8,,,"2,190",Y,3.340444115
+,21,3.9,,,"4,050",Y,3.607455023
+,24,3.7,,,"2,650",Y,3.423245874
+Urotricha furcata,10,0.19,Weisse and Montagnes (1998),Cryptomonas sp.,"21,000",Y,4.322219295
+,10,0.25,,,"21,000",Y,4.322219295
+,15,0.58,,,"14,000",Y,4.146128036
+,15,0.77,,,"14,000",Y,4.146128036
+,15,0.8,,,"14,000",Y,4.146128036
+,20,1,,,"11,000",Y,4.041392685
+,25,0.9,,,"11,000",Y,4.041392685
+,25,0.97,,,"11,000",Y,4.041392685
+,25,1,,,"11,000",Y,4.041392685
+,10,0.35,,,"21,000",Y,4.322219295
+,10,0.43,,,"21,000",Y,4.322219295
+,15,0.68,,,"17,500",Y,4.243038049
+,15,0.84,,,"17,500",Y,4.243038049
+,25,0.85,,,"11,000",Y,4.041392685
+,25,0.95,,,"11,000",Y,4.041392685
+,10,0.4,,,"10,500",Y,4.021189299
+,10,0.49,,,"10,500",Y,4.021189299
+,15,0.42,,,"9,500",Y,3.977723605
+,15,0.51,,,"9,500",Y,3.977723605
+,20,0.8,,,"9,500",Y,3.977723605
+,25,0.91,,,"8,000",Y,3.903089987
+,5,0.14,,,"20,000",Y,4.301029996
+,10,0.25,,,"21,000",Y,4.322219295
+,10,0.45,,,"21,000",Y,4.322219295
+,10,0.54,,,"21,000",Y,4.322219295
+,15,0.67,,,"19,000",Y,4.278753601
+,15,0.77,,,"19,000",Y,4.278753601
+,20,0.85,,,"19,000",Y,4.278753601
+,20,1,,,"19,000",Y,4.278753601
+,20,1.1,,,"19,000",Y,4.278753601
+,25,1.3,,,"11,000",Y,4.041392685
+,25,1.2,,,"11,000",Y,4.041392685
+Urotricha farcta,5,0.065,,Cryptomonas sp.,"33,000",Y,4.51851394
+,5,0.15,,,"33,000",Y,4.51851394
+,10,0.67,,,"25,000",Y,4.397940009
+,10,0.72,,,"25,000",Y,4.397940009
+,15,1.4,,,"24,000",Y,4.380211242
+,20,1.6,,,"16,000",Y,4.204119983
+,25,1.8,,,"17,500",Y,4.243038049
+,25,1.9,,,"17,500",Y,4.243038049
+,30,1.7,,,"18,500",Y,4.267171728
+,30,1.8,,,"18,500",Y,4.267171728
+Urotricha furcata,10,0.39,,Cryptomonas sp.,"19,000",Y,4.278753601
+,10,0.45,,,"19,000",Y,4.278753601
+,15,0.89,,,"13,500",Y,4.130333768
+,20,1,,,"11,500",Y,4.06069784
+,25,1.1,,,"11,000",Y,4.041392685
+,25,1.2,,,"11,000",Y,4.041392685
+,25,1.3,,,"11,000",Y,4.041392685
+Urotricha furcata,12.5,0.715,Weisse and Frahm (2002),Cryptomonas sp.,2000,Y* (didn't actually measure),3.301029996
+,12.5,0.656,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.485,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.319,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.595,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.655,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.525,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.631,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.895,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.555,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.48,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.509,,Cryptomonas sp.,2000,Y*,3.301029996
+,12.5,0.852,,Cryptomonas sp.,2000,Y*,3.301029996
+Balanion planctonicum,12.5,0.959,,Cryptomonas sp.,1820,Y*,3.260071388
+,12.5,0.601,,Cryptomonas sp.,1820,Y*,3.260071388
+,12.5,1.031,,Cryptomonas sp.,1820,Y*,3.260071388
+,12.5,0.658,,Cryptomonas sp.,1820,Y*,3.260071388
+,12.5,0.995,,Cryptomonas sp.,1820,Y*,3.260071388
+Pfiesteria piscicida,23,0.78,Gransden and Lewitus (2003),Storeatula major,250,"Marshall website, ODU",2.397940009
+Cryptoperidiniopsis,23,0.22,,Storeatula major,250,N,2.397940009
+Euplotes vannus,23,0.31,,Storeatula major,260000,Protist Info Server,5.414973348
+,23,0.3,,Pfiesteria piscicida+Storeatula major,260000,Protist Info Server,5.414973348
+,23,0.67,,Cyptoperidiniopsis sp+Storeatula major,260000,Protist Info Server,5.414973348
+Euplotes woodruffii,23,0.86,,Storeatula major,260000,Protist Info Server,5.414973348
+,23,0.59,,Pfiesteria piscicida+Storeatula major,260000,Protist Info Server,5.414973348
+,23,0.66,,Cyptoperidiniopsis sp+Storeatula major,260000,Protist Info Server,5.414973348
+Rimostrombidium veniliae,15,1.05,Pedersen and Hansen (2003),Heterocapsa triquetra,42000,Plankton Database,4.62324929
+,15,1.06,,Heterocapsa triquetra,42000,Plankton Database,4.62324929
+,15,0.92,,Heterocapsa triquetra,42000,Plankton Database,4.62324929
+,15,0.75,,Heterocapsa triquetra,42000,Plankton Database,4.62324929
+,15,0.19,,Heterocapsa triquetra,42000,Plankton Database,4.62324929
+Rimostrombidium caudatum,15,0.43,,Rhodomonas salina,42000,Plankton Database,4.62324929
+,15,0.61,,Rhodomonas salina,42000,Plankton Database,4.62324929
+,15,0.41,,Rhodomonas salina,42000,Plankton Database,4.62324929
+,15,0.51,,Rhodomonas salina,42000,Plankton Database,4.62324929
+Balanion comatum,15,2.39,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,2.48,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,2.48,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,2.54,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,2.54,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,2.63,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,2.2,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,2.11,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,2.03,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,1.83,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+,15,1.74,,Rhodomonas salina,2300,(Jakobsen and Hansen (1997),3.361727836
+Favella ehrenbergii,15,0.52,,Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+,15,0.35,,Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+,15,0.52,,Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Gyrodinium dominans,15,0.99,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+,15,0.83,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+,15,1.1,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+,15,0.89,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+,15,0.89,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+,15,0.82,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+,15,0.84,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+,15,0.37,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+,15,0.29,,Rhodomonas salina,26000,Protist Info Server,4.414973348
+Oxyrrhis marina,15,0.65,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.76,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.81,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.87,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.74,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.87,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.77,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.87,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.87,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+,15,0.87,,Rhodomonas salina,1400,Protist Info Server,3.146128036
+Euplotes sp.,20,0.069,Buskey and Hyatt (1995),Isochrysis galbana,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.21,Buskey and Hyatt (1995),Isochrysis galbana,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.39,Buskey and Hyatt (1995),Isochrysis galbana,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.41,Buskey and Hyatt (1995),Isochrysis galbana,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.45,Buskey and Hyatt (1995),Isochrysis galbana,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.48,Buskey and Hyatt (1995),Isochrysis galbana,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.091,Buskey and Hyatt (1995),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.19,Buskey and Hyatt (1995),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.28,Buskey and Hyatt (1995),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.5,Buskey and Hyatt (1995),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.35,Buskey and Hyatt (1995),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.27,Buskey and Hyatt (1995),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,20,0.29,Buskey and Hyatt (1995),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Fabrea salina,20,0.26,Buskey and Hyatt (1995),Aureoumbra lagunensis,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.39,Buskey and Hyatt (1995),Aureoumbra lagunensis,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.52,Buskey and Hyatt (1995),Aureoumbra lagunensis,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.51,Buskey and Hyatt (1995),Aureoumbra lagunensis,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.24,Buskey and Hyatt (1995),Aureoumbra lagunensis,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.26,Buskey and Hyatt (1995),Isochrysis galbana,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.43,Buskey and Hyatt (1995),Isochrysis galbana,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.54,Buskey and Hyatt (1995),Isochrysis galbana,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.61,Buskey and Hyatt (1995),Isochrysis galbana,1020000,"""Fabrea salina group"" -- www",6.008600172
+Fabrea salina,20,0.71,Buskey and Hyatt (1995),Isochrysis galbana,1020000,"""Fabrea salina group"" -- www",6.008600172
+Oxyrrhis marina,20,0.05,Buskey and Hyatt (1995),Isochrysis galbana,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.226,Buskey and Hyatt (1995),Isochrysis galbana,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.45,Buskey and Hyatt (1995),Isochrysis galbana,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.66,Buskey and Hyatt (1995),Isochrysis galbana,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.62,Buskey and Hyatt (1995),Isochrysis galbana,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.73,Buskey and Hyatt (1995),Isochrysis galbana,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.59,Buskey and Hyatt (1995),Isochrysis galbana,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.12,Buskey and Hyatt (1995),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.2,Buskey and Hyatt (1995),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.24,Buskey and Hyatt (1995),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.36,Buskey and Hyatt (1995),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.42,Buskey and Hyatt (1995),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,20,0.54,Buskey and Hyatt (1995),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Strombidinopsis sp.,20,0.59,Buskey and Hyatt (1995),Pyrenomonas salina,140000,"(Strom and Morello, 1998)",5.146128036
+Strombidinopsis sp.,20,0.66,Buskey and Hyatt (1995),Pyrenomonas salina,140000,"(Strom and Morello, 1998)",5.146128036
+Strombidinopsis sp.,20,0.95,Buskey and Hyatt (1995),Pyrenomonas salina,140000,"(Strom and Morello, 1998)",5.146128036
+Strombidinopsis sp.,20,0.88,Buskey and Hyatt (1995),Pyrenomonas salina,140000,"(Strom and Morello, 1998)",5.146128036
+Euplotes vannus,22,0.912,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,0.816,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,0.456,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,0.1728,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,0.336,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,0.06,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,0.72,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,0.912,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,1.224,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Euplotes vannus,22,1.296,Capriulo et al (1988),Skeletonema costatum,260000,Protist Info Server,5.414973348
+Balanion comatum,15,0.384,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,0.816,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,0.984,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,1.248,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,1.416,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,1.368,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,0.384,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,0.84,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,0.984,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,1.248,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,1.44,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,1.392,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,0.0288,Jakobsen and Hansen (1997),Isochrysis galbana,2300,Y,3.361727836
+Balanion comatum,15,0.768,Jakobsen and Hansen (1997),Chroomonas vectensis,2300,Y,3.361727836
+Balanion comatum,15,0.864,Jakobsen and Hansen (1997),Plagioselmis prolonga,2300,Y,3.361727836
+Balanion comatum,15,1.272,Jakobsen and Hansen (1997),Rhodomonas salina,2300,Y,3.361727836
+Balanion comatum,15,0.648,Jakobsen and Hansen (1997),Teleaulax amphioxeia,2300,Y,3.361727836
+Gymnodinium sp.,15,0.336,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.456,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.672,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.792,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.96,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.888,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,1.08,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,1.008,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.336,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.456,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.648,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.792,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.864,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.96,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.984,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,1.08,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.1608,Jakobsen and Hansen (1997),Isochrysis galbana,155,Y,2.190331698
+Gymnodinium sp.,15,0.2232,Jakobsen and Hansen (1997),Chroomonas vectensis,155,Y,2.190331698
+Gymnodinium sp.,15,0.288,Jakobsen and Hansen (1997),Plagioselmis prolonga,155,Y,2.190331698
+Gymnodinium sp.,15,0.816,Jakobsen and Hansen (1997),Rhodomonas salina,155,Y,2.190331698
+Gymnodinium sp.,15,0.792,Jakobsen and Hansen (1997),Teleaulax amphioxeia,155,Y,2.190331698
+Gymnodinium sp.,15,0.384,Jakobsen and Hansen (1997),Rhodomonas marina,155,Y,2.190331698
+Favella azorica,20,0.57,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,2.4,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,2.1,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,2.2,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,1.9,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,0.28,Kamiyama (1997),Heterocapsa circularisquama,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,2.2,Kamiyama (1997),Heterocapsa circularisquama,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,2.1,Kamiyama (1997),Heterocapsa circularisquama,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,1.2,Kamiyama (1997),Heterocapsa circularisquama,102000,"(Strom and Morello, 1998)",5.008600172
+Favella azorica,20,1.2,Kamiyama (1997),Heterocapsa circularisquama,102000,"(Strom and Morello, 1998)",5.008600172
+Favella taraikaensis,20,0.37,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella taraikaensis,20,1.9,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella taraikaensis,20,1.6,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella taraikaensis,20,1.2,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella taraikaensis,20,0.52,Kamiyama (1997),Heterocapsa triquetra,102000,"(Strom and Morello, 1998)",5.008600172
+Favella taraikaensis,20,0.62,Kamiyama (1997),Heterocapsa circularisquama,102000,"(Strom and Morello, 1998)",5.008600172
+Favella taraikaensis,20,1.3,Kamiyama (1997),Heterocapsa circularisquama,102000,"(Strom and Morello, 1998)",5.008600172
+Favella taraikaensis,20,2.6,Kamiyama (1997),Heterocapsa circularisquama,102000,"(Strom and Morello, 1998)",5.008600172
+Aspidisca sp,22,0.64,Liu and Buskey (2000),Aureoumbra lagunensis,7100,Protist Info Server,3.851258349
+Aspidisca sp,22,0.42,Liu and Buskey (2000),Aureoumbra lagunensis,7100,Protist Info Server,3.851258349
+Aspidisca sp,22,1.15,Liu and Buskey (2000),Aureoumbra lagunensis,7100,Protist Info Server,3.851258349
+Aspidisca sp,22,0.77,Liu and Buskey (2000),Aureoumbra lagunensis,7100,Protist Info Server,3.851258349
+Euplotes sp.,22,0.6,Liu and Buskey (2000),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,22,0.13,Liu and Buskey (2000),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,22,0.078,Liu and Buskey (2000),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Euplotes sp.,22,0.017,Liu and Buskey (2000),Aureoumbra lagunensis,260000,Protist Info Server,5.414973348
+Oxyrrhis marina,22,0.8,Liu and Buskey (2000),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,22,0.68,Liu and Buskey (2000),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,22,0.67,Liu and Buskey (2000),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Oxyrrhis marina,22,0.53,Liu and Buskey (2000),Aureoumbra lagunensis,1400,Protist Info Server,3.146128036
+Gyrodinium dominans,11,0.08,Naustvoll (2000),Ditylum brightwellii,24000,Protist Info Server,4.380211242
+Gyrodinium dominans,11,0.19,Naustvoll (2000),Prorocentrum minimum,24000,Protist Info Server,4.380211242
+Gyrodinium dominans,11,0.16,Naustvoll (2000),Gymnodinium galatheanum,24000,Protist Info Server,4.380211242
+Gyrodinium dominans,11,0.022,Naustvoll (2000),Skeletonema costatum,24000,Protist Info Server,4.380211242
+Gyrodinium dominans,11,0.018,Naustvoll (2000),Navicula sp.,24000,Protist Info Server,4.380211242
+Gyrodinium dominans,11,0.053,Naustvoll (2000),Chrysochromulina polylepis,24000,Protist Info Server,4.380211242
+Gyrodinium dominans,11,0.1,Naustvoll (2000),Rhodomonas cf. baltica,24000,Protist Info Server,4.380211242
+Gyrodinium fusiforme,11,0.1,Naustvoll (2000),Gymnodinium galatheanum,24000,Protist Info Server,4.380211242
+Gyrodinium fusiforme,11,0.09,Naustvoll (2000),Skeletonema costatum,24000,Protist Info Server,4.380211242
+Gyrodinium fusiforme,11,0.08,Naustvoll (2000),Navicula sp.,24000,Protist Info Server,4.380211242
+Gyrodinium fusiforme,11,0.12,Naustvoll (2000),Rhodomonas cf. baltica,24000,Protist Info Server,4.380211242
+Gyrodinium fusiforme,11,0.39,Naustvoll (2000),Heterocapsa triquetra,24000,Protist Info Server,4.380211242
+Katodinium glaucum,11,0.059,Naustvoll (2000),Gymnodinium galatheanum,24000,Protist Info Server,4.380211242
+Katodinium glaucum,11,0.13,Naustvoll (2000),Heterocapsa triquetra,24000,Protist Info Server,4.380211242
+Katodinium glaucum,11,0.034,Naustvoll (2000),Rhodomonas cf. Baltica,24000,Protist Info Server,4.380211242
+Amphidinium sp.,13,0.47,Strom and Morello (1998),Isochrysis galbana OR Pyrenomonas salina,2600,Calculated,3.414973348
+Favella sp.,13,0.86,Strom and Morello (1998),Gymnodinium simplex+Pyrenomonas salina,102000,Calculated,5.008600172
+Gymnodinium sp.,13,0.48,Strom and Morello (1998),Isochrysis galbana,450,Calculated,2.653212514
+Strombidinopsis acuminatum,13,0.77,Strom and Morello (1998),Prorocentrum minimum,140000,Calculated,5.146128036
+Uronema sp.,13,1.01,Strom and Morello (1998),Isochrysis galbana OR Pyrenomonas salina,2700,Calculated,3.431363764
+Urptricha farcta,12,1.2,Weisse et al (2001),Cryptomonas sp.,3350,Y,3.525044807
+,15,1.5,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.4,,Cryptomonas sp.,3350,Y,3.525044807
+,18,1.8,,Cryptomonas sp.,3350,Y,3.525044807
+,20,1.8,,Cryptomonas sp.,3350,Y,3.525044807
+,20,1.6,,Cryptomonas sp.,3350,Y,3.525044807
+,25,1.8,,Cryptomonas sp.,3350,Y,3.525044807
+,30,1.7,,Cryptomonas sp.,3350,Y,3.525044807
+,20,2.7,,Cryptomonas sp.,3350,Y,3.525044807
+,24,3,,Cryptomonas sp.,3350,Y,3.525044807
+Urotricha castalia,8,0.21,,Cryptomonas sp.,9750,Y,3.989004616
+,12,0.65,,Cryptomonas sp.,9750,Y,3.989004616
+,10,0.5,,Cryptomonas sp.,9750,Y,3.989004616
+,25,0.48,,Cryptomonas sp.,9750,Y,3.989004616
+,22,0.42,,Cryptomonas sp.,9750,Y,3.989004616
+,15,0.55,,Cryptomonas sp.,9750,Y,3.989004616
+,18,0.52,,Cryptomonas sp.,9750,Y,3.989004616
+,20,0.5,,Cryptomonas sp.,9750,Y,3.989004616
+Urotricha furcata,10,0.22,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.7,,Cryptomonas sp.,3150,Y,3.498310554
+,20,1.01,,Cryptomonas sp.,3150,Y,3.498310554
+,25,0.94,,Cryptomonas sp.,3150,Y,3.498310554
+,28,0.24,,Cryptomonas sp.,3150,Y,3.498310554
+Urotricha furcata,5,0.21,,Cryptomonas sp.,3150,Y,3.498310554
+,10,0.18,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.23,,Cryptomonas sp.,3150,Y,3.498310554
+,20,0.34,,Cryptomonas sp.,3150,Y,3.498310554
+,25,0.52,,Cryptomonas sp.,3150,Y,3.498310554
+Balanion planctonicum,6,0.3,,Cryptomonas sp.,2330,Y,3.367355921
+,7.5,0.6,,Cryptomonas sp.,2330,Y,3.367355921
+,9,0.9,,Cryptomonas sp.,2330,Y,3.367355921
+,12,1,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.4,,Cryptomonas sp.,2330,Y,3.367355921
+,18,1.6,,Cryptomonas sp.,2330,Y,3.367355921
+,19.5,1.4,,Cryptomonas sp.,2330,Y,3.367355921
+,21,0.77,,Cryptomonas sp.,2330,Y,3.367355921
+,5.5,0.5,,Cryptomonas sp.,2330,Y,3.367355921
+,9,0.84,,Cryptomonas sp.,2330,Y,3.367355921
+,12,0.95,,Cryptomonas sp.,2330,Y,3.367355921
+,15.5,1.3,,Cryptomonas sp.,2330,Y,3.367355921
+,18.5,1.5,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.7,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.7,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.92,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.75,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.75,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.81,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.86,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.97,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.1,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.2,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.4,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.1,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.7,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.85,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.89,,Cryptomonas sp.,2330,Y,3.367355921
+,15,0.94,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.5,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.4,,Cryptomonas sp.,2330,Y,3.367355921
+,15,1.4,,Cryptomonas sp.,2330,Y,3.367355921
+Urotricha furcata,15,0.42,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.48,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.5,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.67,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.54,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.59,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.6,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.68,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.65,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.64,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.67,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.68,,Cryptomonas sp.,3150,Y,3.498310554
+,15,0.79,,Cryptomonas sp.,3150,Y,3.498310554
+Urotricha farcta,15,0.78,,Cryptomonas sp.,3350,Y,3.525044807
+,15,0.8,,Cryptomonas sp.,3350,Y,3.525044807
+,15,0.81,,Cryptomonas sp.,3350,Y,3.525044807
+,15,0.85,,Cryptomonas sp.,3350,Y,3.525044807
+,15,0.95,,Cryptomonas sp.,3350,Y,3.525044807
+,15,0.9,,Cryptomonas sp.,3350,Y,3.525044807
+,15,0.91,,Cryptomonas sp.,3350,Y,3.525044807
+,15,0.91,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.1,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.1,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.1,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.2,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.2,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.4,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.5,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.3,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.1,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.5,,Cryptomonas sp.,3350,Y,3.525044807
+,15,0.97,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.3,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.3,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.3,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.6,,Cryptomonas sp.,3350,Y,3.525044807
+,15,1.2,,Cryptomonas sp.,3350,Y,3.525044807
+Strobilidium neptuni,16,1,Montagnes (1996),Chroomonas salina,110000,Y,5.041392685
+,16,1.1,,Chroomonas salina,110000,Y,5.041392685
+,16,1.2,,Chroomonas salina,110000,Y,5.041392685
+,16,1.3,,Chroomonas salina,110000,Y,5.041392685
+,16,1.3,,Chroomonas salina,110000,Y,5.041392685
+,16,1.4,,Chroomonas salina,110000,Y,5.041392685
+,16,1.2,,Chroomonas salina,110000,Y,5.041392685
+,16,1.5,,Chroomonas salina,110000,Y,5.041392685
+,16,1.2,,Chroomonas salina,110000,Y,5.041392685
+,16,1.4,,Chroomonas salina,110000,Y,5.041392685
+Strobilidium veniliae,16,0.36,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.38,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.45,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.53,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.57,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.63,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.72,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.63,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.48,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.6,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.57,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.7,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.64,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.55,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.49,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.45,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.4,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.38,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+,16,0.27,,Isochrysis galbana and Chroomonas salina,19635,Y,4.293030906
+Strombidium capitatum,16,0.15,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.08,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.22,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.32,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.64,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.2,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.25,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.35,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.6,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.64,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.74,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.54,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.75,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.78,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.42,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.48,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.6,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.67,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.83,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.59,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.83,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.31,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.59,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.63,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.11,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.28,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+,16,0.41,,Isochrysis galbana and Chroomonas salina,64140,Y,4.807128956
+Strobilidium gyrans,20,0.69,Jack and Gilbert (1993),Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.77,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.77,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.12,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.76,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.61,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.3,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.38,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.41,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.39,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.45,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.84,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.87,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.71,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.68,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.72,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+,20,0.67,,Rhodomonas minuta,42000,Plankton Database,4.62324929
+Bursaridium difficile,20,0.46,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.47,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.35,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.33,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.45,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.41,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.49,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.47,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.18,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.25,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.35,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.7,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.74,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.85,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+,20,0.83,,Rhodomonas minuta,152000,Protist Info Server,5.181843588
+Euplotes eurystomus,20,0.42,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.41,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.41,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.42,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.37,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.35,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.22,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.34,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.24,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.25,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.29,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.31,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.34,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.35,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.34,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.36,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.39,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.42,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.44,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.42,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
+,20,0.45,,Rhodomonas minuta,260000,Protist Info Server,5.414973348
