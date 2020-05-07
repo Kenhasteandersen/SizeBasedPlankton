@@ -8,7 +8,7 @@ parametersChemostat = function(p=parameters()) {
   # Biogeochemical model:
   #
   p$d = 0.05  # diffusion rate, m/day
-  p$M = 30   # Thickness of the mixed layer, m
+  p$M = 10   # Thickness of the mixed layer, m
   p$T = 10   # Temperature
   p$N0 = 150 # Deep nutrient levels
   
@@ -71,8 +71,7 @@ derivative = function(t,y,p) {
     diff = p$d
   
   dBdt = diff*(0-B) + (rates$Jtot/p$m  - 
-                         (rates$Jloss_passive/p$m + 
-                            rates$mort+ 
+                         (  rates$mort+ 
                             rates$mortpred + 
                             rates$mort2 + 
                             p$mortHTL*(p$m>=p$mHTL)))*B
@@ -162,13 +161,14 @@ simulate = function(p=parametersChemostat(), useC=FALSE) {
                 reltolerance = 1e-6,
                 Parameters = 0,
                 abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
-  } else
+  } 
+  else
     out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                 IC = c(0.1*p$N0, p$DOC0, p$B0),
                 input_function = function(t,y, dummy) derivative(t,y,p),
-                reltolerance = 1e-6,
+                reltolerance = 1e-5,
                 Parameters = 0, 
-                abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
+                abstolerance = 1e-10+1e-5*c(0.1*p$N0, p$DOC0, p$B0))
   
   nSave = dim(out)[1]
   # Assemble results:
@@ -509,25 +509,20 @@ plotSpectrum <- function(sim, t=max(sim$t), bPlot=TRUE) {
   box()
 }
 
-plotRates = function(sim, t=max(sim$t), bPlot=TRUE) {
-  p = sim$p
-  
+plotRates = function(sim, p=sim$p, 
+                     B=sim$B, N=sim$N, DOC=sim$DOC,
+                     t=max(sim$t), bPlot=TRUE) {
   mm = 10^seq(-8,2, length.out = 100)  
   
-  ixt = which(floor(sim$t)==t+365)[1]
-  if (p$latitude==0) {
-    L = p$L
-    B = sim$B
-    N = sim$N
-    DOC = sim$DOC
-    r = sim$rates
-  } else {
+  L = p$L
+  if (p$latitude!=0) {
+    ixt = which(floor(sim$t)==t+365)[1]
     L = SeasonalLight(p,t)
     B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
-    r = calcRates(t, N, DOC, B, p)
   }
+  r = calcRates(t, L, N, DOC, B, p)
   
   if (bPlot)
     defaultplot()
@@ -544,17 +539,18 @@ plotRates = function(sim, t=max(sim$t), bPlot=TRUE) {
   #lines(mm, p$AL*mm^(2/3)*input$L/mm, lty=3, lwd=1, col="green")
   #JLreal = r$Jtot - r$JF+p$Jresp-r$JDOC
   #lines(p$m, p$ALm*p$L/p$m, lty=dotted, lwd=1, col="green")
-  lines(p$m, p$epsilonL*p$Jmax*p$ALm*L / (p$Jmax + p$ALm*L)/p$m , lty=dotted, lwd=1, col="green")
+  lines(p$m, r$JL/p$m , lty=dotted, lwd=1, col="green")
   lines(p$m, r$JLreal/p$m, lwd=4, col="green")
   
   #lines(mm, p$AN*mm^(1/3)*p$rhoCN*sim$N/mm, lwd=1, lty=3, col="blue")
   lines(p$m, p$Jmax * p$ANm*N / (p$Jmax/p$rhoCN + p$ANm*N)/p$m, lwd=1, lty=3, col="blue")
   lines(p$m, r$JN/p$m*p$rhoCN, lwd=4, col="blue")
   
-  lines(mm, p$AN*mm^(1/3)*sim$DOC/mm, lwd=1, lty=3, col="brown")
+  lines(mm, p$AN*mm^(1/3)*DOC/mm, lwd=1, lty=3, col="brown")
   lines(p$m, r$JDOC/p$m, lwd=4, col="brown")
   
-  lines(p$m, r$JF/p$m,lwd=4,col="red")
+  lines(p$m, r$JFreal/p$m,lwd=4,col="red")
+  lines(p$m, p$epsilonF * p$cF*p$m^(-1/3) ,col="red", lty=dotted)
   
   legend(x="topright", cex=cex,
          legend=c("Gains:","Light harvesting","Nutrient uptake","DOC uptake","Food consumption","Division rate"),
@@ -569,14 +565,14 @@ plotRates = function(sim, t=max(sim$t), bPlot=TRUE) {
   
   mortHTL = p$mortHTL*(p$m>p$mHTL)
   JNexude = r$JNloss 
-  lines(p$m, -(sim$rates$mortpred + mortHTL + sim$rates$mort2 + p$mort), lwd=10)
-  lines(p$m, -sim$rates$mortpred, col="red", lwd=4)
+  lines(p$m, -(r$mortpred + mortHTL + r$mort2 + p$mort), lwd=10)
+  lines(p$m, -r$mortpred, col="red", lwd=4)
   lines(p$m[p$m>=p$mHTL], -p$mortHTL*sign(p$m[p$m>p$mHTL]), col="magenta", lwd=4)
-  lines(p$m, -sim$rates$mort2, col="orange", lwd=4)
+  lines(p$m, -r$mort2, col="orange", lwd=4)
   lines(p$m, -r$JR/p$m, col="grey", lwd=4)
   lines(p$m, -r$Jloss_passive/p$m, col="darkgreen", lwd=4)
   
-  BSheldon =exp(mean(log(sim$B)))
+  BSheldon =exp(mean(log(B)))
   delta = (p$m[2]-p$m[1]) / sqrt(p$m[2]*p$m[1])
   mortPredTheoretical = BSheldon * (1-0.6) * p$AF *sqrt(2*pi)*p$sigma / delta
   lines(range(p$m), -mortPredTheoretical*c(1,1), lty=dotted, col="red")
@@ -589,6 +585,8 @@ plotRates = function(sim, t=max(sim$t), bPlot=TRUE) {
   
   lines(p$m, 0*p$m, col="white", lwd=4)
   lines(p$m, 0*p$m, lty=dashed, lwd=2)
+  
+  return(r)
 }
 
 plotLeaks = function(sim, t=max(sim$t)) {
@@ -675,6 +673,7 @@ plotComplexRates = function(sim, t=max(sim$t)) {
 }
 
 baserunChemostat = function(p = parametersChemostat(), useC=FALSE) {
+  require(tictoc)
   tic()
   sim = simulate(p, useC)
   toc()

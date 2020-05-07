@@ -2,6 +2,7 @@ require(latex2exp)
 require(lattice)
 source("basetools.R")
 source("model.R")
+source("modelChemostat.R")
 
 # ===================================================
 # Plots for documentation
@@ -418,7 +419,7 @@ plotMumax = function() {
             start=list(mu=1, c=1))
   
   defaultplot()
-  loglogpanel(xlim = c(1e-9,1), ylim = A$mu_max,
+  semilogxpanel(xlim = c(1e-9,1), ylim = A$mu_max,
               xlab="Cell weight ($\\mu$gC)",
               ylab="max growth rate ($d^{-1}$)")
   points(A$C[ixMixotroph], A$mu_max[ixMixotroph], pch=16, col="blue")
@@ -437,21 +438,29 @@ plotMumax = function() {
   #lines(C, exp(predict(fit_phototrophs, list(C=C))), col="green")
   
   m = 10^seq(-9,1,length.out = 100)
-  lines(m, parameters()$alphaJ*(1-parameters()$c * m^(-1/3)), lwd=1)
-  lines(m, parameters()$alphaJ*(1-parameters()$c * m^(-1/3)) - parameters()$cR, lwd=2)
-  lines(C, predict(fit, list(C=C)))
+  lines(m, parameters()$alphaJ*(1-parameters()$c * m^(-1/3)), lwd=3)
+  #lines(m, parameters()$alphaJ*(1-parameters()$c * m^(-1/3)) - parameters()$cR, lwd=2)
+  #lines(C, predict(fit, list(C=C)))
   
+  # Add the used curve:
+  p = parameters()
+  #lines(p$m, p$Jmax/p$m, col="black", lwd=2)
+  
+  # Maximum uptake of phagotrophy:
+  lines(m, p$epsilonF*p$cF*m^(-1/3)-p$cR*p$alphaJ, col="red", lwd=2)
+
   # Camila
   #lines(C, 0.12*C^-0.25, col="orange", lwd=1)
   #lines(C, (0.12-0.03)*C^-0.25, col="orange", lwd=2)
   
-  legend(x="bottomright", bty="n",
+  legend(x="topleft", bty="n",
                   legend=c("Diatoms","Other phototrophs",
                            "Mixotrophs", "Heterotrophs",
-                           "Bacteria","Model"),
+                           "Bacteria","Model","Max. phagotrophy"),
                   lty=solid,
-                  lwd=2,
-                  col=c("darkgreen","green","blue","red","brown","black"))
+                  pch=c(16,16,16,16,16,NA,NA),
+                  lwd=c(0,0,0,0,0,2,2),
+                  col=c("darkgreen","green","blue","red","brown","black","red"))
 }
 
 plotMuAlphaCorrelation = function() {
@@ -730,8 +739,8 @@ plotVaryLightAndDiffusion = function() {
   library(latticeExtra)
   library(reshape)
   
-  d = seq(0.002,.2,length.out=10) #10^seq(-2,log10(2),length.out = 10)
-  L = seq(1,70,length.out=10)
+  d = seq(0.004,.4,length.out=10) #10^seq(-2,log10(2),length.out = 10)
+  L = seq(10,100,length.out=10)
   #
   # Simulations
   #
@@ -740,9 +749,11 @@ plotVaryLightAndDiffusion = function() {
   #B = array(dim=c(3,length(d), length(L)))
   for (i in 1:length(d))
     for (j in 1:length(L)) {
-      p = parameters()
+      p = parametersChemostat()
       p$d = d[i]
       p$L = L[j]
+      print(p$d)
+      print(p$L)
       #p$mHTL = 0.008
       sim = simulate(p)
       func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
@@ -780,19 +791,19 @@ plotVaryLightAndDiffusion = function() {
   return(plt)
 }
 
-plotFunctions = function(L=c(20,50), n=10) {
+plotFunctions = function(L=c(20, 100), n=10) {
   
   panelsFunctions = function(L=c(18,40), n=10, yaxis=TRUE) {
-    d = 10^seq(-3,log10(.2),length.out = n) #seq(0.02,2,length.out=n) #
+    d = 10^seq(-2,log10(.4),length.out = n) #seq(0.02,2,length.out=n) #
     
-    p = parameters()
+    p = parametersChemostat()
     p$L = L
     
     F = data.frame()
     for (i in 1:length(d)) {
       p$d = d[i]
       sim = simulate(p)
-      func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
+      func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
       func$d = d[i]
       func$N = sim$N
       func$DOC = sim$DOC
@@ -802,9 +813,13 @@ plotFunctions = function(L=c(20,50), n=10) {
     
     # Biomass
     B = F$Bpico+F$Bnano+F$Bmicro
-    defaultpanel(xlim=d, ylim=c(0,0.15), xaxis=FALSE, yaxis=yaxis, bty="l",
-                 ylab="Biomass ($\\mu$gC/l)")
+    defaultpanel(xlim=c(0, max(d)), ylim=c(0,0.15), xaxis=FALSE, yaxis=yaxis, bty="l",
+                 ylab="Biomass (gC/m$^2$)")
     lines(F$d, B, lwd=2)
+    lines(F$d, F$Bpico, lwd=0.5, col="grey")
+    lines(F$d, F$Bnano, lwd=1, col="grey")
+    lines(F$d, F$Bmicro, lwd=1.5, col="grey")
+    
     
     # N
     semilogypanel(xlim=d, ylim=c(0.0001,10), xaxis=FALSE, yaxis=yaxis, bty="l",
@@ -812,12 +827,12 @@ plotFunctions = function(L=c(20,50), n=10) {
     lines(F$d, F$N/14, lwd=2)
     
     #DOC
-    semilogypanel(xlim=d, ylim=c(1,500), xaxis=FALSE, yaxis=yaxis, bty="l",
+    semilogypanel(xlim=d, ylim=c(1,5000), xaxis=FALSE, yaxis=yaxis, bty="l",
                   ylab="DOC  ($\\mu$mol C/l)")
     lines(F$d, 1000*F$DOC/12, lwd=2)
     
     #Production:
-    semilogypanel(xlim=d, ylim=c(1,2000), xaxis=FALSE, yaxis=yaxis, bty="l",
+    semilogypanel(xlim=d, ylim=c(1,3000), xaxis=FALSE, yaxis=yaxis, bty="l",
                   ylab="Prod. (gC/m$^2$/yr)")
     lines(F$d, F$prodCgross)
     lines(F$d, F$prodCnet, col="blue")
@@ -827,7 +842,7 @@ plotFunctions = function(L=c(20,50), n=10) {
     # Eff
     defaultpanel(xlim=d, ylim=c(0,1), bty="l",
                  ylab="$\\epsilon_{HTL}$",
-                 xlab="Exchange rate (day$^{-1}$)",
+                 xlab="Mixing rate (day$^{-1}$)",
                  yaxis=yaxis)
     lines(F$d, F$effHTL, lwd=2)
   }

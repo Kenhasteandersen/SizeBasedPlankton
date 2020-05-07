@@ -183,7 +183,7 @@ serverChemostat <- function(input, output) {
   # Plots:
   #
   output$plotSpectrum <- renderPlot(plotSpectrum(sim(), input$t))
-  output$plotRates <- renderPlot(plotRates(sim(), input$t))
+  output$plotRates <- renderPlot(plotRates(sim(), t=input$t))
   output$plotLeaks = renderPlot(plotLeaks(sim(), input$t))
   output$plotComplexRates <- renderPlot(plotComplexRates(sim(), input$t))
   output$plotTime <- renderPlot(plotTimeline(sim(), input$t))

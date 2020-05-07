@@ -1,5 +1,3 @@
-
-
 # --------------------------------------------------
 # Core logic for the model
 # --------------------------------------------------
@@ -30,6 +28,7 @@ parameters <- function() {
   p$AL = 0.000914 # if using Andys shading formula for non-diatoms
   p$cL = 21 # if using Andys shading formula for non-diatoms
   p$AF = 0.018  #  Fits to TK data for protists
+  p$cF = 0.5 # Just a guess
   
   p$ANm = p$AN*p$m^(1/3)
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
@@ -57,12 +56,14 @@ parameters <- function() {
   p$mort = 0*0.005*(p$Jmax/p$m) * p$m^(-1/4)
   p$mort2 = 0.0002*p$n
   p$mortHTL = 0.1
-  p$mHTL = max(p$m)/p$beta # Bins affected by HTL mortality
+  p$mHTL = max(p$m)/p$beta^1.5 # Bins affected by HTL mortality
   
   p$remin = 0.0 # fraction of mortality losses reminerilized to N and DOC
   p$remin2 = 1 # fraction of virulisus remineralized to N and DOC
   
   p$T = 10
+  p$latitude=0
+  p$L = 100
   #
   # Initial conditions:
   #
@@ -90,8 +91,133 @@ fTemp = function(Q10, T) {
 calcESD = function(m) {
   10000 * 1.5 * (m*1e-6)^(1/3)
 }
-
+#
+# Version 3: heuristic down-regulation again
+#
 calcRates = function(t,L,N,DOC,B,p) {
+  with(p, {
+    B = pmax(0,B)
+    N = max(0,N)
+    DOC = max(0, DOC)
+    #
+    # Temperature corrections:
+    #
+    ANmT = ANm*fTemp(1.5,p$T)
+    JmaxT = Jmax*fTemp(2,p$T)
+    JR = Jresp*fTemp(2,p$T)
+    #
+    # Uptakes
+    #
+    JN =   ANmT*N*rhoCN # Diffusive nutrient uptake in units of C/time
+    # 
+    JDOC = ANmT*DOC # Diffusive DOC uptake, units of C/time
+    
+    JL =   epsilonL * ALm*L  # Photoharvesting
+
+    #f = Jtot / (Jtot + Jmax) # feeding level
+    #---------------------------
+    # Actual uptakes:
+    #
+    #JFreal = pmax(0, JF - (Jtot-f*Jmax))
+    #JLreal = JL-pmin((JCtot - (JF-JFreal)-f*Jmax), JL)
+    #JDOCreal = pmin(JDOC, Jresp + f*Jmax - JLreal - JFreal) # The min is only needed to reduce round-off errors
+    #JNreal = pmax(0, (f*Jmax - JFreal))/rhoCN # In units of N
+    # 
+    # Losses:
+    #
+    #JNloss_piss = -pmin(0, (f*Jmax - JFreal))/rhoCN  # Exudation of surplus nutrients by heterotrophs
+    #JNloss = (1-epsilonF)/epsilonF*JFreal/rhoCN + JNloss_piss
+    #JCloss_feeding = (1-epsilonF)/epsilonF*JFreal
+    #JCloss = JCloss_feeding + (1-epsilonL)/epsilonL*JLreal
+    #-------------------
+    
+    
+        
+    # Light acclimation:
+    JLreal = pmax( 0, JL - pmax(0,(JL+JDOC-JR - JN)) )
+    
+    # Feeding as type II with surface limitation:
+    F = theta %*% B
+    JF = epsilonF * cF*m^(2/3)*AFm*F / (AFm*F + cF*m^(2/3)) #        # Feeding
+    
+    # Passive losses:
+    Jloss_passive = p$cLeakage * m^(2/3) # in units of C
+    
+    # Total nitrogen uptake:    
+    JNtot = JN+JF-Jloss_passive # In units of C
+    # Total carbon uptake
+    JCtot = JLreal+JF+JDOC-JR-Jloss_passive
+    
+    # Liebig + synthesis limitation:
+    #Jtot = pmin( JNtot, JCtot, JmaxT )
+    Jtot = pmin( JNtot, JCtot ) 
+    Jtot = JmaxT * Jtot / (JmaxT + Jtot)
+    
+    # If synthesis-limited then down-regulate feeding:
+    #JFreal = pmax(0, JF - pmax( 0,  pmax(0, Jtot-JmaxT) ))
+    JFdownregulate = pmin( JNtot, JCtot) - Jtot # "surplus" uptake 
+    JFreal = pmax(0, JF - JFdownregulate)
+    
+    # Actual uptakes:
+    JCtot = JLreal + JDOC + JFreal - JR - Jloss_passive
+    JNtot = JN + JFreal - Jloss_passive
+    # 
+    # Losses:
+    #
+    JCloss_feeding = (1-epsilonF)/epsilonF*JFreal # Incomplete feeding (units of carbon per time)
+    JCloss_photouptake = (1-epsilonL)/epsilonL*JLreal
+    JNlossLiebig = pmax(0,JNtot-Jtot)  # In units of C
+    JClossLiebig = pmax(0,JCtot-Jtot) # C losses from Liebig, not counting losses from photoharvesting
+    #JClossLiebig = pmax(0, Jtot - JNtot*rhoCN) # C losses from Liebig, not counting losses from photoharvesting
+    #JClossLiebig = pmin(JClossLiebig, JDOC) # However, light surplus is not leaked but is downregulated
+    
+    JNloss = JCloss_feeding + JNlossLiebig + Jloss_passive # In units of C
+    JCloss = JCloss_feeding + JCloss_photouptake + JClossLiebig + Jloss_passive
+    #
+    # Check:
+    #
+    #print( ((JLreal + JFreal + JDOC - JR - Jloss_passive - JClossLiebig) - Jtot )/m )
+    #print( ((JN + JFreal - Jloss_passive - JNlossLiebig) - Jtot )/m )
+    
+    #if (sum(c(JNloss,JCloss,B)<0))
+    #  browser()
+    #
+    # Mortality:
+    #
+    mortpred =  t(theta) %*% (JFreal/epsilonF*B/m/F)
+
+    return(list( 
+      JN=JN/rhoCN, 
+      JDOC=JDOC, 
+      JL=JL, 
+      JF=JF,
+      JFreal = JFreal,
+      JLreal = JLreal, 
+      JR=JR,
+      JNlossLiebig=JNlossLiebig/rhoCN, 
+      JClossLiebig=JClossLiebig,
+      JCloss_photouptake=JCloss_photouptake,
+      Jloss_passive = Jloss_passive,
+      JCloss_feeding=JCloss_feeding, 
+      JCloss=JCloss, 
+      JNloss=JNloss/rhoCN,
+      Jtot=Jtot, 
+      F=F, 
+      JCtot = JCtot, 
+      JNtot=JNtot/rhoCN,
+      mortpred=mortpred, 
+      mort=mort,
+      mort2=mort2*B,
+      totKilled = sum(JF/epsilonF*B/m), 
+      totEaten = sum(mortpred*B), 
+      totGrowth=sum(Jtot*B/m)
+      ))
+  })
+}
+#
+# Version 2: regulation only through functional responses:
+#
+calcRatesFR = function(t,L,N,DOC,B,p) {
   with(p, {
     B = pmax(0,B)
     N = max(0,N)
@@ -122,7 +248,7 @@ calcRates = function(t,L,N,DOC,B,p) {
                      
     JCtot = JLreal+JF+JDOC-JR # Total carbon uptake
 
-    Jtot = pmin( JCtot, JNtot*rhoCN )  # Liebigs law; units of C
+    Jlim = pmin( JCtot, JNtot*rhoCN )  # Liebigs law; units of C
     # 
     # Losses:
     #
@@ -145,6 +271,8 @@ calcRates = function(t,L,N,DOC,B,p) {
     #
     mortpred =  t(theta) %*% (JF/epsilonF*B/m/F)
 
+    Jtot = Jlim - Jloss_passive
+    
     return(list( 
       JN=JN, JDOC=JDOC, JL=JL, JF=JF,
       JLreal = JLreal, JR=JR,
