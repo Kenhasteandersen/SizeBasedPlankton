@@ -175,7 +175,7 @@ serverChemostat <- function(input, output) {
     
     if (p$latitude>0)
       p$tEnd = 2*365
-    
+
     # Simulate
     return(simulate(p, bUseC))   
   })

@@ -145,6 +145,7 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
 }
 
 simulate = function(p=parametersChemostat(), useC=FALSE) {
+
   if (useC) {
     # Load library
     dyn.load("../Cpp/model.so")
@@ -168,7 +169,7 @@ simulate = function(p=parametersChemostat(), useC=FALSE) {
                 input_function = function(t,y, dummy) derivative(t,y,p),
                 reltolerance = 1e-5,
                 Parameters = 0, 
-                abstolerance = 1e-10+1e-5*c(0.1*p$N0, p$DOC0, p$B0))
+                abstolerance = 1e-10+1e-5*c(0.1*p$N0, 1, p$B0))
   
   nSave = dim(out)[1]
   # Assemble results:
@@ -673,7 +674,6 @@ plotComplexRates = function(sim, t=max(sim$t)) {
 }
 
 baserunChemostat = function(p = parametersChemostat(), useC=FALSE) {
-  require(tictoc)
   tic()
   sim = simulate(p, useC)
   toc()

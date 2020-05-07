@@ -146,17 +146,18 @@ calcRates = function(t,L,N,DOC,B,p) {
     # Total nitrogen uptake:    
     JNtot = JN+JF-Jloss_passive # In units of C
     # Total carbon uptake
-    JCtot = JLreal+JF+JDOC-JR-Jloss_passive
+    JCtot = JL+JF+JDOC-JR-Jloss_passive
     
     # Liebig + synthesis limitation:
     #Jtot = pmin( JNtot, JCtot, JmaxT )
     Jtot = pmin( JNtot, JCtot ) 
-    Jtot = JmaxT * Jtot / (JmaxT + Jtot)
+    f = Jtot/(Jtot + JmaxT)
     
     # If synthesis-limited then down-regulate feeding:
     #JFreal = pmax(0, JF - pmax( 0,  pmax(0, Jtot-JmaxT) ))
-    JFdownregulate = pmin( JNtot, JCtot) - Jtot # "surplus" uptake 
-    JFreal = pmax(0, JF - JFdownregulate)
+    JFreal = pmax(0, JF - (Jtot-f*JmaxT))
+    Jtot = f*JmaxT
+    JLreal = JL-pmin((JCtot - (JF-JFreal)-f*Jmax), JL)
     
     # Actual uptakes:
     JCtot = JLreal + JDOC + JFreal - JR - Jloss_passive
@@ -186,6 +187,10 @@ calcRates = function(t,L,N,DOC,B,p) {
     #
     mortpred =  t(theta) %*% (JFreal/epsilonF*B/m/F)
 
+    if (sum(is.nan(Jtot)))
+      browser()
+    
+    
     return(list( 
       JN=JN/rhoCN, 
       JDOC=JDOC, 

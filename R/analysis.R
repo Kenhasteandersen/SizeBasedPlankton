@@ -791,16 +791,17 @@ plotVaryLightAndDiffusion = function() {
   return(plt)
 }
 
-plotFunctions = function(L=c(20, 100), n=10) {
+plotFunctions = function(L=c(35, 100), n=10) {
   
   panelsFunctions = function(L=c(18,40), n=10, yaxis=TRUE) {
-    d = 10^seq(-2,log10(.4),length.out = n) #seq(0.02,2,length.out=n) #
+    d = 10^seq(-2,log10(.2),length.out = n) #seq(0.02,2,length.out=n) #
     
     p = parametersChemostat()
     p$L = L
     
     F = data.frame()
     for (i in 1:length(d)) {
+      print(d[i])
       p$d = d[i]
       sim = simulate(p)
       func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
