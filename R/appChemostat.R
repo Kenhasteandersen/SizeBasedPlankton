@@ -46,7 +46,7 @@ uiChemostat <- fluidPage(
       sliderInput("d",
                   "Mixing rate (1/day)",
                   min = 0,
-                  max = .1,
+                  max = .6,
                   step = 0.0025,
                   value = parametersChemostat()$d)
       ,
@@ -162,7 +162,7 @@ serverChemostat <- function(input, output) {
   },
   {
     # get all base parameters
-    p <- parametersChemostat() 
+    p <- parametersChemostat( parameters(n=25) ) 
     # Update parameters with user input:
     p$L = input$L
     p$latitude = input$latitude
