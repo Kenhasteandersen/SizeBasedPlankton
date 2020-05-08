@@ -2,11 +2,11 @@
 # Core logic for the model
 # --------------------------------------------------
 
-parameters <- function() {
+parameters <- function(n=25) {
   p = list()
   
-  p$n = as.integer(10); # No of groups
-  p$m = 10^seq(-8,1,length.out = p$n)  # Mass bins in mugC
+  p$n = as.integer(n); # No of groups
+  p$m = 10^seq(-8.5,1,length.out = p$n)  # Mass bins in mugC
   
   p$rhoCN = 5.68 # C:N mass ratio
   p$epsilonL = 0.9 # Light uptake efficiency
@@ -28,7 +28,7 @@ parameters <- function() {
   p$AL = 0.000914 # if using Andys shading formula for non-diatoms
   p$cL = 21 # if using Andys shading formula for non-diatoms
   p$AF = 0.018  #  Fits to TK data for protists
-  p$cF = 0.5 # Just a guess
+  p$cF = 0.6 # Just a guess
   
   p$ANm = p$AN*p$m^(1/3)
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
@@ -80,6 +80,29 @@ phi = function(z, beta, sigma) {
   exp( -(log(z/beta))^2/(2*sigma^2) )
 }
 #
+# Prey size function integrated over size groups:
+#
+Phi = function(z, p) {
+  
+  fPrey = function(m, w0, Delta) {
+    integrate( function(logw) phi(m/exp(logw),beta=p$beta,sigma=p$sigma), log(w0/sqrt(Delta)), log(w0*sqrt(Delta)))$value
+  }
+  
+  fTot = function(m0,w0, Delta) {
+    ix = m>m0/sqrt(Delta) & m<m0*sqrt(Delta)
+    sum(
+      as.numeric(
+        lapply( m[ix], function(m) fPrey(m,w0,Delta)/m) 
+      )*dm[ix] / log(Delta)^2
+    )
+  }
+
+  Delta = p$m[2]/p$m[1] # Assume log-distributed size bins
+  
+  return(fTot(1,z,Delta))
+}
+
+#
 # Q10 temperature function:
 #
 fTemp = function(Q10, T) {
@@ -99,6 +122,10 @@ calcRates = function(t,L,N,DOC,B,p) {
     B = pmax(0,B)
     N = max(0,N)
     DOC = max(0, DOC)
+    
+    #print(c(N,DOC,B))
+    #if (sum(is.nan(c(B,N,DOC))))
+    #  browser()
     #
     # Temperature corrections:
     #
@@ -185,10 +212,10 @@ calcRates = function(t,L,N,DOC,B,p) {
     #
     # Mortality:
     #
-    mortpred =  t(theta) %*% (JFreal/epsilonF*B/m/F)
+    mortpred =  t(theta) %*% (JFreal/epsilonF*B/m/(F+1e-20))
 
-    if (sum(is.nan(Jtot)))
-      browser()
+    #if (sum(is.nan(Jtot)))
+    #  browser()
     
     
     return(list( 
