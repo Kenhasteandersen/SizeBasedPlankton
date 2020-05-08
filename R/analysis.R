@@ -17,14 +17,19 @@ plotAll = function() {
   
   plotSimulationExamples()
   
-  pdf(file="../VaryLightAndDiffusion.pdf", width=doublewidth+0.5, height=height+.3)
   fontsize = trellis.par.get("fontsize")
   fontsize$text = 10
   trellis.par.set("fontsize",fontsize)
-  plotVaryLightAndDiffusion()
+  plt=plotVaryLightAndDiffusion(n=15)
+  pdf(file="../VaryLightAndDiffusion.pdf", width=doublewidth+0.5, height=height+.3)
+  plt
   dev.off()
   
   pdfplot("../Functions.pdf", plotFunctions,n=25, width=doublewidth, height=2*height)
+  
+  pdfplot("../GridPreference.pdf", plotGridPreference, width=1.5*singlewidth, height=height)
+  
+  pdfplot("../Gridtest.pdf", plotGridtest, width=doublewidth, height=height)
   
   system("cp ../*pdf ../dropbox")
   #system2("cp *pdf ~/Dropbox/Apps/Overleaf/A\ minimal\ size-based\ model\ of\ unicellular\ plankton/")
@@ -457,7 +462,7 @@ plotMumax = function() {
                   legend=c("Diatoms","Other phototrophs",
                            "Mixotrophs", "Heterotrophs",
                            "Bacteria","Model","Max. phagotrophy"),
-                  lty=solid,
+                  lty=c(NA,NA,NA,NA,NA,solid,solid),
                   pch=c(16,16,16,16,16,NA,NA),
                   lwd=c(0,0,0,0,0,2,2),
                   col=c("darkgreen","green","blue","red","brown","black","red"))
@@ -712,9 +717,9 @@ plotSimulationExamples = function() {
   #
   # Oligotrophic
   #
-  p = parameters()
+  p = parametersChemostat()
   p$d = 0.0025
-  p$L = 40
+  p$L = 100
   p$mortHTL = 0.03
   
   sim = simulate(p)
@@ -723,10 +728,10 @@ plotSimulationExamples = function() {
   #
   # Eutrophic
   #
-  p = parameters()
-  p$d = 0.08
-  p$L = 20
-  p$mortHTL = 0.1
+  p = parametersChemostat()
+  p$d = 0.3
+  p$L = 100
+  p$mortHTL = 0.03
   
   sim = simulate(p)
   pdfplot("../spectrum2.pdf",FUN=plotSpectrum, sim=sim, width=doublewidth, height=1.5*height)
@@ -734,18 +739,19 @@ plotSimulationExamples = function() {
 }
 
 
-plotVaryLightAndDiffusion = function() {
+plotVaryLightAndDiffusion = function(n=10) {
   library(lattice)
   library(latticeExtra)
   library(reshape)
   
-  d = seq(0.004,.4,length.out=10) #10^seq(-2,log10(2),length.out = 10)
-  L = seq(10,100,length.out=10)
+  d = seq(0.004,.5,length.out=n) #10^seq(-2,log10(2),length.out = 10)
+  L = seq(10,200,length.out=n)
   #
   # Simulations
   #
   df = data.frame(size=NULL, d=NULL, L=NULL, biomass=NULL)
   df2 = data.frame(func=NULL, d=NULL, L=NULL, z=NULL)
+  #tmp = matrix(ncol=4, nrow=0)
   #B = array(dim=c(3,length(d), length(L)))
   for (i in 1:length(d))
     for (j in 1:length(L)) {
@@ -756,11 +762,15 @@ plotVaryLightAndDiffusion = function() {
       print(p$L)
       #p$mHTL = 0.008
       sim = simulate(p)
-      func = calcFunctions(sim$p, sim$rates, sim$N, sim$B)
+      func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
       
       df = rbind(df, data.frame(size="Pico",d=d[i],L=L[j],biomass=func$Bpico))
       df = rbind(df, data.frame(size="Nano",d=d[i],L=L[j],biomass=func$Bnano))
       df = rbind(df, data.frame(size="Micro",d=d[i],L=L[j],biomass=func$Bmicro))
+      #df = rbind(df, data.frame(size="Chl",d=d[i],L=L[j],biomass=func$Chl_per_l))
+      
+      #tmp = rbind(tmp, c(func$Bpico, func$Bnano, func$Bmicro, func$Chl_per_l))
+      
       df2 = rbind(df2, data.frame(func="Biomass", d=d[i],L=L[j],
                                   z=func$Bpico+func$Bnano+func$Bmicro))
       df2 = rbind(df2, data.frame(func="N", d=d[i],L=L[j], z=sim$N))
@@ -779,14 +789,14 @@ plotVaryLightAndDiffusion = function() {
                 #scales = list(x = list(log = 10, at=c(0.01,0.1,1))),
                 #xscale.components = xscale.components.logpower,#10ticks(n=5,n2=10),
                 layout=c(3,1),
-                ylab=TeX("Light (${\\mu}E m^{-2}s^{-1}$)"), xlab=TeX("Exchange rate (day$^{-1}$)"))
+                ylab=TeX("Light (${\\mu}E m^{-2}s^{-1}$)"), xlab=TeX("Mixing rate (day$^{-1}$)"))
   
   plt2 = levelplot(z ~ d*L | func, data=df2,
                    aspect=1, region=TRUE,
                    col.regions = terrain.colors(100),
                    layout=c(3,1),
                    ylab=TeX("Light (${\\mu}E m^{-2}s^{-1}$)"), 
-                   xlab=TeX("Exchange rate (day$^{-1}$)"))
+                   xlab=TeX("Mixing rate (day$^{-1}$)"))
   
   return(plt)
 }
@@ -794,7 +804,7 @@ plotVaryLightAndDiffusion = function() {
 plotFunctions = function(L=c(35, 100), n=10) {
   
   panelsFunctions = function(L=c(18,40), n=10, yaxis=TRUE) {
-    d = 10^seq(-2,log10(.2),length.out = n) #seq(0.02,2,length.out=n) #
+    d = 10^seq(-2,log10(.7),length.out = n) #seq(0.02,2,length.out=n) #
     
     p = parametersChemostat()
     p$L = L
@@ -823,7 +833,7 @@ plotFunctions = function(L=c(35, 100), n=10) {
     
     
     # N
-    semilogypanel(xlim=d, ylim=c(0.0001,10), xaxis=FALSE, yaxis=yaxis, bty="l",
+    semilogypanel(xlim=d, ylim=c(0.001,20), xaxis=FALSE, yaxis=yaxis, bty="l",
                   ylab="N ($\\mu$mol N/l)")
     lines(F$d, F$N/14, lwd=2)
     
@@ -833,7 +843,7 @@ plotFunctions = function(L=c(35, 100), n=10) {
     lines(F$d, 1000*F$DOC/12, lwd=2)
     
     #Production:
-    semilogypanel(xlim=d, ylim=c(1,3000), xaxis=FALSE, yaxis=yaxis, bty="l",
+    semilogypanel(xlim=d, ylim=c(10,3000), xaxis=FALSE, yaxis=yaxis, bty="l",
                   ylab="Prod. (gC/m$^2$/yr)")
     lines(F$d, F$prodCgross)
     lines(F$d, F$prodCnet, col="blue")
@@ -853,3 +863,84 @@ plotFunctions = function(L=c(35, 100), n=10) {
   panelsFunctions(L=L[1],n=20)
   panelsFunctions(L=L[2], yaxis=FALSE,n=20)
 }
+
+plotPreferences = function(p = parameters()) {
+  defaultplot()
+  semilogxpanel(xlim=p$m, xlab="Cell weight ($\\mu$gC)",
+                ylim=c(0,1.1), ylab="Preference")
+  
+  m = 10^seq(-10,1,length.out = 1000)
+  for (i in 1:p$n) {
+    lines(m, phi(p$m[i]/m,p$beta,p$sigma), col=grey(0.8))
+    lines(p$m, phi(p$m[i]/p$m,p$beta,p$sigma), lty=dotted)
+    points(p$m, phi(p$m[i]/p$m,p$beta,p$sigma),pch=16)
+  }
+  
+}
+
+plotGridPreference = function(p = parameters()) {
+  m = 10^seq(-6,1,length.out = 100)
+  defaultplot()
+
+  semilogxpanel(xlim=c(1e-6,1), xlab="Prey mass:predator mass",
+                ylim=c(0,1), ylab="Preference")
+  
+  y = lapply(m, function(m) Phi(1/m, p, Delta=11))
+  lines(m, y, lwd=thick, col=stdgrey)
+  y = lapply(m, function(m) Phi(1/m, p, Delta=80))
+  lines(m, y, lwd=thick)
+  lines(m, phi(1/m,beta=p$beta,sigma=p$sigma), lty=dotted)
+  
+  legend("topleft", bty="n",
+         legend=TeX(c("n=$\\infty, \\Delta$=1",
+                  "n=10, $\\Delta$=11",
+                  "n=6, $\\Delta$=80")),
+         lty=c(dotted,solid,solid),
+         lwd=c(1,thick,thick),
+         col=c(black,stdgrey,black)
+         )
+  # sigma = function(Delta) {
+  #   y = as.numeric( lapply(m, function(m) fTot(1,m,Delta)) )
+  #   n0 = trapz(log(m),y)
+  #   n1 = trapz(log(m), log(m)*y)/n0
+  #   n2 = trapz(log(m), (log(m)-n1)^2*y)/n0
+  #   return( sqrt(n2) )
+  # }
+  # 
+  # semilogxpanel( xlim=Delta, xlab="Grid expansion factor $\\Delta$",
+  #                ylim=c(1,2.5), ylab="Width $\\sigma$")
+  # Delta = 10^seq(0,2,length.out=20)
+  # y = lapply( Delta, sigma )
+  # lines(Delta, y, lwd=thick)
+  # lines(Delta, Delta/Delta*sigma, lty=dotted)
+  # lines(c(10,10), c(1,3), lty=dotted)
+}
+
+plotGridtest = function() {
+  n = c(6, 8, 10, 15, 25, 50)
+  
+  defaultplot()
+  loglogpanel( xlim=c(5e-9,5000), xlab="Cell weight ($\\mu$gC)",
+               ylim=c(2,200), ylab="Normalized biomass ($\\mu$gC/l)")
+  
+  textLegend = NULL
+  for (i in 1:length(n)) {
+    p = parametersChemostat( parameters(n[i]) )
+    sim = simulate(p)
+    Delta = p$m[2]/p$m[1]
+    textLegend = c(textLegend, TeX(sprintf("n = %2.0f, $\\Delta$ = %2.1f", n[i],Delta)))
+    
+    Bnorm = sim$B/(sqrt(Delta)-1/sqrt(Delta))
+    Bnorm[ Bnorm<1e-4 ] = NA
+    lines( p$m, Bnorm )
+    points( p$m, Bnorm, pch=i)
+  }
+  
+  legend(x="topright", bty="n",
+         legend=textLegend, #c("n=6","n=8","n=10","n=15","n=25","n=50"),
+         pch = seq(1,6),
+  )
+}
+
+
+
