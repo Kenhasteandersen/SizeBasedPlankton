@@ -8,7 +8,7 @@ parametersChemostat = function(p=parameters()) {
   # Biogeochemical model:
   #
   p$d = 0.05  # diffusion rate, m/day
-  p$M = 10   # Thickness of the mixed layer, m
+  p$M = 20   # Thickness of the mixed layer, m
   p$T = 10   # Temperature
   p$N0 = 150 # Deep nutrient levels
   
@@ -252,6 +252,11 @@ calcFunctionsChemostat = function(param,r,N,B) {
     Bpico = conversion * sum( B[d < 2] )
     Bnano = conversion * sum( B[d>=2 & d <20])
     Bmicro = conversion * sum( B[d>=20])
+    #
+    # Chl-a (gC/m2): Use rough conversion from Edwards et al (2015) that Chl-a propto alpha
+    #
+    Chl_per_l = sum( r$JLreal/(epsilonL*L)/m*B )
+    Chl_per_m2 = conversion * Chl_per_l
     
     return(list(
       prodNew = prodNew,
@@ -268,7 +273,9 @@ calcFunctionsChemostat = function(param,r,N,B) {
       lossFeedingHTL = lossFeedingHTL,
       lossTotalC = lossTotalC,
       lossTotalN = lossTotalN,
-      Bpico=Bpico, Bnano=Bnano, Bmicro=Bmicro
+      Bpico=Bpico, Bnano=Bnano, Bmicro=Bmicro,
+      Chl_per_m2 = Chl_per_m2,
+      Chl_per_l = Chl_per_l
     ))
   })
 }
@@ -497,6 +504,9 @@ plotSpectrum <- function(sim, t=max(sim$t), bPlot=TRUE) {
   text(x=m[1], y=1.5, labels=TeX(sprintf("DOC: %2.2f $mmol C/l", 1000*DOC/12)), cex=cex, pos=4, col=grey(0.5))
   
   func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
+  text(x=10, 4.5, 
+       labels=TeX(sprintf("Chl-a: %2.2f $mgC/m$^2$", 1000*func$Chl_per_m2)),
+       cex=cex, pos=2, col=grey(0.5))
   text(x=10, 3.3, 
        labels=TeX(sprintf("Picoplankton: %2.2f $mgC/m$^2$", 1000*func$Bpico)),
        cex=cex, pos=2, col=grey(0.5))
@@ -544,8 +554,10 @@ plotRates = function(sim, p=sim$p,
   lines(p$m, r$JLreal/p$m, lwd=4, col="green")
   
   #lines(mm, p$AN*mm^(1/3)*p$rhoCN*sim$N/mm, lwd=1, lty=3, col="blue")
-  lines(p$m, p$Jmax * p$ANm*N / (p$Jmax/p$rhoCN + p$ANm*N)/p$m, lwd=1, lty=3, col="blue")
-  lines(p$m, r$JN/p$m*p$rhoCN, lwd=4, col="blue")
+  #lines(p$m, p$Jmax * p$ANm*N / (p$Jmax/p$rhoCN + p$ANm*N)/p$m, lwd=1, lty=dotted, col="blue")
+  #lines(p$m, r$JN/p$m*p$rhoCN, lwd=4, col="blue")
+  #lines(p$m, p$JN/p$m, lwd=1, lty=dotted, col="blue")
+  lines(p$m, r$JN/p$m, lwd=4, col="blue")
   
   lines(mm, p$AN*mm^(1/3)*DOC/mm, lwd=1, lty=3, col="brown")
   lines(p$m, r$JDOC/p$m, lwd=4, col="brown")
