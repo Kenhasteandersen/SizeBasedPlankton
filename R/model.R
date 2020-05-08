@@ -41,8 +41,11 @@ parameters <- function(n=25) {
   p$beta = 500
   p$sigma = 1.3
   p$theta = matrix(nrow=p$n, ncol=p$n)
-  for (i in 1:p$n)
-    p$theta[i,] = phi(p$m[i]/p$m, p$beta, p$sigma)   # (predator, prey)
+  for (i in 1:p$n) {
+    #p$theta[i,] = phi(p$m[i]/p$m, p$beta, p$sigma)   # (predator, prey)
+    for (j in 1:p$n)
+      p$theta[i,j] = Phi(p$m[i]/p$m[j], p)
+  }
   #
   # Metabolism:
   #
@@ -82,7 +85,10 @@ phi = function(z, beta, sigma) {
 #
 # Prey size function integrated over size groups:
 #
-Phi = function(z, p) {
+Phi = function(z, p=parameters(), Delta=p$m[2]/p$m[1]) {
+  m = 10^seq(-12,3,length.out = 1000)
+  dm = diff(m)
+  m = m[2:1000]
   
   fPrey = function(m, w0, Delta) {
     integrate( function(logw) phi(m/exp(logw),beta=p$beta,sigma=p$sigma), log(w0/sqrt(Delta)), log(w0*sqrt(Delta)))$value
@@ -97,9 +103,7 @@ Phi = function(z, p) {
     )
   }
 
-  Delta = p$m[2]/p$m[1] # Assume log-distributed size bins
-  
-  return(fTot(1,z,Delta))
+  return(fTot(1,1/z,Delta))
 }
 
 #
