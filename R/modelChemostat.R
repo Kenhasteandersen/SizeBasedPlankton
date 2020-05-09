@@ -1,7 +1,6 @@
 source("model.R")
 source("basetools.R")
 library("sundialr")
-library(tictoc)
 
 parametersChemostat = function(p=parameters()) {
   #
@@ -74,11 +73,11 @@ derivative = function(t,y,p) {
                          (  rates$mort+ 
                             rates$mortpred + 
                             rates$mort2 + 
-                            p$mortHTL*(p$m>=p$mHTL)))*B
+                            p$mortHTLm))*B
   #  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
   
   #mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
-  mortloss = sum(B*((1-p$remin2)*rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
+  mortloss = sum(B*((1-p$remin2)*rates$mort2 + p$mortHTLm))
   dNdt   =  diff*(p$N0-N) -
     sum(rates$JN*B/p$m) +
     sum(rates$JNloss*B/p$m) +
@@ -455,7 +454,9 @@ plotSpectrum <- function(sim, t=max(sim$t), bPlot=TRUE) {
               xlab="Carbon mass ($\\mu$gC)",
               ylab="Biomass ($\\mu$gC/l)")
   
-  lines(m, B, type="b", lwd=8)
+  lines(m, B, lwd=8)
+  if (p$n<15)
+    points(m,b)
   #     mar=c(4,5,8,2)+0.1)
   #
   # Add gray-scale variation
@@ -580,7 +581,7 @@ plotRates = function(sim, p=sim$p,
   JNexude = r$JNloss 
   lines(p$m, -(r$mortpred + mortHTL + r$mort2 + p$mort), lwd=10)
   lines(p$m, -r$mortpred, col="red", lwd=4)
-  lines(p$m[p$m>=p$mHTL], -p$mortHTL*sign(p$m[p$m>p$mHTL]), col="magenta", lwd=4)
+  lines(p$m, -p$mortHTLm, col="magenta", lwd=4)
   lines(p$m, -r$mort2, col="orange", lwd=4)
   lines(p$m, -r$JR/p$m, col="grey", lwd=4)
   lines(p$m, -r$Jloss_passive/p$m, col="darkgreen", lwd=4)
