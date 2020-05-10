@@ -303,7 +303,7 @@ void calcRates(const double& T, const double& L, const double* u,
         + p.mHTL[i]))*B[i];
 
   }
-  printRates();
+  //printRates();
 };
 
 extern "C" void calcRates(const double& T, const double& L, const double* u, double* dudt) {
