@@ -1,6 +1,7 @@
 source("model.R")
 source("basetools.R")
 library("sundialr")
+library(tictoc)
 
 parametersChemostat = function(p=parameters()) {
   #
@@ -111,7 +112,6 @@ derivative = function(t,y,p) {
   return(c(dNdt, dDOCdt, dBdt))
 }
 
-dudt = rep(0,12) # Need a static global for speed
 derivativeC = function(t,y,p) {
   derivC = .C("derivativeChemostat", 
               L=as.double(p$L), T=as.double(p$T), as.double(p$d), 
@@ -132,8 +132,10 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
   # Set parameters
   dummy = .C("setParameters", as.integer(p$n), 
              p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-             p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
-             p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin,
+             p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
+             p$Jresp, p$Jloss_passive_m,
+             p$theta,
+             p$mort, p$mort2, 0*p$m + p$mortHTLm, p$remin,
              p$remin2, p$cLeakage);
   dudtC = derivativeC(0,y,p)
   
@@ -141,6 +143,8 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
   lines(p$m, dudtC[3:(p$n+2)], col="blue", lty=dashed)
   print(dudtR[1:2])
   print(dudtC[1:2])
+  
+  return( calcRates(0,p$L,N,DOC,B,p) )
 }
 
 simulate = function(p=parametersChemostat(), useC=FALSE) {
@@ -151,10 +155,13 @@ simulate = function(p=parametersChemostat(), useC=FALSE) {
     # Set parameters
     dummy = .C("setParameters", as.integer(p$n), 
                p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-               p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
-               p$mort, p$mort2, 0*p$m + p$mortHTL*(p$m>p$mHTL), p$remin,
+               p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
+               p$Jresp, p$Jloss_passive_m,
+               p$theta,
+               p$mort, p$mort2, 0*p$m + p$mortHTLm, p$remin,
                p$remin2, p$cLeakage);
     
+    dudt = assign("dudt", rep(0,p$n+2), envir = .GlobalEnv) # Need a static global for speed
     out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                 IC = c(0.1*p$N0, p$DOC0, p$B0),
                 input_function = function(t,y, dummy) derivativeC(t,y,p),
@@ -546,7 +553,7 @@ plotRates = function(sim, p=sim$p,
   # Gains
   #
   lines(p$m, r$Jtot/p$m, lwd=10, type="l", col="black")# log="x", xlim=range(p$m),
-  lines(p$m, p$Jmax/p$m, lty=3)
+  lines(p$m, r$Jmax/p$m, lty=3)
   
   #lines(mm, p$AL*mm^(2/3)*input$L/mm, lty=3, lwd=1, col="green")
   #JLreal = r$Jtot - r$JF+p$Jresp-r$JDOC
@@ -560,11 +567,11 @@ plotRates = function(sim, p=sim$p,
   #lines(p$m, p$JN/p$m, lwd=1, lty=dotted, col="blue")
   lines(p$m, r$JN/p$m, lwd=4, col="blue")
   
-  lines(mm, p$AN*mm^(1/3)*DOC/mm, lwd=1, lty=3, col="brown")
+  #lines(mm, p$AN*mm^(1/3)*DOC/mm, lwd=1, lty=3, col="brown")
   lines(p$m, r$JDOC/p$m, lwd=4, col="brown")
   
   lines(p$m, r$JFreal/p$m,lwd=4,col="red")
-  lines(p$m, p$epsilonF * p$cF*p$m^(-1/3) ,col="red", lty=dotted)
+  lines(p$m, p$epsilonF * r$JFmax/p$m ,col="red", lty=dotted)
   
   legend(x="topright", cex=cex,
          legend=c("Gains:","Light harvesting","Nutrient uptake","DOC uptake","Food consumption","Division rate"),

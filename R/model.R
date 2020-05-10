@@ -29,12 +29,16 @@ parameters <- function(n=25) {
   p$cL = 21 # if using Andys shading formula for non-diatoms
   p$AF = 0.018  #  Fits to TK data for protists
   p$cF = 0.6 # Just a guess
-  
+  #
+  # Calc rates as a function of m:
+  #
   p$ANm = p$AN*p$m^(1/3)
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
   #p$ALm = p$cL*p$m * p$AL*p$m^(2/3) / ( p$cL*p$m + p$AL*p$m^(2/3) )  # shading formula
   p$ALm = p$AL*p$m^(2/3) * (1-exp(- p$cL*p$m^(1/3) ))  # shading formula
   p$AFm = p$AF*p$m
+  p$Jloss_passive_m = p$cLeakage * p$m^(2/3) # in units of C
+  p$JFmaxm = p$cF*p$m^(2/3)
   #
   # Prey encounter
   #
@@ -135,8 +139,10 @@ calcRates = function(t,L,N,DOC,B,p) {
     # Temperature corrections:
     #
     ANmT = ANm*fTemp(1.5,p$T)
-    JmaxT = Jmax*fTemp(2,p$T)
-    JR = Jresp*fTemp(2,p$T)
+    f2 = fTemp(2,p$T)
+    JmaxT = Jmax*f2
+    JR = Jresp*f2
+    JFmaxmT = JFmaxm*f2
     #
     # Uptakes
     #
@@ -146,39 +152,20 @@ calcRates = function(t,L,N,DOC,B,p) {
     
     JL =   epsilonL * ALm*L  # Photoharvesting
 
-    #f = Jtot / (Jtot + Jmax) # feeding level
-    #---------------------------
-    # Actual uptakes:
-    #
-    #JFreal = pmax(0, JF - (Jtot-f*Jmax))
-    #JLreal = JL-pmin((JCtot - (JF-JFreal)-f*Jmax), JL)
-    #JDOCreal = pmin(JDOC, Jresp + f*Jmax - JLreal - JFreal) # The min is only needed to reduce round-off errors
-    #JNreal = pmax(0, (f*Jmax - JFreal))/rhoCN # In units of N
-    # 
-    # Losses:
-    #
-    #JNloss_piss = -pmin(0, (f*Jmax - JFreal))/rhoCN  # Exudation of surplus nutrients by heterotrophs
-    #JNloss = (1-epsilonF)/epsilonF*JFreal/rhoCN + JNloss_piss
-    #JCloss_feeding = (1-epsilonF)/epsilonF*JFreal
-    #JCloss = JCloss_feeding + (1-epsilonL)/epsilonL*JLreal
-    #-------------------
-    
-    
-        
     # Light acclimation:
-    JLreal = pmax( 0, JL - pmax(0,(JL+JDOC-JR - JN)) )
+    #JLreal = pmax( 0, JL - pmax(0,(JL+JDOC-JR - JN)) )
     
     # Feeding as type II with surface limitation:
     F = theta %*% B
-    JF = epsilonF * cF*m^(2/3)*AFm*F / (AFm*F + cF*m^(2/3)) #        # Feeding
+    JF = epsilonF * JFmaxmT * AFm*F / (AFm*F + JFmaxmT) #        # Feeding
     
     # Passive losses:
-    Jloss_passive = p$cLeakage * m^(2/3) # in units of C
+    #Jloss_passive = p$cLeakage * m^(2/3) # in units of C
     
     # Total nitrogen uptake:    
-    JNtot = JN+JF-Jloss_passive # In units of C
+    JNtot = JN+JF-Jloss_passive_m # In units of C
     # Total carbon uptake
-    JCtot = JL+JF+JDOC-JR-Jloss_passive
+    JCtot = JL+JF+JDOC-JR-Jloss_passive_m
     
     # Liebig + synthesis limitation:
     #Jtot = pmin( JNtot, JCtot, JmaxT )
@@ -189,11 +176,11 @@ calcRates = function(t,L,N,DOC,B,p) {
     #JFreal = pmax(0, JF - pmax( 0,  pmax(0, Jtot-JmaxT) ))
     JFreal = pmax(0, JF - (Jtot-f*JmaxT))
     Jtot = f*JmaxT
-    JLreal = JL-pmin((JCtot - (JF-JFreal)-f*Jmax), JL)
+    JLreal = JL-pmin((JCtot - (JF-JFreal)-f*JmaxT), JL)
     
     # Actual uptakes:
-    JCtot = JLreal + JDOC + JFreal - JR - Jloss_passive
-    JNtot = JN + JFreal - Jloss_passive
+    JCtot = JLreal + JDOC + JFreal - JR - Jloss_passive_m
+    JNtot = JN + JFreal - Jloss_passive_m
     # 
     # Losses:
     #
@@ -201,11 +188,9 @@ calcRates = function(t,L,N,DOC,B,p) {
     JCloss_photouptake = (1-epsilonL)/epsilonL*JLreal
     JNlossLiebig = pmax(0,JNtot-Jtot)  # In units of C
     JClossLiebig = pmax(0,JCtot-Jtot) # C losses from Liebig, not counting losses from photoharvesting
-    #JClossLiebig = pmax(0, Jtot - JNtot*rhoCN) # C losses from Liebig, not counting losses from photoharvesting
-    #JClossLiebig = pmin(JClossLiebig, JDOC) # However, light surplus is not leaked but is downregulated
-    
-    JNloss = JCloss_feeding + JNlossLiebig + Jloss_passive # In units of C
-    JCloss = JCloss_feeding + JCloss_photouptake + JClossLiebig + Jloss_passive
+
+    JNloss = JCloss_feeding + JNlossLiebig + Jloss_passive_m # In units of C
+    JCloss = JCloss_feeding + JCloss_photouptake + JClossLiebig + Jloss_passive_m
     #
     # Check:
     #
@@ -231,10 +216,12 @@ calcRates = function(t,L,N,DOC,B,p) {
       JFreal = JFreal,
       JLreal = JLreal, 
       JR=JR,
+      JFmax=JFmaxmT,
+      Jmax = JmaxT,
       JNlossLiebig=JNlossLiebig/rhoCN, 
       JClossLiebig=JClossLiebig,
       JCloss_photouptake=JCloss_photouptake,
-      Jloss_passive = Jloss_passive,
+      Jloss_passive = Jloss_passive_m,
       JCloss_feeding=JCloss_feeding, 
       JCloss=JCloss, 
       JNloss=JNloss/rhoCN,
