@@ -15,7 +15,8 @@ struct plankton {
   double epsilonL;
   double epsilonF;
   type_mass ANm, ALm, AFm;
-  type_mass Jmax, Jresp;
+  type_mass Jmax, Jresp, JFmax;
+  type_mass Jloss_passive;
   
   std::vector< std::vector<double> > theta;
   
@@ -28,17 +29,16 @@ struct plankton {
 };
 
 struct typeRates {
-  type_mass JN, JDOC, JL, JF, F;
+  type_mass JN, JDOC, JL, JF, F, JFreal;
   type_mass JNtot, JLreal, JCtot, Jtot;
   type_mass JCloss_feeding, JCloss_photouptake, JNlossLiebig, JClossLiebig;
-  type_mass Jloss_passive;
   type_mass JNloss, JCloss;
   type_mass mortpred;
 };
 
 plankton p;
 typeRates rates;
-type_mass B, ANmT, JmaxT, JrespT;
+type_mass B, ANmT, JmaxT, JFmaxT, JrespT;
 const int idxN = 0;
 const int idxDOC = 1;
 const int idxB = 2;
@@ -50,6 +50,40 @@ inline double min(double a, double b) {
 inline double max(double a, double b) {
   return (a < b) ? b : a;
 };
+
+
+void printRate(type_mass J) {
+  for (int i=0; i<p.n; i++) 
+    std::cout << J[i]/p.m[i] << ", ";
+  std::cout << "\n";
+}
+
+void printRates() {
+  std::cout << "jN: ";
+  printRate(rates.JN);
+  
+  std::cout << "jF: ";
+  printRate(rates.JF);
+
+  std::cout << "jFreal: ";
+  printRate(rates.JFreal);
+  
+  std::cout << "jL: ";
+  printRate(rates.JLreal);
+  
+  std::cout << "jLreal: ";
+  printRate(rates.JLreal);
+  
+  std::cout << "jCtot: ";
+  printRate(rates.JCtot);
+  
+  std::cout << "jNtot: ";
+  printRate(rates.JNtot);
+  
+  std::cout << "jTot: ";
+  printRate(rates.Jtot);
+}
+
 /* ===============================================================
  * Stuff for cell model:
  */
@@ -63,7 +97,9 @@ extern "C" void setParameters(
     double* _ALm, 
     double* _AFm,
     double* _Jmax, 
+    double* _JFmax,
     double* _Jresp,
+    double* _Jloss_passive,
     double* _theta,
     double* _mort,
     double& _mort2,
@@ -87,7 +123,9 @@ extern "C" void setParameters(
   p.ALm.resize(p.n);
   p.AFm.resize(p.n);
   p.Jmax.resize(p.n);
+  p.JFmax.resize(p.n);
   p.Jresp.resize(p.n);
+  p.Jloss_passive.resize(p.n);
   p.mort.resize(p.n);
   p.mHTL.resize(p.n);
   
@@ -98,7 +136,9 @@ extern "C" void setParameters(
     p.ALm[i] = _ALm[i];
     p.AFm[i] = _AFm[i];
     p.Jmax[i] = _Jmax[i];
+    p.JFmax[i] = _JFmax[i];
     p.Jresp[i] = _Jresp[i];
+    p.Jloss_passive[i] = _Jloss_passive[i];
     p.mort[i] = _mort[i];
     p.mHTL[i] = _mortHTL[i];
     
@@ -112,6 +152,7 @@ extern "C" void setParameters(
   B.resize(p.n);
   ANmT.resize(p.n);
   JmaxT.resize(p.n);
+  JFmaxT.resize(p.n);
   JrespT.resize(p.n);
   //
   //  Init rates:
@@ -120,6 +161,7 @@ extern "C" void setParameters(
   rates.JDOC.resize(p.n);
   rates.JL.resize(p.n);
   rates.JF.resize(p.n);
+  rates.JFreal.resize(p.n);
   rates.F.resize(p.n);
   rates.JNtot.resize(p.n);
   rates.JLreal.resize(p.n);
@@ -130,7 +172,6 @@ extern "C" void setParameters(
   rates.JCloss_photouptake.resize(p.n);
   rates.JNlossLiebig.resize(p.n);
   rates.JClossLiebig.resize(p.n);
-  rates.Jloss_passive.resize(p.n);
   
   rates.JNloss.resize(p.n);
   rates.JCloss.resize(p.n);
@@ -145,6 +186,7 @@ inline double fTemp(double Q10, double T) {
 void calcRates(const double& T, const double& L, const double* u, 
                double* dudt, const double gammaN, const double gammaDOC) {
   int i;
+  double f;
   
   for (i=0; i<p.n; i++)
     B[i] = (0 < u[idxB+i]) ? u[idxB+i] : 0;
@@ -157,53 +199,73 @@ void calcRates(const double& T, const double& L, const double* u,
     ANmT[i] = p.ANm[i]*f15;
     JmaxT[i] = p.Jmax[i]*f20;
     JrespT[i] = p.Jresp[i]*f20;
+    JFmaxT[i] = p.JFmax[i]*f20;
   }
   //
   // Uptakes
   //
   for (i=0; i<p.n; i++) {
-    // Uptakes:
+    /*
+     * Uptakes:
+     */ 
+    
+    // Nutrients:
     if (u[idxN]<=0)
       rates.JN[i] = 0;
     else
-      rates.JN[i] = gammaN * JmaxT[i] * ANmT[i]*u[idxN] / (JmaxT[i] + ANmT[i]*u[idxN]*p.rhoCN);
+      rates.JN[i] = gammaN * ANmT[i]*u[idxN]*p.rhoCN;
     
+    // DOC:
     if (u[idxDOC]<=0)
       rates.JDOC[i] = 0;
     else
-      rates.JDOC[i] = gammaDOC * JmaxT[i] * ANmT[i]*u[idxDOC] / (JmaxT[i] + ANmT[i]*u[idxDOC]);
+      rates.JDOC[i] = gammaDOC * ANmT[i]*u[idxDOC];
     
-    rates.JL[i] = p.epsilonL * JmaxT[i] * p.ALm[i]*L / (JmaxT[i] + p.ALm[i]*L);
+    // Light:
+    rates.JL[i] = p.epsilonL * p.ALm[i]*L;
     
+    // Feeding:
     rates.F[i] = 0;
     for (int j = 0; j<p.n; j++) {
       rates.F[i] += p.theta[j][i]*B[j];
       //std::cout << rates.F[i] << ";";
     }
-    rates.JF[i] = p.epsilonF * JmaxT[i] * p.AFm[i]*rates.F[i] / (JmaxT[i] +p.AFm[i]*rates.F[i]);  
+    rates.JF[i] = p.epsilonF * JFmaxT[i] * p.AFm[i]*rates.F[i] 
+      / (p.AFm[i]*rates.F[i] + JFmaxT[i]);
     
-    // Downregulation:
-    rates.JNtot[i] = rates.JN[i] + rates.JF[i]/p.rhoCN;
-    rates.JLreal[i] = min(rates.JL[i], max(0, rates.JNtot[i]*p.rhoCN - (rates.JDOC[i]-JrespT[i])));
-    rates.JCtot[i] = rates.JLreal[i] + rates.JF[i] + rates.JDOC[i] - JrespT[i];
+    // Combined N and C fluxes:
+    rates.JNtot[i] = rates.JN[i] + rates.JF[i] - p.Jloss_passive[i];
+    rates.JCtot[i] = rates.JL[i] + rates.JF[i] + rates.JDOC[i]  
+      - JrespT[i] - p.Jloss_passive[i];
 
     // Synthesis:
-    rates.Jtot[i] = min( rates.JCtot[i], rates.JNtot[i]*p.rhoCN);
-    
-    // Losses:
-    rates.JCloss_feeding[i] = (1-p.epsilonF)/p.epsilonF*rates.JF[i];
-    rates.JCloss_photouptake[i] = (1-p.epsilonL)/p.epsilonL*rates.JLreal[i];
-    rates.JNlossLiebig[i] = max(0, rates.JNtot[i]*p.rhoCN-rates.JCtot[i])/p.rhoCN;
-    rates.JClossLiebig[i] = max(0, rates.JCtot[i]-rates.JNtot[i]*p.rhoCN); 
-    rates.Jloss_passive[i] = p.cLeakage * pow(p.m[i], 0.66667);
+    rates.Jtot[i] = min( rates.JNtot[i], rates.JCtot[i] ); 
+    f = rates.Jtot[i]/(rates.Jtot[i] + JmaxT[i]);
       
-    rates.JNloss[i] = rates.JCloss_feeding[i]/p.rhoCN 
+    //If synthesis-limited then down-regulate feeding:
+    rates.JFreal[i] = max(0, rates.JF[i] - (rates.Jtot[i]-f*JmaxT[i]));
+    rates.Jtot[i] = f*JmaxT[i];
+    rates.JLreal[i] = rates.JL[i] 
+    - min((rates.JCtot[i] - (rates.JF[i]-rates.JFreal[i])-f*JmaxT[i]), rates.JL[i]);
+        
+    // Actual uptakes:
+    rates.JCtot[i] = rates.JLreal[i] + rates.JDOC[i] 
+    + rates.JFreal[i] - p.Jresp[i] - p.Jloss_passive[i];
+    rates.JNtot[i] = rates.JN[i] + rates.JFreal[i] - p.Jloss_passive[i];
+  
+    // Losses:
+    rates.JCloss_feeding[i] = (1-p.epsilonF)/p.epsilonF*rates.JFreal[i];
+    rates.JCloss_photouptake[i] = (1-p.epsilonL)/p.epsilonL*rates.JLreal[i];
+    rates.JNlossLiebig[i] = max(0, rates.JNtot[i]-rates.Jtot[i]);
+    rates.JClossLiebig[i] = max(0, rates.JCtot[i]-rates.Jtot[i]); 
+
+    rates.JNloss[i] = rates.JCloss_feeding[i]
       +rates.JNlossLiebig[i]
-      +rates.Jloss_passive[i]/p.rhoCN;
+      +p.Jloss_passive[i];
     rates.JCloss[i] = rates.JCloss_feeding[i] 
       + rates.JCloss_photouptake[i] 
       + rates.JClossLiebig[i]
-      + rates.Jloss_passive[i];
+      + p.Jloss_passive[i];
   }
   //
   // Mortality:
@@ -211,7 +273,7 @@ void calcRates(const double& T, const double& L, const double* u,
   for (i=0; i<p.n; i++) {
     rates.mortpred[i] = 0;
     for (int j = 0; j<p.n; j++) {
-      rates.mortpred[i] += p.theta[i][j] * rates.JF[j]*B[j]/(p.epsilonF*p.m[j]*rates.F[j]);
+      rates.mortpred[i] += p.theta[i][j] * rates.JFreal[j]*B[j]/(p.epsilonF*p.m[j]*rates.F[j]);
     }
   }
   //
@@ -223,10 +285,10 @@ void calcRates(const double& T, const double& L, const double* u,
     double mortloss;
     mortloss = B[i]*((1-p.remin2)*p.mort2*B[i] + p.mHTL[i]);
     dudt[idxN] += 
-      (-rates.JN[i]
+      ((-rates.JN[i]
       + rates.JNloss[i])*B[i]/p.m[i] 
-      + p.remin2*p.mort2*B[i]*B[i]/p.rhoCN
-      + p.remin*mortloss/p.rhoCN;
+      + p.remin2*p.mort2*B[i]*B[i]
+      + p.remin*mortloss)/p.rhoCN;
       
     dudt[idxDOC] += 
       (-rates.JDOC[i] 
@@ -235,13 +297,13 @@ void calcRates(const double& T, const double& L, const double* u,
       + p.remin*mortloss;
       
     dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  
-      - (rates.Jloss_passive[i]/p.m[i] 
-        + p.mort[i] 
+      - (p.mort[i] 
         + rates.mortpred[i] 
         + p.mort2*B[i] 
         + p.mHTL[i]))*B[i];
 
   }
+  printRates();
 };
 
 extern "C" void calcRates(const double& T, const double& L, const double* u, double* dudt) {
