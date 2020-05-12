@@ -149,11 +149,12 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
 
 simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
   
+  # Get the version of sundialr:
+  pkg = installed.packages(fields = "Built")
+
   if (useC) {
     # Load library
     dyn.load("../Cpp/model.so")
-    # Get the version of sundialr:
-    pkg = installed.packages(fields = "Built")
     # Set parameters
     dummy = .C("setParameters", as.integer(p$n), 
                p$m, p$rhoCN, p$epsilonL, p$epsilonF,

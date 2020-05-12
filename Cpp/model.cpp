@@ -204,6 +204,7 @@ void calcRates(const double& T, const double& L, const double* u,
   
   for (i=0; i<p.n; i++)
     B[i] = (0 < u[idxB+i]) ? u[idxB+i] : 0;
+  double DOC = (0 < u[idxDOC]) ? u[idxDOC] : 0;
   //
   // Temperature corrections:
   //
@@ -236,7 +237,7 @@ void calcRates(const double& T, const double& L, const double* u,
     if (u[idxDOC]<=0)
       rates.JDOC[i] = 0;
     else
-      rates.JDOC[i] = gammaDOC * ANmT[i]*u[idxDOC];
+      rates.JDOC[i] = gammaDOC * ANmT[i]*DOC;
     
     // Light:
     rates.JL[i] = p.epsilonL * p.ALm[i]*L;
