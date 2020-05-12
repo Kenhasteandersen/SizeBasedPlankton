@@ -5,6 +5,7 @@
 #  cp ~/SizeBasedPlankton/R/* to /srv/shiny-server/Watercolumn
 #  cp ~/SizeBasedPlankton/Cpp/model.cpp to /srv/shiny-server/Watercolumn
 #  If using new packages install them by running R as root (sudo su; R; install.packages("XXX))
+#  Compile code: sudo g++ -O3 -fPIC -shared model.cpp -o model.so
 #  sudo systemctl restart shiny-server
 #
 

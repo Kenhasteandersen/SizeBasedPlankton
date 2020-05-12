@@ -864,6 +864,7 @@ plotFunctions = function(L=c(35, 100), n=10) {
   panelsFunctions(L=L[2], yaxis=FALSE,n=20)
 }
 
+
 plotPreferences = function(p = parameters()) {
   defaultplot()
   semilogxpanel(xlim=p$m, xlab="Cell weight ($\\mu$gC)",

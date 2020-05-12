@@ -215,7 +215,9 @@ calcFunctionsWatercolumn = function(sim) {
     prodHTL = prodHTL,
     resp = resp,
     effHTL = effHTL,
-    Bpico=Bpico, Bnano=Bnano, Bmicro=Bmicro
+    Bpico=Bpico, 
+    Bnano=Bnano, 
+    Bmicro=Bmicro
   ))
 }
 
