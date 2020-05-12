@@ -1,8 +1,9 @@
 #
 # Install app:
 #  ssh ken@oceanlife.dtuaqua.dk
+#  cd SizeBasedPlankton
 #  update the git (git pull)
-#  cp ~/SizeBasedPlankton/R/* to /srv/shiny-server/Plankton
+#  sudo cp ~/SizeBasedPlankton/R/*  /srv/shiny-server/Plankton
 #  If using new packages install them by running R as root (sudo su; R; install.packages("XXX))
 #  sudo systemctl restart shiny-server
 # 
@@ -177,7 +178,7 @@ serverChemostat <- function(input, output) {
       p$tEnd = 2*365
 
     # Simulate
-    return(simulate(p, bUseC))   
+    return(simulateChemostat(p, bUseC))   
   })
   #
   # Plots:
