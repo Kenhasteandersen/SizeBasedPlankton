@@ -152,6 +152,8 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
   if (useC) {
     # Load library
     dyn.load("../Cpp/model.so")
+    # Get the version of sundialr:
+    pkg = installed.packages(fields = "Built")
     # Set parameters
     dummy = .C("setParameters", as.integer(p$n), 
                p$m, p$rhoCN, p$epsilonL, p$epsilonF,
@@ -162,7 +164,7 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
                p$remin2, p$cLeakage);
     
     dudt = assign("dudt", rep(0,p$n+2), envir = .GlobalEnv) # Need a static global for speed
-    if (pkg[pkg[,1]=="sundialr"][3]=="0.1.3")
+    if (pkg[pkg[,1]=="sundialr"][3]=="0.1.2")
       out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                   IC = c(0.1*p$N0, p$DOC0, p$B0),
                   input_function = function(t,y, dummy) derivativeC(t,y,p),
@@ -177,7 +179,7 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
                   abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
   } 
   else
-    if (pkg[pkg[,1]=="sundialr"][3]=="0.1.3")
+    if (pkg[pkg[,1]=="sundialr"][3]=="0.1.2")
       out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                   IC = c(0.1*p$N0, p$DOC0, p$B0),
                   input_function = function(t,y, dummy) derivative(t,y,p),
