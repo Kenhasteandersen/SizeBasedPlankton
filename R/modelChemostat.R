@@ -72,9 +72,9 @@ derivative = function(t,y,p) {
   
   dBdt = diff*(0-B) + (rates$Jtot/p$m  - 
                          (  rates$mort+ 
-                            rates$mortpred + 
-                            rates$mort2 + 
-                            p$mortHTLm))*B
+                              rates$mortpred + 
+                              rates$mort2 + 
+                              p$mortHTLm))*B
   #  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
   
   #mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
@@ -148,7 +148,7 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
 }
 
 simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
-
+  
   if (useC) {
     # Load library
     dyn.load("../Cpp/model.so")
@@ -162,47 +162,61 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
                p$remin2, p$cLeakage);
     
     dudt = assign("dudt", rep(0,p$n+2), envir = .GlobalEnv) # Need a static global for speed
-    out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
-                IC = c(0.1*p$N0, p$DOC0, p$B0),
-                input_function = function(t,y, dummy) derivativeC(t,y,p),
-                reltolerance = 1e-6,
-                Parameters = 0,
-                abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
+    if (pkg[pkg[,1]=="sundialr"][3]=="0.1.3")
+      out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+                  IC = c(0.1*p$N0, p$DOC0, p$B0),
+                  input_function = function(t,y, dummy) derivativeC(t,y,p),
+                  reltolerance = 1e-6,
+                  abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
+    else
+      out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+                  IC = c(0.1*p$N0, p$DOC0, p$B0),
+                  input_function = function(t,y, dummy) derivativeC(t,y,p),
+                  reltolerance = 1e-6,
+                  Parameters = 0,
+                  abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
   } 
   else
-    out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
-                IC = c(0.1*p$N0, p$DOC0, p$B0),
-                input_function = function(t,y, dummy) derivative(t,y,p),
-                reltolerance = 1e-5,
-                Parameters = 0, 
-                abstolerance = 1e-10+1e-5*c(0.1*p$N0, 1, p$B0))
-  
-  nSave = dim(out)[1]
-  # Assemble results:
-  ix = seq(floor(nSave/2),nSave)
-  ixB = 4:(p$n+3)
-  
-  Bmin = 0*p$m
-  Bmax = 0*p$m
-  for (i in 1:p$n) {
-    Bmin[i] = max(1e-20, min(out[ix,ixB[i]]))
-    Bmax[i] = max(1e-20, out[ix,ixB[i]])
-  }
-  
-  result = list(
-    p = p,
-    t = out[,1],
-    y = out[,2:(p$n+3)],
+    if (pkg[pkg[,1]=="sundialr"][3]=="0.1.3")
+      out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+                  IC = c(0.1*p$N0, p$DOC0, p$B0),
+                  input_function = function(t,y, dummy) derivative(t,y,p),
+                  reltolerance = 1e-5,
+                  abstolerance = 1e-10+1e-5*c(0.1*p$N0, 1, p$B0))
+    else
+      out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
+                  IC = c(0.1*p$N0, p$DOC0, p$B0),
+                  input_function = function(t,y, dummy) derivative(t,y,p),
+                  reltolerance = 1e-5,
+                  Parameters = 0, 
+                  abstolerance = 1e-10+1e-5*c(0.1*p$N0, 1, p$B0))
     
-    N = mean(out[ix,2]),
-    DOC = mean(out[ix,3]),
-    B = colMeans(out[ix,ixB]),
+    nSave = dim(out)[1]
+    # Assemble results:
+    ix = seq(floor(nSave/2),nSave)
+    ixB = 4:(p$n+3)
     
-    Bmin = Bmin,
-    Bmax = Bmax)
-  
-  result = c(result, list(rates = calcRates(max(result$t), p$L, result$N, result$DOC, result$B,p)))
-  return(result)
+    Bmin = 0*p$m
+    Bmax = 0*p$m
+    for (i in 1:p$n) {
+      Bmin[i] = max(1e-20, min(out[ix,ixB[i]]))
+      Bmax[i] = max(1e-20, out[ix,ixB[i]])
+    }
+    
+    result = list(
+      p = p,
+      t = out[,1],
+      y = out[,2:(p$n+3)],
+      
+      N = mean(out[ix,2]),
+      DOC = mean(out[ix,3]),
+      B = colMeans(out[ix,ixB]),
+      
+      Bmin = Bmin,
+      Bmax = Bmax)
+    
+    result = c(result, list(rates = calcRates(max(result$t), p$L, result$N, result$DOC, result$B,p)))
+    return(result)
 }
 
 
