@@ -126,7 +126,7 @@ calcESD = function(m) {
 #
 # Version 3: heuristic down-regulation again
 #
-calcRates = function(t,L,N,DOC,B,p) {
+calcRates = function(t,Light,N,DOC,B,p) {
   with(p, {
     B = pmax(0,B)
     N = max(0,N)
@@ -150,7 +150,7 @@ calcRates = function(t,L,N,DOC,B,p) {
     # 
     JDOC = ANmT*DOC # Diffusive DOC uptake, units of C/time
     
-    JL =   epsilonL * ALm*L  # Photoharvesting
+    JL =   epsilonL * ALm*Light  # Photoharvesting
 
     # Light acclimation:
     #JLreal = pmax( 0, JL - pmax(0,(JL+JDOC-JR - JN)) )

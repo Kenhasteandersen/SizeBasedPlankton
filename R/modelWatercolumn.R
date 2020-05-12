@@ -2,7 +2,7 @@ source("model.R")
 source("basetools.R")
 library(tictoc)
 
-parametersWatercolumn = function(p = parameters()) {
+parametersWatercolumn = function(p = parameters(n=10)) {
   p$tEnd = 2*365
   p$dt = 0.01
   p$depth = 60
@@ -26,11 +26,13 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
   #
   # Set parameters in C engine:
   #
-  mortHTL = 0*p$m + p$mortHTL*(p$m>p$mHTL)
   dummy = .C("setParameters", as.integer(p$n), 
              p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-             p$ANm, p$ALm, p$AFm, p$Jmax, p$Jresp, p$theta,
-             p$mort, p$mort2, mortHTL, p$remin);
+             p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
+             p$Jresp, p$Jloss_passive_m,
+             p$theta,
+             p$mort, p$mort2, p$mortHTLm, p$remin,
+             p$remin2, p$cLeakage);
   #
   # Set up grid and solution matrix:
   #
@@ -129,9 +131,9 @@ plotWatercolumn = function(sim, idx = length(sim$t)) {
     rates[[j]] = calcRates(sim$t[idx], p$Lsurface*exp(p$k*sim$x[j]), sim$N[idx,j], sim$DOC[idx,j],
                            sim$B[,j,idx],pp)
     for (k in 1:length(p$m))
-      col[length(sim$x)-j+1,k] = rgb(min(1,max(0,3*(rates[[j]]$JF/p$m)[k])), 
-                                     min(1, max(0,3*(rates[[j]]$JLreal/p$m)[k])),
-                                     min(1, max(0,3*(rates[[j]]$JDOC/p$m)[k])))
+      col[length(sim$x)-j+1,k] = rgb(min(1, max(0, 3*(rates[[j]]$JFreal/p$m)[k])), 
+                                     min(1, max(0, 3*(rates[[j]]$JLreal/p$m)[k])),
+                                     min(1, max(0, 3*(rates[[j]]$JDOC/p$m)[k])))
   }
   
   m = log10(p$m)
@@ -273,3 +275,4 @@ if (!file.exists(paste(fileLibrary,'.so',sep=""))) {
     stop("Cannot compile cpp engine")
   }
 }
+

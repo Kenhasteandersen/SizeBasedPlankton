@@ -64,7 +64,7 @@ void printRates() {
   
   std::cout << "jF: ";
   printRate(rates.JF);
-
+  
   std::cout << "jFreal: ";
   printRate(rates.JFreal);
   
@@ -83,6 +83,18 @@ void printRates() {
   std::cout << "jTot: ";
   printRate(rates.Jtot);
 }
+
+void printu(const double* u, const int nGrid) {
+  std::cout << "u:\n";
+  for (int j=0; j<nGrid; j++) {
+    std::cout << j << ": ";
+    for (int k=0; k<(p.n+2); k++)
+      std::cout << u[j*(p.n+2)+k] << ",";
+    std::cout << "\n";
+  }
+  std::cout << "------------\n";
+}
+
 
 /* ===============================================================
  * Stuff for cell model:
@@ -107,7 +119,7 @@ extern "C" void setParameters(
     double& _remin,
     double& _remin2,
     double& _cLeakage
-  ) {
+) {
   
   p.n = _n;
   p.rhoCN = _rhoCN;
@@ -187,19 +199,24 @@ void calcRates(const double& T, const double& L, const double* u,
                double* dudt, const double gammaN, const double gammaDOC) {
   int i;
   double f;
+  static double Tsaved;
+  static double f15, f20;
   
   for (i=0; i<p.n; i++)
     B[i] = (0 < u[idxB+i]) ? u[idxB+i] : 0;
   //
   // Temperature corrections:
   //
-  double f15 = fTemp(1.5, T);
-  double f20 = fTemp(2.0, T);
-  for (i=0; i<p.n; i++) {
-    ANmT[i] = p.ANm[i]*f15;
-    JmaxT[i] = p.Jmax[i]*f20;
-    JrespT[i] = p.Jresp[i]*f20;
-    JFmaxT[i] = p.JFmax[i]*f20;
+  if (T != Tsaved) {
+    f15 = fTemp(1.5, T);
+    f20 = fTemp(2.0, T);
+    Tsaved = T;
+    for (i=0; i<p.n; i++) {
+      ANmT[i] = p.ANm[i]*f15;
+      JmaxT[i] = p.Jmax[i]*f20;
+      JrespT[i] = p.Jresp[i]*f20;
+      JFmaxT[i] = p.JFmax[i]*f20;
+    }
   }
   //
   // Uptakes
@@ -231,41 +248,41 @@ void calcRates(const double& T, const double& L, const double* u,
       //std::cout << rates.F[i] << ";";
     }
     rates.JF[i] = p.epsilonF * JFmaxT[i] * p.AFm[i]*rates.F[i] 
-      / (p.AFm[i]*rates.F[i] + JFmaxT[i]);
+    / (p.AFm[i]*rates.F[i] + JFmaxT[i]);
     
     // Combined N and C fluxes:
     rates.JNtot[i] = rates.JN[i] + rates.JF[i] - p.Jloss_passive[i];
     rates.JCtot[i] = rates.JL[i] + rates.JF[i] + rates.JDOC[i]  
-      - JrespT[i] - p.Jloss_passive[i];
-
+    - JrespT[i] - p.Jloss_passive[i];
+    
     // Synthesis:
     rates.Jtot[i] = min( rates.JNtot[i], rates.JCtot[i] ); 
     f = rates.Jtot[i]/(rates.Jtot[i] + JmaxT[i]);
-      
+    
     //If synthesis-limited then down-regulate feeding:
     rates.JFreal[i] = max(0, rates.JF[i] - (rates.Jtot[i]-f*JmaxT[i]));
     rates.Jtot[i] = f*JmaxT[i];
     rates.JLreal[i] = rates.JL[i] 
     - min((rates.JCtot[i] - (rates.JF[i]-rates.JFreal[i])-f*JmaxT[i]), rates.JL[i]);
-        
+    
     // Actual uptakes:
     rates.JCtot[i] = rates.JLreal[i] + rates.JDOC[i] 
     + rates.JFreal[i] - p.Jresp[i] - p.Jloss_passive[i];
     rates.JNtot[i] = rates.JN[i] + rates.JFreal[i] - p.Jloss_passive[i];
-  
+    
     // Losses:
     rates.JCloss_feeding[i] = (1-p.epsilonF)/p.epsilonF*rates.JFreal[i];
     rates.JCloss_photouptake[i] = (1-p.epsilonL)/p.epsilonL*rates.JLreal[i];
     rates.JNlossLiebig[i] = max(0, rates.JNtot[i]-rates.Jtot[i]);
     rates.JClossLiebig[i] = max(0, rates.JCtot[i]-rates.Jtot[i]); 
-
+    
     rates.JNloss[i] = rates.JCloss_feeding[i]
-      +rates.JNlossLiebig[i]
-      +p.Jloss_passive[i];
+    +rates.JNlossLiebig[i]
+    +p.Jloss_passive[i];
     rates.JCloss[i] = rates.JCloss_feeding[i] 
-      + rates.JCloss_photouptake[i] 
-      + rates.JClossLiebig[i]
-      + p.Jloss_passive[i];
+    + rates.JCloss_photouptake[i] 
+    + rates.JClossLiebig[i]
+    + p.Jloss_passive[i];
   }
   //
   // Mortality:
@@ -286,22 +303,22 @@ void calcRates(const double& T, const double& L, const double* u,
     mortloss = B[i]*((1-p.remin2)*p.mort2*B[i] + p.mHTL[i]);
     dudt[idxN] += 
       ((-rates.JN[i]
-      + rates.JNloss[i])*B[i]/p.m[i] 
-      + p.remin2*p.mort2*B[i]*B[i]
-      + p.remin*mortloss)/p.rhoCN;
-      
-    dudt[idxDOC] += 
-      (-rates.JDOC[i] 
-      + rates.JCloss[i])*B[i]/p.m[i] 
-      + p.remin2*p.mort2*B[i]*B[i]
-      + p.remin*mortloss;
-      
-    dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  
-      - (p.mort[i] 
-        + rates.mortpred[i] 
-        + p.mort2*B[i] 
-        + p.mHTL[i]))*B[i];
-
+          + rates.JNloss[i])*B[i]/p.m[i] 
+         + p.remin2*p.mort2*B[i]*B[i]
+         + p.remin*mortloss)/p.rhoCN;
+         
+         dudt[idxDOC] += 
+         (-rates.JDOC[i] 
+            + rates.JCloss[i])*B[i]/p.m[i] 
+         + p.remin2*p.mort2*B[i]*B[i]
+         + p.remin*mortloss;
+         
+         dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  
+                           - (p.mort[i] 
+                                + rates.mortpred[i] 
+                                + p.mort2*B[i] 
+                                + p.mHTL[i]))*B[i];
+                                
   }
   //printRates();
 };
@@ -315,7 +332,7 @@ void calcRates(const double& T, const double& L, const double* u, double* dudt, 
   
   double gammaN = 1;
   double gammaDOC = 1;
-
+  
   if (u[idxN]+dudt[idxN]*dt<0)
     gammaN = min(gammaN, -u[idxN]/(dudt[idxN]*dt));
   
@@ -325,7 +342,7 @@ void calcRates(const double& T, const double& L, const double* u, double* dudt, 
     //  JDOCtot += rates.JDOC[j];
     min(gammaDOC, -u[idxDOC]/(dudt[idxDOC]*dt));
   }
-    
+  
   if (gammaN<1 | gammaDOC<1) {
     calcRates(T,L,u,dudt,gammaN,gammaDOC);
     std::cout << gammaN << "," << gammaDOC << "\n";
@@ -370,17 +387,6 @@ void solveTridiag(std::vector<double>&  a, std::vector<double>& b, std::vector<d
   for (i=n-1; i>=0; i--)
     u[i*step] = sprime[i] - cprime[i]*u[(i+1)*step];
 };
-
-void printu(const double* u, const int nGrid) {
-  std::cout << "u:\n";
-  for (int j=0; j<nGrid; j++) {
-    std::cout << j << ": ";
-    for (int k=0; k<(p.n+2); k++)
-      std::cout << u[j*(p.n+2)+k] << ",";
-    std::cout << "\n";
-  }
-  std::cout << "------------\n";
-}
 
 extern "C" void simulateWaterColumnFixed(const double& L0, const double& T, 
                                         const double& Diff, const double& N0,

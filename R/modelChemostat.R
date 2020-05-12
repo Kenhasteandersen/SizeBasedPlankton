@@ -147,7 +147,7 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
   return( calcRates(0,p$L,N,DOC,B,p) )
 }
 
-simulate = function(p=parametersChemostat(), useC=FALSE) {
+simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
 
   if (useC) {
     # Load library
@@ -158,7 +158,7 @@ simulate = function(p=parametersChemostat(), useC=FALSE) {
                p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
                p$Jresp, p$Jloss_passive_m,
                p$theta,
-               p$mort, p$mort2, 0*p$m + p$mortHTLm, p$remin,
+               p$mort, p$mort2, p$mortHTLm, p$remin,
                p$remin2, p$cLeakage);
     
     dudt = assign("dudt", rep(0,p$n+2), envir = .GlobalEnv) # Need a static global for speed
@@ -695,7 +695,7 @@ plotComplexRates = function(sim, t=max(sim$t)) {
 
 baserunChemostat = function(p = parametersChemostat(), useC=FALSE) {
   tic()
-  sim = simulate(p, useC)
+  sim = simulateChemostat(p, useC)
   toc()
   
   defaultplot(c(2,1))
