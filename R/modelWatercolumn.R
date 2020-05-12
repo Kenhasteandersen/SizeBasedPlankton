@@ -31,7 +31,7 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
              p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
              p$Jresp, p$Jloss_passive_m,
              p$theta,
-             p$mort, p$mort2, p$mortHTLm, p$remin,
+             p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
              p$remin2, p$cLeakage);
   #
   # Set up grid and solution matrix:

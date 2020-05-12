@@ -64,7 +64,7 @@ parameters <- function(n=25) {
   p$mort2 = 0.0002*p$n
   p$mortHTL = 0.1
   p$mHTL = max(p$m)/p$beta^1.5 # Bins affected by HTL mortality
-  p$mortHTLm = p$mortHTL/(1+(p$m/p$mHTL)^(-2))
+  p$mortHTLm = 1/(1+(p$m/p$mHTL)^(-2))
   
   p$remin = 0.0 # fraction of mortality losses reminerilized to N and DOC
   p$remin2 = 1 # fraction of virulisus remineralized to N and DOC

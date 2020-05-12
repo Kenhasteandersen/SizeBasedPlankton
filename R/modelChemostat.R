@@ -74,11 +74,11 @@ derivative = function(t,y,p) {
                          (  rates$mort+ 
                               rates$mortpred + 
                               rates$mort2 + 
-                              p$mortHTLm))*B
+                              p$mortHTL*p$mortHTLm))*B
   #  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
   
   #mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
-  mortloss = sum(B*((1-p$remin2)*rates$mort2 + p$mortHTLm))
+  mortloss = sum(B*((1-p$remin2)*rates$mort2 + p$mortHTL*p$mortHTLm))
   dNdt   =  diff*(p$N0-N) -
     sum(rates$JN*B/p$m) +
     sum(rates$JNloss*B/p$m) +
@@ -135,7 +135,7 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
              p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
              p$Jresp, p$Jloss_passive_m,
              p$theta,
-             p$mort, p$mort2, 0*p$m + p$mortHTLm, p$remin,
+             p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
              p$remin2, p$cLeakage);
   dudtC = derivativeC(0,y,p)
   
@@ -161,7 +161,7 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
                p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
                p$Jresp, p$Jloss_passive_m,
                p$theta,
-               p$mort, p$mort2, p$mortHTLm, p$remin,
+               p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
                p$remin2, p$cLeakage);
     
     dudt = assign("dudt", rep(0,p$n+2), envir = .GlobalEnv) # Need a static global for speed
@@ -601,11 +601,10 @@ plotRates = function(sim, p=sim$p,
   polygon(c(1e-9,10,10,1e-9), c(-1.5,-1.5,0,0), 
           col=rgb(1,0,0,alpha=0.25), border=NA)
   
-  mortHTL = p$mortHTL*(p$m>p$mHTL)
   JNexude = r$JNloss 
-  lines(p$m, -(r$mortpred + mortHTL + r$mort2 + p$mort), lwd=10)
+  lines(p$m, -(r$mortpred + p$mortHTL*p$mortHTLm + r$mort2 + p$mort), lwd=10)
   lines(p$m, -r$mortpred, col="red", lwd=4)
-  lines(p$m, -p$mortHTLm, col="magenta", lwd=4)
+  lines(p$m, -p$mortHTL*p$mortHTLm, col="magenta", lwd=4)
   lines(p$m, -r$mort2, col="orange", lwd=4)
   lines(p$m, -r$JR/p$m, col="grey", lwd=4)
   lines(p$m, -r$Jloss_passive/p$m, col="darkgreen", lwd=4)

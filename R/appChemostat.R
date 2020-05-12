@@ -46,7 +46,7 @@ uiChemostat <- fluidPage(
       ,
       sliderInput("d",
                   "Mixing rate (1/day)",
-                  min = 0,
+                  min = 0.0025,
                   max = .6,
                   step = 0.0025,
                   value = parametersChemostat()$d)
