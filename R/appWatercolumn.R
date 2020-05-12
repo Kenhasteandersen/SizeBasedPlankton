@@ -32,7 +32,7 @@ uiWatercolumn <- fluidPage(
     The trophic strategy is an emergent property.'),
   HTML('<p>Made in R with shiny. 
     Code on <a href="https://github.com/Kenhasteandersen/SizeBasedPlankton">github</a>.</p>'),
-  HTML('<p>THIS IS WORK IN PROGRESS. Version 0.1. January 2020. 
+  HTML('<p>THIS IS WORK IN PROGRESS. Version 0.2. May 2020. 
     See also <a href="http://oceanlife.dtuaqua.dk/Plankton">chemostat version</a>
        and other <a href="http://oceanlife.dtuaqua.dk">apps</a>. 
        By <a href="mailto:kha@aqua.dtu.dk">Ken H Andersen</a>.</p>')
@@ -51,8 +51,8 @@ uiWatercolumn <- fluidPage(
       sliderInput("diff",
                   "Diffusion (m2/day)",
                   min = 0,
-                  max = 50,
-                  step = 1,
+                  max = 5,
+                  step = .2,
                   value = 1)
       ,
       sliderInput("T",
@@ -105,9 +105,9 @@ uiWatercolumn <- fluidPage(
       ,
       sliderInput("dt",
                   "Time step (days)",
-                  min = 0.02,
-                  max = 0.5,
-                  step=0.01,
+                  min = 0.002,
+                  max = 0.1,
+                  step=0.002,
                   value=0.02)
       ,
       sliderInput("nGrid",
