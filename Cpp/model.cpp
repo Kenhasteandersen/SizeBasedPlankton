@@ -261,10 +261,11 @@ void calcRates(const double& T, const double& L, const double* u,
     f = rates.Jtot[i]/(rates.Jtot[i] + JmaxT[i]);
     
     //If synthesis-limited then down-regulate feeding:
-    rates.JFreal[i] = max(0, rates.JF[i] - (rates.Jtot[i]-f*JmaxT[i]));
+    rates.JFreal[i] = max(0, rates.JF[i] - (rates.Jtot[i]-f*JmaxT[i])
+                            *(rates.Jtot[i]>0 ? 1 : 0));
     rates.Jtot[i] = f*JmaxT[i];
     rates.JLreal[i] = rates.JL[i] 
-    - min((rates.JCtot[i] - (rates.JF[i]-rates.JFreal[i])-f*JmaxT[i]), rates.JL[i]);
+    - max(0, min((rates.JCtot[i] - (rates.JF[i]-rates.JFreal[i])-rates.Jtot[i]), rates.JL[i]));
     
     // Actual uptakes:
     rates.JCtot[i] = rates.JLreal[i] + rates.JDOC[i] 

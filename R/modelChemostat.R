@@ -61,7 +61,7 @@ derivative = function(t,y,p) {
   else
     L = p$L
   
-  rates = calcRates(t,L,N,DOC,B,p)
+  rates = calcRates(L,N,DOC,B,p)
   #
   # System:
   #
@@ -75,7 +75,7 @@ derivative = function(t,y,p) {
                               rates$mortpred + 
                               rates$mort2 + 
                               p$mortHTL*p$mortHTLm))*B
-  #  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
+  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
   
   #mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
   mortloss = sum(B*((1-p$remin2)*rates$mort2 + p$mortHTL*p$mortHTLm))
@@ -144,7 +144,7 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
   print(dudtR[1:2])
   print(dudtC[1:2])
   
-  return( calcRates(0,p$L,N,DOC,B,p) )
+  return( calcRates(p$L,N,DOC,B,p) )
 }
 
 simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
@@ -218,7 +218,7 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
       Bmin = Bmin,
       Bmax = Bmax)
     
-    result = c(result, list(rates = calcRates(max(result$t), p$L, result$N, result$DOC, result$B,p)))
+    result = c(result, list(rates = calcRates(SeasonalLight(p, max(result$t)), result$N, result$DOC, result$B,p)))
     return(result)
 }
 
@@ -469,7 +469,7 @@ plotSpectrum <- function(sim, t=max(sim$t), bPlot=TRUE) {
     B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
-    r = calcRates(t, N, DOC, B, p)
+    r = calcRates(SeasonalLight(p,t), N, DOC, B, sim$p)
   }
   
   if (bPlot)
@@ -558,7 +558,7 @@ plotRates = function(sim, p=sim$p,
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
   }
-  r = calcRates(t, L, N, DOC, B, p)
+  r = calcRates(L, N, DOC, B, p)
   
   if (bPlot)
     defaultplot()
@@ -642,7 +642,7 @@ plotLeaks = function(sim, t=max(sim$t)) {
     B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
-    r = calcRates(t, N, DOC, B, p)
+    r = calcRates(L,N, DOC, B, p)
   }
   
   defaultplot()
@@ -678,7 +678,7 @@ plotComplexRates = function(sim, t=max(sim$t)) {
     B = sim$y[ixt, 3:(p$n+2)]
     N = sim$y[ixt, 1]
     DOC = sim$y[ixt,2]
-    r = calcRates(t, N, DOC, B, p)
+    r = calcRates(L, N, DOC, B, p)
   }
   
   par(cex.axis=cex,

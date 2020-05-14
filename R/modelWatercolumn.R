@@ -6,7 +6,6 @@ parametersWatercolumn = function(p = parameters(n=10)) {
   p$tEnd = 2*365
   p$dt = 0.01
   p$depth = 60
-  p$Lsurface = 100
   p$nGrid = 50
   p$k = 0.1 # Damping of light by water
   p$diff = 1
@@ -128,7 +127,7 @@ plotWatercolumn = function(sim, idx = length(sim$t)) {
   col = matrix(0,length(sim$x),p$n)
   pp = p
   for (j in 1:length(sim$x)) {
-    rates[[j]] = calcRates(sim$t[idx], p$Lsurface*exp(p$k*sim$x[j]), sim$N[idx,j], sim$DOC[idx,j],
+    rates[[j]] = calcRates(p$L*exp(p$k*sim$x[j]), sim$N[idx,j], sim$DOC[idx,j],
                            sim$B[,j,idx],pp)
     for (k in 1:length(p$m))
       col[length(sim$x)-j+1,k] = rgb(min(1, max(0, 3*(rates[[j]]$JFreal/p$m)[k])), 
@@ -173,8 +172,8 @@ calcFunctionsWatercolumn = function(sim) {
   rates = NULL
   for (i in 1:param$nGrid) {
     # Calc rates throughout the water column
-    L = param$Lsurface*exp(-p$k*sim$x[i])
-    rates[[i]] = calcRates(0, L, sim$N[idx,i], sim$DOC[idx,i], sim$B[,i,idx],p)
+    L = param$L*exp(-p$k*sim$x[i])
+    rates[[i]] = calcRates(L, sim$N[idx,i], sim$DOC[idx,i], sim$B[,i,idx],p)
     #
     # Primary production (carbon fixed)
     #

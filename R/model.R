@@ -126,7 +126,7 @@ calcESD = function(m) {
 #
 # Version 3: heuristic down-regulation again
 #
-calcRates = function(t,Light,N,DOC,B,p) {
+calcRates = function(Light,N,DOC,B,p) {
   with(p, {
     B = pmax(0,B)
     N = max(0,N)
@@ -174,9 +174,9 @@ calcRates = function(t,Light,N,DOC,B,p) {
     
     # If synthesis-limited then down-regulate feeding:
     #JFreal = pmax(0, JF - pmax( 0,  pmax(0, Jtot-JmaxT) ))
-    JFreal = pmax(0, JF - (Jtot-f*JmaxT))
+    JFreal = pmax(0, JF - (Jtot-f*JmaxT)*(Jtot>0))
     Jtot = f*JmaxT
-    JLreal = JL-pmin((JCtot - (JF-JFreal)-f*JmaxT), JL)
+    JLreal = JL-pmax(0, pmin((JCtot - (JF-JFreal)-Jtot), JL))
     
     # Actual uptakes:
     JCtot = JLreal + JDOC + JFreal - JR - Jloss_passive_m
