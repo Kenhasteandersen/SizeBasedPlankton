@@ -35,7 +35,9 @@ struct typeRates {
   type_mass JNloss, JCloss;
   type_mass mortpred;
 };
-
+/*
+ * Globals:
+ */
 plankton p;
 typeRates rates;
 type_mass B, ANmT, JmaxT, JFmaxT, JrespT;
@@ -201,7 +203,9 @@ void calcRates(const double& T, const double& L, const double* u,
   double f;
   static double Tsaved;
   static double f15, f20;
-  
+  /*
+   * Make sure values of B and DOC are positive:
+   */
   for (i=0; i<p.n; i++)
     B[i] = (0 < u[idxB+i]) ? u[idxB+i] : 0;
   double DOC = (0 < u[idxDOC]) ? u[idxDOC] : 0;
@@ -405,6 +409,7 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
   std::vector<double> aDOC, bDOC, cDOC, sDOC;
   std::vector<double> aPhyto, bPhyto, cPhyto, sPhyto;
   std::vector<double> cprime, sprime;
+  std::vector<double> L;
   
   aN.resize(nGrid);
   bN.resize(nGrid);
@@ -422,11 +427,15 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
   cprime.resize(nGrid);
   sprime.resize(nGrid);
   
+  L.resize(nGrid);
+  
   for (i=0; i<nGrid; i++) {
     aN[i] = -Dif;
     bN[i] = 1 + 2*Dif;
     cN[i] = -Dif;
     sN[i] = 0;
+    
+    L[i] = calcLight(L0, x[i]);
   }
   bN[0] = 1 + Dif;
   sN[nGrid-1] = -cN[nGrid-1]*N0;
@@ -455,7 +464,7 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
   for (i=1; i<tEnd/dt; i++) {
     // Calc reaction:
     for (j=0; j<nGrid; j++) {
-      calcRates(T, calcLight(L0, x[j]), &u[j*(p.n+2) + (i-1)*(p.n+2)*nGrid], &dudt[j*(p.n+2)], dt);
+      calcRates(T, L[j], &u[j*(p.n+2) + (i-1)*(p.n+2)*nGrid], &dudt[j*(p.n+2)], dt);
     }
     // Invert:
     solveTridiag(aN, bN, cN, sN, 
