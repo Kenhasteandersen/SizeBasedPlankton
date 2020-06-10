@@ -389,22 +389,114 @@ void solveTridiag(std::vector<double>&  a, std::vector<double>& b, std::vector<d
     u[i*step] = sprime[i] - cprime[i]*u[(i+1)*step];
 };
 
+// extern "C" void simulateWaterColumnFixed(const double& L0, const double& T, 
+//                                         const double& Diff, const double& N0,
+//                                         const double& tEnd, const double& dt,
+//                                         const int& nGrid, const double* x, double* u) {
+//   /*
+//    * Set up matrices
+//    */
+//   int i,j,k;
+//   double dx = x[1]-x[0];
+//   double Dif = dt/(dx*dx)*Diff;
+//   
+//   std::vector<double> aN, bN, cN, sN;
+//   std::vector<double> aDOC, bDOC, cDOC, sDOC;
+//   std::vector<double> aPhyto, bPhyto, cPhyto, sPhyto;
+//   std::vector<double> cprime, sprime;
+//   std::vector<double> L;
+//   
+//   aN.resize(nGrid);
+//   bN.resize(nGrid);
+//   cN.resize(nGrid);
+//   sN.resize(nGrid);
+//   aDOC.resize(nGrid);
+//   bDOC.resize(nGrid);
+//   cDOC.resize(nGrid);
+//   sDOC.resize(nGrid);
+//   aPhyto.resize(nGrid);
+//   bPhyto.resize(nGrid);
+//   cPhyto.resize(nGrid);
+//   sPhyto.resize(nGrid);
+//   
+//   cprime.resize(nGrid);
+//   sprime.resize(nGrid);
+//   
+//   L.resize(nGrid);
+//   for (i=0; i<nGrid; i++)
+//     L[i] = calcLight(L0, x[i]);
+//   
+//   for (i=0; i<nGrid; i++) {
+//     aN[i] = -Dif;
+//     bN[i] = 1 + 2*Dif;
+//     cN[i] = -Dif;
+//     sN[i] = 0;
+//   }
+//   bN[0] = 1 + Dif; // No flux at the surface
+//   sN[nGrid-1] = -cN[nGrid-1]*N0;
+//   
+//   aDOC = aN;
+//   bDOC = bN;
+//   cDOC = cN;
+//   sDOC = sN;
+//   sDOC[nGrid-1] = 0; // No flux at the bottom
+//   bDOC[nGrid-1] = 1+Dif; // No flux at the bottom
+//   
+//   double adv = 0*dt/dx;
+//   aPhyto = aN;
+//   bPhyto = bN; // + adv;
+//   cPhyto = cN;
+//   sPhyto = sN;
+//   sPhyto[nGrid-1] = 0;
+//   /*
+//    * Initialize
+//    */
+//   double *dudt;
+//   dudt = (double *) malloc((p.n+2)*nGrid*sizeof(double *));
+//   
+//   /*
+//    * Iterate
+//    */
+//   for (i=1; i<tEnd/dt; i++) {
+//     // Calc reaction:
+//     for (j=0; j<nGrid; j++) {
+//       calcRates(T, L[j], &u[j*(p.n+2) + (i-1)*(p.n+2)*nGrid], &dudt[j*(p.n+2)], dt);
+//     }
+//     // Invert:
+//     solveTridiag(aN, bN, cN, sN, 
+//                  &dudt[idxN], dt, p.n+2,
+//                  &u[nGrid*(p.n+2)*(i-1)+idxN],
+//                  cprime, sprime, &u[nGrid*(p.n+2)*i+idxN]);
+//     solveTridiag(aDOC, bDOC, cDOC, sDOC, 
+//                  &dudt[idxDOC], dt, p.n+2,
+//                  &u[nGrid*(p.n+2)*(i-1)+idxDOC],
+//                  cprime, sprime, &u[nGrid*(p.n+2)*i+idxDOC]);
+//     for (k=0; k<p.n; k++)
+//       solveTridiag(aPhyto, bPhyto, cPhyto, sPhyto, 
+//                    &dudt[idxB+k], dt, p.n+2,
+//                    &u[nGrid*(p.n+2)*(i-1)+idxB+k],
+//                    cprime, sprime, &u[nGrid*(p.n+2)*i+idxB+k]);
+//   }  
+//   
+// }
+
 extern "C" void simulateWaterColumnFixed(const double& L0, const double& T, 
-                                        const double& Diff, const double& N0,
+                                        const double* Diff, const double& N0,
                                         const double& tEnd, const double& dt,
                                         const int& nGrid, const double* x, double* u) {
   /*
    * Set up matrices
    */
   int i,j,k;
-  double dx = x[1]-x[0];
-  double Dif = dt/(dx*dx)*Diff;
+  //double dx = x[1]-x[0];
+  //double Dif = dt/(dx*dx)*Diff;
   
   std::vector<double> aN, bN, cN, sN;
   std::vector<double> aDOC, bDOC, cDOC, sDOC;
   std::vector<double> aPhyto, bPhyto, cPhyto, sPhyto;
   std::vector<double> cprime, sprime;
   std::vector<double> L;
+  std::vector<double> dx;
   
   aN.resize(nGrid);
   bN.resize(nGrid);
@@ -422,38 +514,54 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
   cprime.resize(nGrid);
   sprime.resize(nGrid);
   
+  dx.resize(nGrid);
+  for (i=0; i<nGrid-1; i++)
+    dx[i] = x[i+1]-x[i];
+  dx[nGrid-1] = dx[nGrid-2];
+  
+  // Light:
   L.resize(nGrid);
   for (i=0; i<nGrid; i++)
     L[i] = calcLight(L0, x[i]);
   
-  for (i=0; i<nGrid; i++) {
-    aN[i] = -Dif;
-    bN[i] = 1 + 2*Dif;
-    cN[i] = -Dif;
+  // Nutrients:
+  for (i=1; i<nGrid-1; i++) {
+    aN[i] = -dt*Diff[i]/(0.5*dx[i]*(dx[i]+dx[i-1]));
+    bN[i] = 1 + dt/(0.5*dx[i]) * (Diff[i]/(dx[i]+dx[i-1]) + Diff[i+1]/(dx[i+1]+dx[i]));
+    cN[i] = -dt*Diff[i+1]/(0.5*dx[i]*(dx[i+1]+dx[i]));
     sN[i] = 0;
   }
-  bN[0] = 1 + Dif; // No flux at the surface
-  sN[nGrid-1] = -cN[nGrid-1]*N0;
-  
+  // No flux at surface:
+  aN[0] = 0;
+  bN[0] = 1 + dt*Diff[0]/(dx[0]*dx[0]); 
+  cN[0] = -dt*Diff[1]/(0.5*dx[0]*(dx[1]+dx[0]));
+  sN[0] = 0;
+  // Fixed at the bottom:
+  aN[nGrid-1] = -dt*Diff[nGrid-1]/(0.5*dx[nGrid-1]*(dx[nGrid-1]+dx[nGrid-2]));
+  bN[nGrid-1] = 1 + 2*dt*Diff[nGrid-1]/(dx[nGrid-1]*dx[nGrid-1]); 
+  cN[nGrid-1] = 0; //-dt*Diff[nGrid-1]/(dx[nGrid-1]*dx[nGrid-1]);
+  sN[nGrid-1] = dt*Diff[nGrid-1]/(dx[nGrid-1]*dx[nGrid-1])*N0;
+
+  // DOC as nutrients, but with no flux at the bottom:
   aDOC = aN;
   bDOC = bN;
   cDOC = cN;
   sDOC = sN;
-  sDOC[nGrid-1] = 0; // No flux at the bottom
-  bDOC[nGrid-1] = 1+Dif; // No flux at the bottom
-  
-  double adv = 0*dt/dx;
-  aPhyto = aN;
-  bPhyto = bN; // + adv;
-  cPhyto = cN;
-  sPhyto = sN;
-  sPhyto[nGrid-1] = 0;
+  // No flux at the bottom:
+  bDOC[nGrid-1] = 1 + dt*Diff[nGrid-1]/(dx[nGrid-1]*dx[nGrid-1]); 
+  sDOC[nGrid-1] = 0; 
+
+  //double adv = 0*dt/dx;
+  aPhyto = aDOC;
+  bPhyto = bDOC; // + adv;
+  cPhyto = cDOC;
+  sPhyto = sDOC;
   /*
    * Initialize
    */
   double *dudt;
   dudt = (double *) malloc((p.n+2)*nGrid*sizeof(double *));
-  
+
   /*
    * Iterate
    */

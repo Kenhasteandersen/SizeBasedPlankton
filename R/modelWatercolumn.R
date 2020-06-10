@@ -13,6 +13,71 @@ parametersWatercolumn = function(p = parameters(n=10)) {
   return(p)
 }
 
+# simulateWatercolumn = function(p=parametersWatercolumn(), 
+#                                tEnd=p$tEnd, dt=p$dt, nGrid=p$nGrid, nTout=110) {
+#   # Load C engine
+#   if (!is.loaded(paste(fileLibrary,".so",sep="")))
+#     dyn.load(paste(fileLibrary,".so",sep=""))
+#   # Constants:
+#   idxN = 1
+#   idxDOC = 2
+#   idxB = 3:(2+p$n)
+#   #
+#   # Set parameters in C engine:
+#   #
+#   dummy = .C("setParameters", as.integer(p$n), 
+#              p$m, p$rhoCN, p$epsilonL, p$epsilonF,
+#              p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
+#              p$Jresp, p$Jloss_passive_m,
+#              p$theta,
+#              p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
+#              p$remin2, p$cLeakage);
+#   #
+#   # Set up grid and solution matrix:
+#   #
+#   x = as.double(seq(0, p$depth, length.out = nGrid) )
+#   
+#   u = array(0, dim=c(2+p$n, nGrid, tEnd/dt+1));
+#   # Initial conditions:
+#   u[idxN,,1] = p$N0/3;
+#   u[idxDOC,,1] = p$DOC0;
+#   u[idxB,,1] = p$B0;
+#   u[idxB, x>50, 1] = 1e-8;
+#   #
+#   # Simulate
+#   tictoc::tic()
+#   sim = .C("simulateWaterColumnFixed", 
+#            L0=as.double(p$L),
+#            T=as.double(p$T),
+#            Diff=as.double(p$diff),
+#            N0 = as.double(p$N0),
+#            tEnd=as.double(tEnd),
+#            dt=as.double(dt),
+#            nGrid=as.integer(nGrid),
+#            x=x,
+#            u=u)
+#   tictoc::toc()
+#   #
+#   # Extract results:
+#   #
+#   idxT = seq(1,tEnd/dt,length.out = nTout)
+#   idxX = seq(p$nGrid, 1, by=-1)
+#   
+#   sim$N = t(sim$u[idxN, idxX, idxT]);
+#   sim$DOC = t(sim$u[idxDOC, idxX, idxT])
+#   sim$B = sim$u[idxB, idxX, idxT]
+#   d = calcESD(p$m)
+#   sim$Bpico = t(colSums(sim$B[d<2,,],1))
+#   sim$Bnano = t(colSums(sim$B[d>=2 & d<20,,],1))
+#   sim$Bmicro = t(colSums(sim$B[d>=20,,],1))
+#   
+#   sim$t = seq(0, tEnd, by=dt)[idxT]
+#   sim$x = -x[seq(nGrid,1,by=-1)]
+#   
+#   sim$p = p
+#   return(sim)
+# }
+
 simulateWatercolumn = function(p=parametersWatercolumn(), 
                                tEnd=p$tEnd, dt=p$dt, nGrid=p$nGrid, nTout=110) {
   # Load C engine
@@ -36,6 +101,7 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
   # Set up grid and solution matrix:
   #
   x = as.double(seq(0, p$depth, length.out = nGrid) )
+  Diff = as.double(rep(p$diff, nGrid) )
   
   u = array(0, dim=c(2+p$n, nGrid, tEnd/dt+1));
   # Initial conditions:
@@ -49,7 +115,7 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
   sim = .C("simulateWaterColumnFixed", 
            L0=as.double(p$L),
            T=as.double(p$T),
-           Diff=as.double(p$diff),
+           Diff=Diff,
            N0 = as.double(p$N0),
            tEnd=as.double(tEnd),
            dt=as.double(dt),
@@ -262,20 +328,6 @@ baserunWatercolumn = function(p=parametersWatercolumn()) {
   plotWatercolumn(sim)
   
   return(sim)
-}
-
-similatemany = function(p=parametersWatercolumn()) {
-  p$tEnd = 500
-  defaultplot()
-  defaultpanel(xlim=c(0,500), ylim=c(0,100))
-  while (TRUE==TRUE) {
-    p$L = 100 + runif(1)*100
-    sim =simulateWatercolumn(p)
-    print(sim$N[110,25])
-    lines(sim$t, sim$N[,25])
-    lines(sim$t, 100*sim$DOC[,25], col="red")
-  }
-  
 }
 
 #
