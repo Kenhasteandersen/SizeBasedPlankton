@@ -47,7 +47,7 @@ uiWatercolumn <- fluidPage(
                   min = 0,
                   max = 300,
                   step=1,
-                  value = parametersWatercolumn()$Lsurface)
+                  value = parametersWatercolumn()$L)
       ,
       sliderInput("diff",
                   "Diffusion (m2/day)",
@@ -161,7 +161,7 @@ serverWatercolumn <- function(input, output) {
     # get all base parameters
     p <- parametersWatercolumn() 
     # Update parameters with user input:
-    p$Lsurface = input$Lsurface
+    p$L = input$Lsurface
     p$diff = input$diff
     p$T = input$T
     p$N0 = input$N0
@@ -171,6 +171,8 @@ serverWatercolumn <- function(input, output) {
     p$remin = input$epsilon_r
     p$dt = input$dt
     p$nGrid = input$nGrid
+    
+    #p$tEnd = 10
     # Simulate
     return(simulateWatercolumn(p))
   })

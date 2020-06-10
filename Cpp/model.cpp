@@ -207,8 +207,9 @@ void calcRates(const double& T, const double& L, const double* u,
    * Make sure values of B and DOC are positive:
    */
   for (i=0; i<p.n; i++)
-    B[i] = (0 < u[idxB+i]) ? u[idxB+i] : 0;
-  double DOC = (0 < u[idxDOC]) ? u[idxDOC] : 0;
+    B[i] = max(0, u[idxB+i]); 
+  double DOC = max(0, u[idxDOC]);
+  double N = max(0, u[idxN]);
   //
   // Temperature corrections:
   //
@@ -232,16 +233,10 @@ void calcRates(const double& T, const double& L, const double* u,
      */ 
     
     // Nutrients:
-    if (u[idxN]<=0)
-      rates.JN[i] = 0;
-    else
-      rates.JN[i] = gammaN * ANmT[i]*u[idxN]*p.rhoCN;
+    rates.JN[i] = gammaN * ANmT[i]*N*p.rhoCN;
     
     // DOC:
-    if (u[idxDOC]<=0)
-      rates.JDOC[i] = 0;
-    else
-      rates.JDOC[i] = gammaDOC * ANmT[i]*DOC;
+    rates.JDOC[i] = gammaDOC * ANmT[i]*DOC;
     
     // Light:
     rates.JL[i] = p.epsilonL * p.ALm[i]*L;
@@ -304,22 +299,22 @@ void calcRates(const double& T, const double& L, const double* u,
   //
   dudt[idxN] = 0;
   dudt[idxDOC] = 0;
+  double mortloss;
   for (i=0; i<p.n; i++) {
-    double mortloss;
     mortloss = B[i]*((1-p.remin2)*p.mort2*B[i] + p.mHTL[i]);
     dudt[idxN] += 
       ((-rates.JN[i]
-          + rates.JNloss[i])*B[i]/p.m[i] 
-         + p.remin2*p.mort2*B[i]*B[i]
+         + rates.JNloss[i])*B[i]/p.m[i] 
+         + p.remin2*p.mort2*B[i]*B[i]/p.rhoCN
          + p.remin*mortloss)/p.rhoCN;
          
-         dudt[idxDOC] += 
+    dudt[idxDOC] += 
          (-rates.JDOC[i] 
-            + rates.JCloss[i])*B[i]/p.m[i] 
+         + rates.JCloss[i])*B[i]/p.m[i] 
          + p.remin2*p.mort2*B[i]*B[i]
          + p.remin*mortloss;
          
-         dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  
+    dudt[idxB+i] = (rates.Jtot[i]/p.m[i]  
                            - (p.mort[i] 
                                 + rates.mortpred[i] 
                                 + p.mort2*B[i] 
@@ -339,14 +334,14 @@ void calcRates(const double& T, const double& L, const double* u, double* dudt, 
   double gammaN = 1;
   double gammaDOC = 1;
   
-  if (u[idxN]+dudt[idxN]*dt<0)
-    gammaN = min(gammaN, -u[idxN]/(dudt[idxN]*dt));
+  if ((u[idxN]+dudt[idxN]*dt)<0)
+    gammaN = max(0, min(gammaN, -u[idxN]/(dudt[idxN]*dt)));
   
   if ((u[idxDOC]+dudt[idxDOC]*dt)<0) {
     //double JDOCtot = 0;
     //for (int j = 0; j<p.n; j++)
     //  JDOCtot += rates.JDOC[j];
-    min(gammaDOC, -u[idxDOC]/(dudt[idxDOC]*dt));
+    gammaDOC = max(0, min(gammaDOC, -u[idxDOC]/(dudt[idxDOC]*dt)));
   }
   
   if (gammaN<1 | gammaDOC<1) {
@@ -428,23 +423,24 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
   sprime.resize(nGrid);
   
   L.resize(nGrid);
+  for (i=0; i<nGrid; i++)
+    L[i] = calcLight(L0, x[i]);
   
   for (i=0; i<nGrid; i++) {
     aN[i] = -Dif;
     bN[i] = 1 + 2*Dif;
     cN[i] = -Dif;
     sN[i] = 0;
-    
-    L[i] = calcLight(L0, x[i]);
   }
-  bN[0] = 1 + Dif;
+  bN[0] = 1 + Dif; // No flux at the surface
   sN[nGrid-1] = -cN[nGrid-1]*N0;
   
   aDOC = aN;
   bDOC = bN;
   cDOC = cN;
   sDOC = sN;
-  sDOC[nGrid-1] = 0;
+  sDOC[nGrid-1] = 0; // No flux at the bottom
+  bDOC[nGrid-1] = 1+Dif; // No flux at the bottom
   
   double adv = 0*dt/dx;
   aPhyto = aN;

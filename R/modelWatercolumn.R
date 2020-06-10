@@ -37,9 +37,9 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
   #
   x = as.double(seq(0, p$depth, length.out = nGrid) )
   
-  u = array(0, dim=c(2+p$n, nGrid, tEnd/dt+2));
+  u = array(0, dim=c(2+p$n, nGrid, tEnd/dt+1));
   # Initial conditions:
-  u[idxN,,1] = p$N0;
+  u[idxN,,1] = p$N0/3;
   u[idxDOC,,1] = p$DOC0;
   u[idxB,,1] = p$B0;
   u[idxB, x>50, 1] = 1e-8;
@@ -60,7 +60,7 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
   #
   # Extract results:
   #
-  idxT = seq(1,tEnd/dt-2,length.out = nTout)
+  idxT = seq(1,tEnd/dt,length.out = nTout)
   idxX = seq(p$nGrid, 1, by=-1)
   
   sim$N = t(sim$u[idxN, idxX, idxT]);
@@ -85,19 +85,25 @@ plotWatercolumnTime = function(sim) {
   defaultplotvertical(nPanels = 5)
   image(sim$t, sim$x, sim$N, ylab="N", xlab="time", col=topo.colors(20))
   mtext(side=left, line=1, TeX("N"), cex=par()$cex)
-  image(sim$t, sim$x, sim$DOC, col=topo.colors(20), 
+  image(sim$t, sim$x, sim$DOC, col=topo.colors(20),
         zlim=c(0,max(sim$DOC[(length(sim$t/2)):length(sim$t),])))
   mtext(side=left, line=1, TeX("DOC"), cex=par()$cex)
-  
+
   zlim = c(0, max( (sim$Bpico+sim$Bnano+sim$Bmicro)[(length(sim$t/2)):length(sim$t),]))
   image(sim$t, sim$x, sim$Bpico, ylab="Bpico", col=topo.colors(20), zlim=zlim)
   mtext(side=left, line=1, TeX("Bpico"), cex=par()$cex)
   image(sim$t, sim$x, sim$Bnano, ylab="Bnano", col=topo.colors(20), zlim=zlim)
   mtext(side=left, line=1, TeX("Bnano"), cex=par()$cex)
-  image(sim$t, sim$x, sim$Bmicro, xlab="time (days)", 
+  image(sim$t, sim$x, sim$Bmicro, xlab="time (days)",
         ylab="Bmicro", col=topo.colors(20), zlim=zlim)
   mtext(side=left, line=1, TeX("Bmicro"), cex=par()$cex)
   mtext(side=bottom, line=1, TeX("Time (days)"), cex=par()$cex)
+  
+  # defaultplot()
+  # defaultpanel(xlim=c(0,500), ylim=c(0,100))
+  #   print(sim$N[110,25])
+  #   lines(sim$t, sim$N[,25])
+  #   lines(sim$t, 100*sim$DOC[,25], col="red")
 }
 
 plotWatercolumn = function(sim, idx = length(sim$t)) {
@@ -167,6 +173,7 @@ calcFunctionsWatercolumn = function(sim) {
   Bpico = 0
   Bnano = 0
   Bmicro = 0
+  BDOC = 0
 
   p = param
   rates = NULL
@@ -180,7 +187,7 @@ calcFunctionsWatercolumn = function(sim) {
     prodCgross = prodCgross + 
       conversion * sum(rates[[i]]$JLreal*sim$B[,i,idx]/param$m)/param$epsilonL*dx[i]
     prodCnet = prodCnet + 
-      conversion * sum( (rates[[i]]$JLreal)*sim$B[,i,idx]/param$m )*dx[i]
+      conversion * sum( (rates[[i]]$JLreal-rates[[i]]$JR)*sim$B[,i,idx]/param$m )*dx[i]
     #
     # Loss to HTL:
     #
@@ -202,6 +209,7 @@ calcFunctionsWatercolumn = function(sim) {
     Bpico = Bpico + conversion2 * sum( sim$B[d < 2,i,idx] )*dx[i]
     Bnano = Bnano + conversion2 * sum( sim$B[d>=2 & d <20,i,idx] )*dx[i]
     Bmicro = Bmicro + conversion2 * sum( sim$B[d>=20,i,idx])*dx[i]
+    BDOC = BDOC + conversion2 * sim$DOC[idx,i]*dx[i]
   }
   #
   # Efficiencies:
@@ -216,7 +224,8 @@ calcFunctionsWatercolumn = function(sim) {
     effHTL = effHTL,
     Bpico=Bpico, 
     Bnano=Bnano, 
-    Bmicro=Bmicro
+    Bmicro=Bmicro,
+    BDOC = BDOC
   ))
 }
 
@@ -255,6 +264,20 @@ baserunWatercolumn = function(p=parametersWatercolumn()) {
   return(sim)
 }
 
+similatemany = function(p=parametersWatercolumn()) {
+  p$tEnd = 500
+  defaultplot()
+  defaultpanel(xlim=c(0,500), ylim=c(0,100))
+  while (TRUE==TRUE) {
+    p$L = 100 + runif(1)*100
+    sim =simulateWatercolumn(p)
+    print(sim$N[110,25])
+    lines(sim$t, sim$N[,25])
+    lines(sim$t, 100*sim$DOC[,25], col="red")
+  }
+  
+}
+
 #
 # Find cpp-code:
 #
@@ -274,6 +297,7 @@ if (!file.exists(paste(fileLibrary,'.so',sep=""))) {
            paste("-O2 -fPIC -shared ",fileLibrary,".cpp -o ",
                fileLibrary,".so",sep=""))==1)  {
     stop("Cannot compile cpp engine")
-  }
+  } else
+    print("Compiled cpp engine.")
 }
 

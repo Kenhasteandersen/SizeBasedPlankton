@@ -21,7 +21,8 @@ parameters <- function(n=25) {
   # Clearance rates:
   #
   #factor = (1e-6)^(1/3)/1.5 
-  p$AN = 0.00004 # 0.000162 # Mathilde.  (2.5e-3 l/d/cm) * (1e6 mug/g)^(-1/3) / 1.5 (g/cm); Andersen et al 2015
+  p$AN = 0.00012 #0.00004 # 0.000162 # Mathilde.  (2.5e-3 l/d/cm) * (1e6 mug/g)^(-1/3) / 1.5 (g/cm); Andersen et al 2015
+  p$cN = 0.1
   #p$AL = 0.0019 # if using Al propto m^(2/3) for non-diatoms
   #p$AL = 0.0012 # if using my shading formula for non-diatoms
   #p$cL = 0.021 # if using my shading formula for non-diatoms
@@ -32,7 +33,7 @@ parameters <- function(n=25) {
   #
   # Calc rates as a function of m:
   #
-  p$ANm = p$AN*p$m^(1/3)
+  p$ANm = p$AN*p$m^(1/3) / (1 + p$cN*p$m^(-1/3))
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
   #p$ALm = p$cL*p$m * p$AL*p$m^(2/3) / ( p$cL*p$m + p$AL*p$m^(2/3) )  # shading formula
   p$ALm = p$AL*p$m^(2/3) * (1-exp(- p$cL*p$m^(1/3) ))  # shading formula
