@@ -9,7 +9,7 @@ source("modelChemostat.R")
 # ===================================================
 
 plotAll = function() {
-  pdfplot("../AL.pdf", plotAL, width = 1.5*singlewidth, height=1.5*height)
+  pdfplot("../AL.pdf", plotALsimple, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../AF.pdf", plotAF, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../AN.pdf", plotAN, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Mumax.pdf", plotMumax, width = 1.5*singlewidth, height=1.5*height)
@@ -153,10 +153,11 @@ plotALsimple = function() {
   Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
                  sep=";", skip=3, header=TRUE, na.strings = "na")
   C = convertVolume2Mass(Aed$volume, Aed$taxon)
+  r = (Aed$volume*3/(4*pi))^(1/3)
   
   A = Aed$alpha * C * (Aed$daylength/24) # convert to units of mu gC/(mu mol photons/m2/s),
   # corrected for daylength.
-  data = data.frame(C=C, taxon=Aed$taxon, A=A, source="Edwards")#rbind(data, 
+  data = data.frame(r=r, C=C, taxon=Aed$taxon, A=A, source="Edwards")#rbind(data, 
   
   #
   # Sort our nans:
@@ -168,22 +169,15 @@ plotALsimple = function() {
   ixDiatom = data$taxon=="diatom"
   
   #form = formula(log(A) ~ log( a*C^(2/3) * Cmax*C / (a*C^(2/3) + Cmax*C)))
-  form = formula(log(A) ~ log( a*C^(2/3) * (1 - exp(-Cmax*C^(1/3)) ) ))
+  form = formula(log(A) ~ log( AL*r^2 * (1 - exp(-cL*C^(1/3)) ) ))
   
   fit = nls(form,
             data = data,
-            start = list(Cmax = .001, a=0.001),
-            lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
-  fit_diatoms = nls(form,
-                    data = data[ixDiatom,],
-                    start = list(Cmax = .001, a=0.001),
-                    lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
-  fit_no_diatoms = nls(form,
-                       data = data[!ixDiatom,],
-                       start = list(Cmax = .001, a=0.001),
-                       lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
-  
-  print(summary(fit_no_diatoms))
+            start = list(cL = 1, AL=1e-7),
+            lower=list(cL=1e-20, AL=1e-20), algorithm="port")
+
+  print(summary(fit))
+  cat(c("r* = ",1/(coef(fit)[[1]]*(0.19e-6*4/3*pi)^(1/3)) ), "mu m\n")
   #
   # Fits to 2/3 scaling
   #
@@ -195,34 +189,26 @@ plotALsimple = function() {
   # Plot
   #
   defaultplot()
-  loglogpanel(xlim = data$C, 
-              ylim = c(0.9*min(data$A[!is.na(data$A)]), 1.1*max(data$A[!is.na(data$A)])),
-              xlab="Cell weight ($\\mu$gC)",
+  loglogpanel(xlim = c(0.1, 300), 
+              ylim = c(0.5*min(data$A[!is.na(data$A)]), 2*max(data$A[!is.na(data$A)])),
+              xlab="Cell radius ($\\mu$m)",
               ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/($\\mu$ mol photons m$^{-2}s^{-1})")
-  points(data$C[!ixDiatom], data$A[!ixDiatom],pch=16, col="darkgreen")
-  points(data$C[ixDiatom], data$A[ixDiatom],pch=16, col="darkgreen")
-  points(data$C[data$source=="Taguchi"], data$A[data$source=="Taguchi"], pch=17, col="darkgreen")
+  points(data$r[!ixDiatom], data$A[!ixDiatom],pch=15, col="darkgreen")
+  points(data$r[ixDiatom], data$A[ixDiatom],pch=16, col="darkgreen")
+  points(data$r[data$source=="Taguchi"], data$A[data$source=="Taguchi"], pch=17, col="darkgreen")
   
-  C = 10^seq(log10(min(data$C)), log10(max(data$C)), length.out = 100)
-  lines(C, exp(predict(fit, list(C=C))), lwd=2)
-  #lines(C, exp(predict(fit_diatoms, list(C=C))), lwd=2, col="red")
-  #lines(C, exp(predict(fit_no_diatoms, list(C=C))), lwd=3, col="blue")
-  
-  lines(C, 2*AL * C^(2/3), lty=dotted)
-  lines(C, 0.026*C, lty=dotted)
-  #lines(C, AL_diatoms * C^(2/3), col="red", lty=dotted)
-  #lines(C, AL_no_diatoms * C^(2/3), col="blue", lty=dotted)
-  
-  # Camila's parameters:
-  #cL=0.08733
-  #AL=0.004864  
-  #lines(C, cL*C * AL*C^(2/3) / ( cL*C + AL*C^(2/3) ) , col="orange")
-  
-  #legend(x="bottomright", bty="n",
-  #       legend=c("Diatoms", "Other phototrophs", "Camila"),
-  #       pch=c(16,16,NA),
-  #       lwd=c(0,0,2),
-  #       col=c("red","Blue","Orange"))
+  r = 10^seq(-1, 4, length.out = 100)
+  C = 4/3*pi*r^3*0.2e-6
+  lines(r, exp(predict(fit, list(r=r,C=C))), lwd=2)
+
+  lines(r, coef(fit)[[2]]*r^2, lty=dotted)
+  lines(r, coef(fit)[[2]]*r^2*coef(fit)[[1]]*C^(1/3), lty=dotted)
+
+  legend(x="bottomright", bty="n",
+         legend=c("Diatoms", "Other phototrophs"),
+           pch=c(15,16),
+         lwd=0,
+         col="darkgreen")
 }
 
 plotALvolume = function() {
@@ -567,13 +553,20 @@ plotAN = function() {
   
   col = 1
   taxons = unique(dat$taxon[!is.na(C) & !(is.na(Anit) & is.na(Aamm)  & is.na(Aphos))])
+  aff = data.frame(C=NULL, A=NULL)
   for (i in taxons) {
     ix = dat$taxon == i
     points(C[ix], Anit[ix], pch=16, col=col)
     points(C[ix], Aamm[ix], pch=17, col=col)
     points(C[ix], Aphos[ix], pch=18, col=col)
     col = col + 1
+    
+    aff = rbind( aff, data.frame(C=C[ix], A= Anit[ix]))
+    aff = rbind( aff, data.frame(C=C[ix], A= Aamm[ix]))
+    aff = rbind( aff, data.frame(C=C[ix], A= Aphos[ix]))
   }
+  ix = !is.na(aff$C) & !is.na(aff$A)
+  aff = aff[ix,]
   #points(C, Aphos,pch=18)
   legend(x="bottomright",bty="n", 
          legend=taxons, pch=16, col=seq(1,length(taxons)))
@@ -585,23 +578,31 @@ plotAN = function() {
   ANmax = 4*pi*Diff*r*1e-3 # L/day
   cat("alphaN_max = ", (ANmax/m^(1/3))[1], "\n")
   lines(m, ANmax, lwd=1, lty=dotted)  
-  lines(m, parameters()$AN*m^(1/3), lwd=2)
+  lines(parameters()$m, parameters()$ANm, lwd=2)
+  lines(m, p$AN/p$cN*m^(2/3), lty=dotted, col="blue")
   #cat( mean(ANmax/(parameters()$AN*m^(1/3))) ,"\n" )
   cat("alphaN = ", mean(parameters()$AN*m^(1/3)), "\n")
   
-  V = 10^seq(-2,8,length.out = 100)
-  alphaN_Ward2018 = 1.1 * 1000 / 1000 / 12 # convert from m3->liter, from mmol->umol, from mol->g 
-  lines(convertVolume2Mass(V), alphaN_Ward2018*V^-0.35*convertVolume2Mass(V), col="blue", lty=dashed)
+  # Make a bi-linear fit:
+  #form = formula( log(C) ~ log(a/(1+b*C^-0.333))+0.3333*log(C) )
+  #fit = nls(form, data=aff, 
+  #          start = list(a=1e-4, b=0.05),
+  #          lower = list(a=0,b=0), algorithm = "port", trace=TRUE)
+  #lines(m, exp(predict(fit,list(C=m))))
+  
+  #V = 10^seq(-2,8,length.out = 100)
+  #alphaN_Ward2018 = 1.1 * 1000 / 1000 / 12 # convert from m3->liter, from mmol->umol, from mol->g 
+  #lines(convertVolume2Mass(V), alphaN_Ward2018*V^-0.35*convertVolume2Mass(V), col="blue", lty=dashed)
   
   # Camila's parameters:
-  lines(C, 3.75e-5*C^(1/3), col="orange")
+  #lines(C, 3.75e-5*C^(1/3), col="orange")
   
   #alphaN_Banas2011 = 2.6/0.1 / 14 / 6 # convert from uM N-> ugN, from gN->gC
   #lines(m , alphaN_Banas2011*m^(1-0.45), col="blue", lty=dashdotted)
   
   legend(x="topleft", bty="n",
-         legend=c("Fit","Theoretical limit","Ward et al (2018)", "Camila"),
-         lty=c(solid,dotted,dashed,solid),
+         legend=c("Model","Diffusion limit","Porter limit"),
+         lty=c(solid,dotted,dotted),
          lwd=c(2,1,1,1),
          col=c("black","black","blue","orange"))
   
@@ -668,41 +669,77 @@ plotANsimple = function() {
   #lines(convertVolume2Mass(V), alphaN_Ward2018*V^-0.35*convertVolume2Mass(V), col="blue", lty=dashed)
 }
 
+plotLimitation = function(p=parameters()) {
+  m = p$m
+  
+  DOC = 2
+  N = 1
+  L = 60
+  B = 10
+  r = calcRates(L, N, DOC, rep(B, p$n), p)
+  
+  defaultplot()
+  semilogxpanel(xlim=m, ylim=c(0, 1.5))
+  
+  lines(m, r$JN/m, col="blue")
+  lines(m, r$JDOC/m, col="brown")
+  lines(m, r$JL/m, col="darkgreen")
+  lines(m, r$JF/m, col="red")
+  lines(m, r$Jmax/m, col="black")
+  lines(m, r$Jtot/m, col="black")
+}
+
 plotRstar = function() {
   p = parameters()
   
-  m = 10^seq(log10(0.3*min(p$m)), log10(max(p$m)), length.out = 1000)
+  m = 10^seq(log10(5e-9), log10(max(p$m)), length.out = 1000)
   nu = pmin(1,p$c * m^(-1/3))
-  mu = 0.4#c(0.2, 0.4, 0.6)
+  mu = c(0,0.4)#c(0.2, 0.4, 0.6)
   
   tightaxes()
   defaultplot()
   loglogpanel(xlim=m, 
-              ylim=c(0.005,1000),
+              ylim=c(0.0005,1000),
               xlab = "Cell mass ($\\mu$gC)",
               ylab = "Limiting concentration ($\\mu$mol/l) or ($\\mu$E/m$^2$/s)")
   
+  lty=dotted
+  lwd=1
   for (i in 1:length(mu)) {
-    correct = mu[i]*(1-nu)/((1-nu)-mu[i])
-    
-    Nstar = m^0.667 /(p$AN*p$rhoCN) * correct
+    #correct = mu[i]*(1-nu)/((1-nu)-mu[i])
+    #Nstar = m^0.667 /(p$AN*p$rhoCN) * correct
+
+    correct = p$cLeakage + p$alphaJ*mu[i]*(1-nu)/(p$alphaJ*(1-nu)-mu[i])
+    Nstar = m^(2/3)/(p$AN*p$rhoCN) * correct
     Nstar[Nstar<0] = Inf
-    lines(m, Nstar/14, lwd=2, col="blue")
+    lines(m, Nstar/14, lwd=lwd, lty=lty,col="blue")
     
-    DOCstar = m^0.667/(p$AN) * correct
+    correct = p$cLeakage*m^(-1/3) + p$alphaJ*(p$cR+ mu[i]*(1-nu)/(p$alphaJ*(1-nu)-mu[i]))
+    DOCstar = m^(2/3)/(p$AN) * correct
     DOCstar[DOCstar<0] = Inf
-    lines(m, DOCstar/12, lwd=2, col="magenta")
+    lines(m, DOCstar/12, lwd=lwd, lty=lty,col="magenta")
     
     #Lstar = m^0.333 * p$alphaJ/(p$AL) * mu[i]/(p$alphaJ*(1-nu)-mu[i])
     #Lstar = p$alphaJ*(p$AL+p$cL*m^(1/3))*mu[i] / (p$AL*p$cL*(p$alphaJ-mu[i])*(1-nu))
-    Lstar = m^(1/3)/(p$epsilonL*p$AL) *  1/(1-exp(-p$cL*m^(1/3))) * correct
+    Lstar = m^(1/3)/(p$AL*p$epsilonL) * 1/(1 -exp(-p$cL*m^(1/3))) * correct
     Lstar[Lstar<0] = Inf
-    lines(m , Lstar, lwd=2, col="green")
+    lines(m , Lstar, lwd=lwd, lty=lty,col="darkgreen")
+    
+    
+    Fstar = 1/(p$AF*p$epsilonF) * correct
+    Fstar[Fstar<0] = Inf
+    lines(m, Fstar/12, lwd=lwd, lty=lty, col="darkred")
+    
+    lty=1
+    lwd=2
   }
   
   legend(x="bottomright", bty="n",
-         legend=c(TeX("$\\textit{N}^*$"), TeX("$$DOC^*$"), TeX("$$\\textit{L}^*$")),
-         col=c("magenta","blue","green"),
+         legend=c(TeX("$\\textit{N}^*$"), 
+                  TeX("$$DOC^*$"), 
+                  TeX("$$\\textit{L}^*$"),
+                  TeX("$$\\textit{F}^*$")),
+         col=c("blue","magenta","darkgreen","darkred"),
          lwd=2)
 }
 

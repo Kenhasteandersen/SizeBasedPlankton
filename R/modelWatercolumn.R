@@ -79,7 +79,10 @@ parametersWatercolumn = function(p = parameters(n=10)) {
 # }
 
 simulateWatercolumn = function(p=parametersWatercolumn(), 
-                               tEnd=p$tEnd, dt=p$dt, nGrid=p$nGrid, nTout=110) {
+                               nGrid=p$nGrid,
+                               bLogDepth=FALSE, 
+                               Diff = as.double(rep(p$diff, nGrid)),
+                               tEnd=p$tEnd, dt=p$dt, nTout=110) {
   # Load C engine
   if (!is.loaded(paste(fileLibrary,".so",sep="")))
     dyn.load(paste(fileLibrary,".so",sep=""))
@@ -100,9 +103,13 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
   #
   # Set up grid and solution matrix:
   #
-  x = as.double(seq(0, p$depth, length.out = nGrid) )
-  Diff = as.double(rep(p$diff, nGrid) )
-  
+  if (bLogDepth) {
+    b = (1/p$depth)^((1/(-p$nGrid)))
+    a = 1/b
+    x = as.double( a*b^seq(1,p$nGrid)-1 )
+  } else
+    x = as.double(seq(0, p$depth, length.out = nGrid) )
+
   u = array(0, dim=c(2+p$n, nGrid, tEnd/dt+1));
   # Initial conditions:
   u[idxN,,1] = p$N0/3;
@@ -176,11 +183,15 @@ plotWatercolumn = function(sim, idx = length(sim$t)) {
   p = sim$p
   defaultplot(mfcol=c(1,2))
   #
-  # Rates:
+  # Concentrations:
   #
   defaultpanel(xlim=c(0,80), xlab="Concentration ($\\mu$g C/l)",
                ylim=range(sim$x), ylab="Depth (m)")
+#  defaultpanel(xlim=c(0,80), xlab="Concentration ($\\mu$g C/l)",
+#              ylim=c(1,p$nGrid), ylab="Depth (m)")
+               
   tightaxes()  
+
   lines(sim$N[idx,]/10, sim$x, col="blue", lwd=thick)
   lines(sim$DOC[idx,]*100, sim$x, col="magenta", lwd=thick)
   lines(sim$Bpico[idx,], sim$x, col="black", lwd=1)

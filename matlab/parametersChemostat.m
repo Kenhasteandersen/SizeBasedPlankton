@@ -42,7 +42,8 @@ p.theta = zeros(p.n, p.n);
 for i = 1:p.n
     %p.theta[i,] = phi(p.m[i]/p.m, p.beta, p.sigma)   % (predator, prey)
     for j = 1:p.n
-        p.theta(i,j) = exp( -(log(p.m(i)/p.m(j)/p.beta))^2/(2*p.sigma^2));
+        p.theta(i,j) = Phi(p.m(i)/p.m(j), p, p.m(2)/p.m(1));
+        %exp( -(log(p.m(i)/p.m(j)/p.beta))^2/(2*p.sigma^2));
     end
 end
 
@@ -77,30 +78,29 @@ p.B0 = ones(1,p.n);
 
 p.d = 0.05;
 
-%
-% Prey size function integrated over size groups:
-%
-    function fTot = Phi(z, p, Delta)
+    %
+    % Prey size function integrated over size groups:
+    %
+    function res = Phi(z, p, Delta)
         m = logspace(-12,3,1000);
         dm = diff(m);
         m = m(2:1000);
         
-        fPrey = function(m, w0, Delta) {
-            integrate( function(logw) phi(m/exp(logw),beta=p$beta,sigma=p$sigma), log(w0/sqrt(Delta)), log(w0*sqrt(Delta)))$value
-                }
-                
-                fTot = function(m0,w0, Delta) {
-                    ix = m>m0/sqrt(Delta) & m<m0*sqrt(Delta)
-                    sum(
-                    as.numeric(
-                    lapply( m[ix], function(m) fPrey(m,w0,Delta)/m)
-                        )*dm[ix] / log(Delta)^2
-                        )
-                        }
-                        
-                        return(fTot(1,1/z,Delta))
-                        }
-                        
-                        
-                        
-                    end
+        phi = @(z, beta, sigma) exp( -(log(z/beta)).^2/(2*sigma^2) );
+        
+        fPrey = @(m, w0, Delta) ...
+            integral( @(logw) phi(m./exp(logw), p.beta, p.sigma), ...
+            log(w0/sqrt(Delta)), log(w0*sqrt(Delta)));
+        
+        function int = fTot(m0,w0, Delta)
+            ix = find((m>m0/sqrt(Delta)) & (m<m0*sqrt(Delta)));
+            int = 0;
+            for k = 1:length(ix)
+                int = int + fPrey(m(ix(k)), w0, Delta)/m(ix(k))*dm(ix(k)) / log(Delta)^2;
+            end
+        end
+        
+        res = fTot(1,1/z,Delta);
+    end
+
+end

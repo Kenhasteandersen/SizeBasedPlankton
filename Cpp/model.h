@@ -1,44 +1,33 @@
-#include <algorithm>
-#include <vector>
-#include <iostream>
-#include <math.h>
-#include <stdlib.h> 
+void setParameters(
+    const int* _n, 
+    const double* _m,
+    const double* _rhoCN, 
+    const double* _epsilonL, 
+    const double* _epsilonF,
+    const double* _ANm, 
+    const double* _ALm, 
+    const double* _AFm,
+    const double* _Jmax, 
+    const double* _JFmax,
+    const double* _Jresp,
+    const double* _Jloss_passive,
+    const double* _theta,
+    const double* _mort,
+    const double* _mort2,
+    const double* _mortHTL,
+    const double* _remin,
+    const double* _remin2,
+    const double* _cLeakage
+);
 
-typedef std::vector<double> type_mass;  // type for bins
+//void calcRates(const double* T, const double* L, const double* u, double* dudt);
 
-struct plankton {
-  int n; // No of size classes
-  type_mass m;
-  double rhoCN;
-  double epsilonL;
-  double epsilonF;
-  type_mass ANm, ALm, AFm;
-  type_mass Jmax, Jresp, JFmax;
-  type_mass Jloss_passive;
-  
-  std::vector< std::vector<double> > theta;
-  
-  type_mass mort;
-  double mort2;
-  type_mass mHTL;
-  
-  double remin, remin2;
-  double cLeakage;
-};
-
-struct typeRates {
-  type_mass JN, JDOC, JL, JF, F, JFreal;
-  type_mass JNtot, JLreal, JCtot, Jtot;
-  type_mass JCloss_feeding, JCloss_photouptake, JNlossLiebig, JClossLiebig;
-  type_mass JNloss, JCloss;
-  type_mass mortpred;
-};
+void derivativeChemostat(const double* L, const double* T, const double* d, const double* N0,
+                                   const double* u, double* dudt);
 /*
- * Globals:
+void simulateWaterColumnFixed(const double& L0, const double& T, 
+                                        const double* Diff, const double& N0,
+                                        const double& tEnd, const double& dt,
+                                        const int& nGrid, const double* x, double* u);
+ 
  */
-plankton p;
-typeRates rates;
-type_mass B, ANmT, JmaxT, JFmaxT, JrespT;
-const int idxN = 0;
-const int idxDOC = 1;
-const int idxB = 2;

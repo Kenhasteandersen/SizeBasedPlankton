@@ -1,6 +1,48 @@
 // Build: g++ -O3 -shared model.cpp -o model.so  
+#include <algorithm>
+#include <vector>
+#include <iostream>
+#include <math.h>
+#include <stdlib.h> 
 
-#include "model.h"
+typedef std::vector<double> type_mass;  // type for bins
+
+struct plankton {
+  int n; // No of size classes
+  type_mass m;
+  double rhoCN;
+  double epsilonL;
+  double epsilonF;
+  type_mass ANm, ALm, AFm;
+  type_mass Jmax, Jresp, JFmax;
+  type_mass Jloss_passive;
+  
+  std::vector< std::vector<double> > theta;
+  
+  type_mass mort;
+  double mort2;
+  type_mass mHTL;
+  
+  double remin, remin2;
+  double cLeakage;
+};
+
+struct typeRates {
+  type_mass JN, JDOC, JL, JF, F, JFreal;
+  type_mass JNtot, JLreal, JCtot, Jtot;
+  type_mass JCloss_feeding, JCloss_photouptake, JNlossLiebig, JClossLiebig;
+  type_mass JNloss, JCloss;
+  type_mass mortpred;
+};
+/*
+ * Globals:
+ */
+plankton p;
+typeRates rates;
+type_mass B, ANmT, JmaxT, JFmaxT, JrespT;
+const int idxN = 0;
+const int idxDOC = 1;
+const int idxB = 2;
 
 inline double min(double a, double b) {
   return (a < b) ? a : b;
@@ -53,41 +95,39 @@ void printu(const double* u, const int nGrid) {
   }
   std::cout << "------------\n";
 }
-
-
 /* ===============================================================
  * Stuff for cell model:
  */
 extern "C" void setParameters(
-    int& _n, 
-    double* _m,
-    double& _rhoCN, 
-    double& _epsilonL, 
-    double& _epsilonF,
-    double* _ANm, 
-    double* _ALm, 
-    double* _AFm,
-    double* _Jmax, 
-    double* _JFmax,
-    double* _Jresp,
-    double* _Jloss_passive,
-    double* _theta,
-    double* _mort,
-    double& _mort2,
-    double* _mortHTL,
-    double& _remin,
-    double& _remin2,
-    double& _cLeakage
+    const int* _n, 
+    const double* _m,
+    const double* _rhoCN, 
+    const double* _epsilonL, 
+    const double* _epsilonF,
+    const double* _ANm, 
+    const double* _ALm, 
+    const double* _AFm,
+    const double* _Jmax, 
+    const double* _JFmax,
+    const double* _Jresp,
+    const double* _Jloss_passive,
+    const double* _theta,
+    const double* _mort,
+    const double* _mort2,
+    const double* _mortHTL,
+    const double* _remin,
+    const double* _remin2,
+    const double* _cLeakage
 ) {
   
-  p.n = _n;
-  p.rhoCN = _rhoCN;
-  p.epsilonL = _epsilonL;
-  p.epsilonF = _epsilonF;
-  p.mort2 = _mort2;
-  p.remin = _remin;
-  p.remin2 = _remin2;
-  p.cLeakage = _cLeakage;
+  p.n = *_n;
+  p.rhoCN = *_rhoCN;
+  p.epsilonL = *_epsilonL;
+  p.epsilonF = *_epsilonF;
+  p.mort2 = *_mort2;
+  p.remin = *_remin;
+  p.remin2 = *_remin2;
+  p.cLeakage = *_cLeakage;
   
   p.m.resize(p.n);
   p.ANm.resize(p.n);
@@ -281,12 +321,12 @@ void calcRates(const double& T, const double& L, const double* u,
   //printRates();
 };
 
-extern "C" void calcRates(const double& T, const double& L, const double* u, double* dudt) {
-  calcRates(T,L,u,dudt,1,1);
+extern "C" void calcRates(const double* T, const double* L, const double* u, double* dudt) {
+  calcRates(*T,*L,u,dudt,1,1);
 }
 
 void calcRates(const double& T, const double& L, const double* u, double* dudt, const double dt) {
-  calcRates(T, L, u, dudt);
+  calcRates(&T, &L, u, dudt);
   
   double gammaN = 1;
   double gammaDOC = 1;
@@ -310,15 +350,16 @@ void calcRates(const double& T, const double& L, const double* u, double* dudt, 
 /* ===============================================================
  * Stuff for Chemostat model:
  */
-extern "C" void derivativeChemostat(const double& L, const double& T, const double& d, const double& N0,
+extern "C" void derivativeChemostat(const double* L, const double* T, 
+                                   const double* d, const double* N0,
                                    const double* u, double* dudt) {
   calcRates(T, L, u, dudt);
   
-  dudt[idxN]     += d*(N0-u[idxN]);
-  dudt[idxDOC]   += d*(0-u[idxDOC]);
+  dudt[idxN]     += (*d)*((*N0)-u[idxN]);
+  dudt[idxDOC]   += (*d)*(0-u[idxDOC]);
   
   for (int i=0; i<p.n; i++)
-    dudt[idxB+i] += d*(0-u[idxB+i]);
+    dudt[idxB+i] += (*d)*(0-u[idxB+i]);
 };
 /* ===============================================================
  * Stuff for watercolumn model:
