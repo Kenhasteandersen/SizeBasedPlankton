@@ -185,14 +185,14 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
                   IC = c(0.1*p$N0, p$DOC0, p$B0),
                   input_function = function(t,y, dummy) derivative(t,y,p),
                   reltolerance = 1e-5,
-                  abstolerance = 1e-10+1e-5*c(0.1*p$N0, 1, p$B0))
+                  abstolerance = 1e-10+1e-5*c(0.1*p$N0, p$DOC0, p$B0))
     else
       out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                   IC = c(0.1*p$N0, p$DOC0, p$B0),
                   input_function = function(t,y, dummy) derivative(t,y,p),
                   reltolerance = 1e-5,
                   Parameters = 0, 
-                  abstolerance = 1e-10+1e-5*c(0.1*p$N0, 1, p$B0))
+                  abstolerance = 1e-10+1e-5*c(0.1*p$N0, p$DOC0, p$B0))
     
     nSave = dim(out)[1]
     # Assemble results:
