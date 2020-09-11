@@ -18,6 +18,6 @@ calllib('model','setParameters', ...
 %
 % Simulate:
 %
-[t, y] = ode45(@derivChemostat, [0 1000], [p.N0, p.DOC0, p.B0], [], p);
+[t, y] = ode45(@derivChemostat, [0 365], [p.N0, p.DOC0, p.B0], [], p);
 
 end

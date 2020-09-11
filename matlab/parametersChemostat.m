@@ -58,7 +58,7 @@ p.Jresp = p.cR*p.alphaJ*p.m;
 % Losses:
 %
 p.mort = 0*0.005*(p.Jmax./p.m) .* p.m.^(-1/4);
-p.mort2 = 0.0002*p.n;
+p.mort2 = 0.0002*double(p.n);
 p.mortHTL = 0.1;
 p.mHTL = max(p.m)/p.beta^1.5; % Bins affected by HTL mortality
 p.mortHTLm = 1./(1+(p.m./p.mHTL).^(-2));
@@ -68,7 +68,7 @@ p.remin2 = 1; % fraction of virulisus remineralized to N and DOC
 
 p.T = 10;
 p.latitude=0;
-p.L = 100;
+p.L = 60;
 %
 % Initial conditions:
 %
