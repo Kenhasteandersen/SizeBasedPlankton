@@ -75,7 +75,7 @@ derivative = function(t,y,p) {
                               rates$mortpred + 
                               rates$mort2 + 
                               p$mortHTL*p$mortHTLm))*B
-  dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
+  #dBdt[(B<1e-3) & (dBdt<0)] = 0 # Impose a minimum concentration even if it means loss of mass balance
   
   #mortloss = sum(B*(rates$mort2 + p$mortHTL*(p$m>=p$mHTL)))
   mortloss = sum(B*((1-p$remin2)*rates$mort2 + p$mortHTL*p$mortHTLm))
@@ -89,7 +89,7 @@ derivative = function(t,y,p) {
     sum(rates$JCloss*B/p$m) +
     p$remin2*sum(rates$mort2*B) +
     p$remin*mortloss
-  
+
   if (TRUE==FALSE) {
     # Check of nutrient conservation; should be close to zero
     Nin = diff*(p$N0-N) + diff*sum(0-B)/p$rhoCN
@@ -137,10 +137,11 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
              p$theta,
              p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
              p$remin2, p$cLeakage);
+
   dudtC = derivativeC(0,y,p)
   
   plot(p$m, dudtR[3:(p$n+2)], type="l", log="x", col="red")
-  lines(p$m, dudtC[3:(p$n+2)], col="blue", lty=dashed)
+  points(p$m, dudtC[3:(p$n+2)], col="blue", lty=dashed)
   print(dudtR[1:2])
   print(dudtC[1:2])
   
@@ -184,15 +185,15 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
       out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                   IC = c(0.1*p$N0, p$DOC0, p$B0),
                   input_function = function(t,y, dummy) derivative(t,y,p),
-                  reltolerance = 1e-5,
-                  abstolerance = 1e-10+1e-5*c(0.1*p$N0, p$DOC0, p$B0))
+                  reltolerance = 1e-6,
+                  abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
     else
       out = cvode(time_vector = seq(0, p$tEnd, length.out = p$tEnd),
                   IC = c(0.1*p$N0, p$DOC0, p$B0),
                   input_function = function(t,y, dummy) derivative(t,y,p),
-                  reltolerance = 1e-5,
+                  reltolerance = 1e-6,
                   Parameters = 0, 
-                  abstolerance = 1e-10+1e-5*c(0.1*p$N0, p$DOC0, p$B0))
+                  abstolerance = 1e-10+1e-6*c(0.1*p$N0, p$DOC0, p$B0))
     
     nSave = dim(out)[1]
     # Assemble results:
