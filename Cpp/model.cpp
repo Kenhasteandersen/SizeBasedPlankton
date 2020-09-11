@@ -75,6 +75,9 @@ void printRates() {
   std::cout << "jLreal: ";
   printRate(rates.JLreal);
   
+  std::cout << "jNloss: ";
+  printRate(rates.JNloss);
+  
   std::cout << "jCtot: ";
   printRate(rates.JCtot);
   
@@ -83,6 +86,7 @@ void printRates() {
   
   std::cout << "jTot: ";
   printRate(rates.Jtot);
+
 }
 
 void printu(const double* u, const int nGrid) {
@@ -302,9 +306,8 @@ void calcRates(const double& T, const double& L, const double* u,
     dudt[idxN] += 
       ((-rates.JN[i]
          + rates.JNloss[i])*B[i]/p.m[i] 
-         + p.remin2*p.mort2*B[i]*B[i]/p.rhoCN
+         + p.remin2*p.mort2*B[i]*B[i]
          + p.remin*mortloss)/p.rhoCN;
-         
     dudt[idxDOC] += 
          (-rates.JDOC[i] 
          + rates.JCloss[i])*B[i]/p.m[i] 
