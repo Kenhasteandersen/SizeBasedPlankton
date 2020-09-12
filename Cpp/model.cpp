@@ -561,8 +561,7 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
    * Initialize
    */
   double *dudt;
-  dudt = (double *) malloc((p.n+2)*nGrid*sizeof(double *));
-
+  dudt = (double *) calloc((p.n+2)*nGrid, sizeof(double *));
   /*
    * Iterate
    */
