@@ -94,12 +94,24 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
   # Set parameters in C engine:
   #
   dummy = .C("setParameters", as.integer(p$n), 
-             p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-             p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
-             p$Jresp, p$Jloss_passive_m,
-             p$theta,
-             p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
-             p$remin2, p$cLeakage);
+             as.double(p$m), 
+             as.double(p$rhoCN), 
+             as.double(p$epsilonL), 
+             as.double(p$epsilonF),
+             as.double(p$ANm),
+             as.double(p$ALm), 
+             as.double(p$AFm),
+             as.double(p$Jmax),
+             as.double(p$JFmaxm),
+             as.double(p$Jresp),
+             as.double(p$Jloss_passive_m),
+             as.double(p$theta),
+             as.double(p$mort), 
+             as.double(p$mort2),
+             as.double(p$mortHTL*p$mortHTLm),
+             as.double(p$remin),
+             as.double(p$remin2), 
+             as.double(p$cLeakage))
   #
   # Set up grid and solution matrix:
   #
@@ -223,6 +235,7 @@ plotWatercolumn = function(sim, idx = length(sim$t)) {
   defaultpanel(xlim=m, xlab="Cell mass (log10($\\mu$gC))",
                ylim=sim$x, ylab="")
   tightaxes()
+  # TO FIX: USE THE CORRECT Z-COORDINATES
   rasterImage(as.raster(col), min(m)-dm, min(sim$x), max(m)+dm, max(sim$x),
               interpolate = TRUE)
   
@@ -335,11 +348,12 @@ plotFunctionsWatercolumn <- function(sim) {
 }
 
 testWatercolumn = function(p = parametersWatercolumn()) {
-  for (i in 1:10) {
+  for (i in seq(1,10,length.out = 10)) {
     p$T=i
     p$dt = 0.02
-    sim = simulateWatercolumn(p)
+    sim = simulateWatercolumn(p, bLogDepth = TRUE)
     cat(sum(sim$DOC[110,]))
+    plotWatercolumn(sim)
   }
 }
 
