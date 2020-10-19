@@ -14,6 +14,7 @@ plotAll = function() {
   pdfplot("../AN.pdf", plotAN, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Mumax.pdf", plotMumax, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Rstar.pdf", plotRstar, width=doublewidth, height = height)
+  pdfplot("../Mumax_corrected.pdf", plotMuAlphaCorrelation, width = 1.5*singlewidth, height=1.5*height)
   
   plotSimulationExamples()
   
@@ -481,19 +482,44 @@ plotMuAlphaCorrelation = function() {
                   start = list(Cmax = .001, a=0.001),
                   lower=list(Cmax=1e-20, a=1e-20), algorithm="port")
   #
-  # Plot corrected values
+  # Plot corrected values (using residuals)
   #
-  defaultplot()
+  defaultplot(mfcol=c(1,2))
   loglogpanel(xlim=c(0.1,10),ylim=c(0.1,10),
-              xlab="Corrected alpha",
-              ylab="Corrected mu_max")
+              xlab="Residual light-affinity",
+              ylab="Residual $\\mu_{max}$")
   x = data$A/exp(predict(fit_alpha, list(C=data$C)))
   y = data$mumax/exp(predict(fit_mu, list(C=data$C)))
   points(x[ixDiatom], y[ixDiatom], pch=16, col="red")
   points(x[!ixDiatom], y[!ixDiatom], pch=16, col="blue")
   
-  lines(c(0.1,10), c(0.1,10),lty=dotted)       
+  #lines(c(0.1,10), c(0.1,10),lty=dotted)     
+
+  fit = lm(log(x) ~ log(y))
+  xx = 10^seq(-1,2,length.out = 100)
+  #lines(xx, exp(fit$coefficients[1])*xx^fit$coefficients[2])
+  legend(x="topleft", pch=16, col=c("red","blue"),
+         legend=c("Diatoms","Others"))
+  #
+  # Plot mass-specific values
+  #
+  loglogpanel(xlim=c(0.001,2),ylim=c(0.1,5),
+              xlab="Specific light-affinity",
+              ylab="Specific $\\mu_{max}$")
+  x = data$A/data$C
+  y = data$mumax
+  points(x[ixDiatom], y[ixDiatom], pch=16, col="red")
+  points(x[!ixDiatom], y[!ixDiatom], pch=16, col="blue")
+  
+  #lines(c(0.1,10), c(0.1,10),lty=dotted)     
+  legend(x="topleft", pch=16, col=c("red","blue"),
+         legend=c("Diatoms","Others"))
+  
+  fit = lm(log(x) ~ log(y))
+  xx = 10^seq(-3,1,length.out = 100)
+  #lines(xx, exp(fit$coefficients[1])*xx^fit$coefficients[2])
 }
+
 
 plotAF = function() {
   dat <- read.csv("../data/TK Appendix feeding rates - revised.csv",header=TRUE,sep=";")

@@ -109,7 +109,7 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
     x = as.double( a*b^seq(1,p$nGrid)-1 )
   } else
     x = as.double(seq(0, p$depth, length.out = nGrid) )
-
+  
   u = array(0, dim=c(2+p$n, nGrid, tEnd/dt+1));
   # Initial conditions:
   u[idxN,,1] = p$N0/3;
@@ -161,7 +161,7 @@ plotWatercolumnTime = function(sim) {
   image(sim$t, sim$x, sim$DOC, col=topo.colors(20),
         zlim=c(0,max(sim$DOC[(length(sim$t/2)):length(sim$t),])))
   mtext(side=left, line=1, TeX("DOC"), cex=par()$cex)
-
+  
   zlim = c(0, max( (sim$Bpico+sim$Bnano+sim$Bmicro)[(length(sim$t/2)):length(sim$t),]))
   image(sim$t, sim$x, sim$Bpico, ylab="Bpico", col=topo.colors(20), zlim=zlim)
   mtext(side=left, line=1, TeX("Bpico"), cex=par()$cex)
@@ -187,11 +187,11 @@ plotWatercolumn = function(sim, idx = length(sim$t)) {
   #
   defaultpanel(xlim=c(0,80), xlab="Concentration ($\\mu$g C/l)",
                ylim=range(sim$x), ylab="Depth (m)")
-#  defaultpanel(xlim=c(0,80), xlab="Concentration ($\\mu$g C/l)",
-#              ylim=c(1,p$nGrid), ylab="Depth (m)")
-               
+  #  defaultpanel(xlim=c(0,80), xlab="Concentration ($\\mu$g C/l)",
+  #              ylim=c(1,p$nGrid), ylab="Depth (m)")
+  
   tightaxes()  
-
+  
   lines(sim$N[idx,]/10, sim$x, col="blue", lwd=thick)
   lines(sim$DOC[idx,]*100, sim$x, col="magenta", lwd=thick)
   lines(sim$Bpico[idx,], sim$x, col="black", lwd=1)
@@ -251,7 +251,7 @@ calcFunctionsWatercolumn = function(sim) {
   Bnano = 0
   Bmicro = 0
   BDOC = 0
-
+  
   p = param
   rates = NULL
   for (i in 1:param$nGrid) {
@@ -334,6 +334,17 @@ plotFunctionsWatercolumn <- function(sim) {
          bty="n")
 }
 
+testWatercolumn = function(p = parametersWatercolumn()) {
+  for (i in 1:10) {
+    p$T=i
+    p$dt = 0.02
+    sim = simulateWatercolumn(p)
+    cat(sum(sim$DOC[110,]))
+  }
+}
+
+
+
 baserunWatercolumn = function(p=parametersWatercolumn()) {
   sim = simulateWatercolumn(p)
   plotWatercolumn(sim)
@@ -351,14 +362,14 @@ if (file.exists("../Cpp/model.cpp")) {
     fileLibrary = "model"
   } else {
     stop("Did not find model cpp source code.")
-}}
+  }}
 #
 # Compile:
 #
 if (!file.exists(paste(fileLibrary,'.so',sep=""))) {
   if (system2("g++", 
-           paste("-O2 -fPIC -shared ",fileLibrary,".cpp -o ",
-               fileLibrary,".so",sep=""))==1)  {
+              paste("-O2 -fPIC -shared ",fileLibrary,".cpp -o ",
+                    fileLibrary,".so",sep=""))==1)  {
     stop("Cannot compile cpp engine")
   } else
     print("Compiled cpp engine.")
