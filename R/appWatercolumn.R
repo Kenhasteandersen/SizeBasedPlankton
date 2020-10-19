@@ -33,7 +33,7 @@ uiWatercolumn <- fluidPage(
     The trophic strategy is an emergent property.'),
   HTML('<p>Made in R with shiny. 
     Code on <a href="https://github.com/Kenhasteandersen/SizeBasedPlankton">github</a>.</p>'),
-  HTML('<p>THIS IS WORK IN PROGRESS. Version 0.2. May 2020. 
+  HTML('<p>THIS IS WORK IN PROGRESS. Version 0.3. October 2020. 
     See also <a href="http://oceanlife.dtuaqua.dk/Plankton">chemostat version</a>
        and other <a href="http://oceanlife.dtuaqua.dk">apps</a>. 
        By <a href="mailto:kha@aqua.dtu.dk">Ken H Andersen</a>.</p>')
