@@ -348,16 +348,6 @@ plotFunctionsWatercolumn <- function(sim) {
 }
 
 testWatercolumn = function(p = parametersWatercolumn()) {
-  for (i in seq(1,10,length.out = 10)) {
-    p$T=i
-    p$dt = 0.02
-    sim = simulateWatercolumn(p, bLogDepth = TRUE)
-    cat(sum(sim$DOC[110,]))
-    plotWatercolumn(sim)
-  }
-}
-
-
 
 baserunWatercolumn = function(p=parametersWatercolumn()) {
   sim = simulateWatercolumn(p)

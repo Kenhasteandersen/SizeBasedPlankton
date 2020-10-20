@@ -24,10 +24,8 @@ void setParameters(
 
 void derivativeChemostat(const double* L, const double* T, const double* d, const double* N0,
                                    const double* u, double* dudt);
-/*
-void simulateWaterColumnFixed(const double& L0, const double& T, 
-                                        const double* Diff, const double& N0,
-                                        const double& tEnd, const double& dt,
-                                        const int& nGrid, const double* x, double* u);
- 
- */
+
+void simulateWaterColumn(const double* L0, const double* T, 
+                              const double* Diff, const double* N0,
+                              const double* tEnd, const double* dt,
+                              const int* nGrid, const double* x, double* u);

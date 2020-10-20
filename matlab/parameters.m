@@ -1,9 +1,12 @@
 
-function p = parametersChemostat()
+function p = parameters(n)
+if (nargin==0)
+    n = 25;
+end
 %
 % Define parameters:
 %
-p.n = int32(25);
+p.n = int32(n);
 p.m = logspace(-8.5,1,p.n);
 
 p.rhoCN = 5.68; % C:N mass ratio
