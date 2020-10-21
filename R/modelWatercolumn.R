@@ -131,7 +131,7 @@ simulateWatercolumn = function(p=parametersWatercolumn(),
   #
   # Simulate
   tictoc::tic()
-  sim = .C("simulateWaterColumnFixed", 
+  sim = .C("simulateWaterColumn", 
            L0=as.double(p$L),
            T=as.double(p$T),
            Diff=Diff,
@@ -347,7 +347,6 @@ plotFunctionsWatercolumn <- function(sim) {
          bty="n")
 }
 
-testWatercolumn = function(p = parametersWatercolumn()) {
 
 baserunWatercolumn = function(p=parametersWatercolumn()) {
   sim = simulateWatercolumn(p)
