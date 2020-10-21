@@ -391,13 +391,13 @@ void solveTridiag(std::vector<double>&  a, std::vector<double>& b, std::vector<d
     u[i*step] = sprime[i] - cprime[i]*u[(i+1)*step];
 };
 
-extern "C" void simulateWaterColumnFixed(const double& L0, const double& T, 
+/*extern "C" void simulateWaterColumnFixed(const double& L0, const double& T, 
                                         const double* Diff, const double& N0,
                                         const double& tEnd, const double& dt,
                                         const int& nGrid, const double* x, double* u) {
-  /*
-   * Set up matrices
-   */
+  //
+  // Set up matrices
+  //
   int i,j,k;
   //double dx = x[1]-x[0];
   //double Dif = dt/(dx*dx)*Diff;
@@ -467,14 +467,14 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
   bPhyto = bDOC; // + adv;
   cPhyto = cDOC;
   sPhyto = sDOC;
-  /*
-   * Initialize
-   */
+  //
+  // Initialize
+  //
   double *dudt;
   dudt = (double *) calloc((p.n+2)*nGrid, sizeof(double *));
-  /*
-   * Iterate
-   */
+  //
+  // Iterate
+  //
   for (i=1; i<tEnd/dt; i++) {
     // Calc reaction:
     for (j=0; j<nGrid; j++) {
@@ -497,7 +497,7 @@ extern "C" void simulateWaterColumnFixed(const double& L0, const double& T,
   }  
   
 }
-
+*/
 extern "C" void simulateWaterColumn(const double* L0, const double* T, 
                                         const double* Diff, const double* N0,
                                         const double* tEnd, const double* dt,
