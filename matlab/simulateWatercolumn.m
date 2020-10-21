@@ -39,7 +39,7 @@ calllib('model','setParameters', ...
 if (bLogDepth)
     b = (1/p.depth)^((1/(-p.nGrid)));
     a = 1/b;
-    x = double( a*b.^(1:(p.nGrid)-1) );
+    x = double( a*b.^(1:p.nGrid)-1 );
 else
     x = linspace(0, p.depth, p.nGrid);
 end
@@ -75,10 +75,10 @@ sim.u = reshape(u, 2+p.n, p.nGrid, p.tEnd/p.dt+1);
 sim.N = squeeze(sim.u(idxN, idxX, idxT));
 sim.DOC = squeeze(sim.u(idxDOC, idxX, idxT));
 sim.B = sim.u(idxB, idxX, idxT);
-%d = calcESD(p.m)
-%sim.Bpico = t(colSums(sim.B[d<2,,],1))
-%sim.Bnano = t(colSums(sim.B[d>=2 & d<20,,],1))
-%sim.Bmicro = t(colSums(sim.B[d>=20,,],1))
+d = 10000 * 1.5 * (p.m*1e-6).^(1/3);
+sim.Bpico = squeeze(sum(sim.B(d<2,:,:),1));
+sim.Bnano = squeeze(sum(sim.B(d>=2 & d<20,:,:),1));
+sim.Bmicro = squeeze(sum(sim.B(d>=20,:,:),1));
 
 sim.t = 0:p.dt:p.tEnd;
 sim.t = sim.t(idxT);
