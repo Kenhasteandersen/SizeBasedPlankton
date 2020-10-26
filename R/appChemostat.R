@@ -44,12 +44,12 @@ uiChemostat <- fluidPage(
                   step=1,
                   value = parametersChemostat()$L)
       ,
-      sliderInput("d",
-                  "Mixing rate (1/day)",
-                  min = 0.0025,
-                  max = .6,
-                  step = 0.0025,
-                  value = parametersChemostat()$d)
+      sliderInput("d10",
+                  "log10(Mixing rate) (1/day)",
+                  min = -4,
+                  max = 0,
+                  step = 0.1,
+                  value = log10(parametersChemostat()$d))
       ,
       sliderInput("T",
                   "Temperature",
@@ -154,7 +154,7 @@ serverChemostat <- function(input, output) {
   sim <- eventReactive({
     input$L
     input$latitude
-    input$d
+    input$d10
     input$T
     input$M
     input$mort2
@@ -167,12 +167,14 @@ serverChemostat <- function(input, output) {
     # Update parameters with user input:
     p$L = input$L
     p$latitude = input$latitude
-    p$d = input$d
+    p$d = 10^input$d10
     p$T = input$T
     p$mort2 = input$mort2*p$n
     p$mortHTL = input$mortHTL
     p$M = input$M
     p$remin = input$epsilon_r
+    
+    #p$tEnd = 1000
     
     if (p$latitude>0)
       p$tEnd = 2*365

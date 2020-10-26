@@ -29,8 +29,8 @@ uiWatercolumn <- fluidPage(
   h1('Size-based water column plankton simulator'),
   p('Simulate a plankton ecosystem in a watercolumn. 
     Cell size is the only trait characterizing each plankton group.
-    All groups are able to perform photoharvesting, taking up dissolve nutrients and carbon, and do phagotrophy.
-    The trophic strategy is an emergent property.'),
+    All size groups are able to perform photoharvesting, taking up dissolved nutrients and carbon, 
+    and do phagotrophy. The trophic strategy is an emergent property.'),
   HTML('<p>Made in R with shiny. 
     Code on <a href="https://github.com/Kenhasteandersen/SizeBasedPlankton">github</a>.</p>'),
   HTML('<p>THIS IS WORK IN PROGRESS. Version 0.3. October 2020. 

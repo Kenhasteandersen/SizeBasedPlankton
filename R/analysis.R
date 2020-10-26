@@ -802,6 +802,20 @@ plotSimulationExamples = function() {
 }
 
 
+plotVaryDiffusion = function(p=parametersChemostat(),
+                             L=100,
+                             d=10^seq(-6,-3,length.out=10)) {
+  
+  B = matrix(data=0, nrow=p$n, ncol=length(d))
+  for (i in 1:length(d)) {
+    p$d=d[i]
+    sim = simulateChemostat(p)
+    B[,i] = sim$B
+  }
+  image(log10(d),log10(p$m),t(B),
+        xlab="log10(mixing)", ylab="log10(cell mass)")
+}
+
 plotVaryLightAndDiffusion = function(n=10) {
   library(lattice)
   library(latticeExtra)
