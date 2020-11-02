@@ -292,7 +292,8 @@ void calcRates(const double& T, const double& L, const double* u,
   for (i=0; i<p.n; i++) {
     rates.mortpred[i] = 0;
     for (int j = 0; j<p.n; j++) {
-      rates.mortpred[i] += p.theta[i][j] * rates.JFreal[j]*B[j]/(p.epsilonF*p.m[j]*rates.F[j]);
+      if (rates.F[j]!=0)
+        rates.mortpred[i] += p.theta[i][j] * rates.JFreal[j]*B[j]/(p.epsilonF*p.m[j]*rates.F[j]);
     }
   }
   //
