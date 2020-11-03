@@ -1,4 +1,7 @@
-// Build: g++ -O3 -shared model.cpp -o model.so  
+// Build: 
+//   MacOS: g++ -O3 -shared model.cpp -o model.so  
+//   Linux:
+//   Windows:
 #include <algorithm>
 #include <vector>
 #include <iostream>
