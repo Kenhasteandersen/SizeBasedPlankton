@@ -8,7 +8,7 @@ dBdt = zeros(1,p.nb*p.n);
 nb = p.nb; % number of grid cells
 n = p.n;    % number of plankton size classes
 
-
+dudtTmp = zeros(n+2,1);
 for i = 1:nb
     
     Ntmp    = y(i);
@@ -17,21 +17,17 @@ for i = 1:nb
                
    
     %ICtmp = [Ntmp;DOCtmp;Btmp];
-    dudtTmp = zeros(n+2,1);
+    
     
     Ltmp = p.L(i); %current light level
     Ttmp = p.T(i);  %current temperature
-    if any(isnan([Ntmp;DOCtmp;Btmp]))
-        warning('NaNs before running current grid box');        
-        keyboard
-    end
 
     [tmp, tmp, tmp, tmp, tmp, dudtTmp] = calllib('model','derivativeChemostat', ...
         Ltmp, Ttmp,0,0, [Ntmp;DOCtmp;Btmp], dudtTmp);
-    if any(isnan(dudtTmp))
-        warning('NaNs after running current grid box');
-        keyboard
-    end
+%     if any(isnan(dudtTmp))
+%         warning('NaNs after running current grid box');
+%         keyboard
+%     end
       
   
     dNdt(i) = dudtTmp(1);
@@ -42,7 +38,8 @@ for i = 1:nb
 end
 dudt = [dNdt,dDOCdt,dBdt]';
 
-if ~isempty(find(isnan(dudt),1))
+if any(isnan(dudt))
+    warning('NaNs after finishing timestep');
     keyboard
 end
 end
