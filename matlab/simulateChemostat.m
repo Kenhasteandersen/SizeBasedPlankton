@@ -2,10 +2,9 @@ function sim = simulateChemostat(p, tEnd)
 %
 % Load library:
 %
-if libisloaded("model")
-    unloadlibrary("model")
+if ~libisloaded("model")
+    loadlibrary('../Cpp/model.so','../Cpp/model.h')
 end
-loadlibrary('../Cpp/model.so','../Cpp/model.h')
 %
 % Set parameters:
 %
@@ -32,7 +31,7 @@ calllib('model','setParameters', ...
 %
 % Simulate:
 %
-[t, y] = ode45(@derivChemostat, [0 tEnd], [0.1*p.N0, p.DOC0, p.B0], [], p);
+[t, y] = ode23(@derivChemostat, [0 tEnd], [0.1*p.N0, p.DOC0, p.B0], [], p);
 %
 % Extract result:
 %
