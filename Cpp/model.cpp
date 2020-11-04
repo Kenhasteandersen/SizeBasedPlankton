@@ -1,7 +1,7 @@
 // Build: 
 //   MacOS: g++ -O3 -shared model.cpp -o model.so  
-//   Linux:
-//   Windows:
+//   Linux: g++ -fPIC -O3 -shared model.cpp -o model.so  
+//   Windows: g++ -O3 -shared model.cpp -o model.so  
 #include <algorithm>
 #include <vector>
 #include <iostream>

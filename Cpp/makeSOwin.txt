@@ -1,0 +1,18 @@
+To make model.so on windows computer:
+
+use MinGW-w64 (download from https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/installer/mingw-w64-install.exe/download)
+
+setup:
+version: latest available (8.1.0)
+Architecture: x86_64
+Threads: win32
+exception: seh
+Build revision: 0
+
+open wingw-w64.bat
+
+change location to the correct folder
+
+run the text in the top of model.cpp
+
+g++ -O3 -shared model.cpp -o model.so
