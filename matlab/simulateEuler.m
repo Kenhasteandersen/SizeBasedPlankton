@@ -1,11 +1,13 @@
-function sim = simulateChemostat(p, tEnd)
 %
+% Simulate one system with Euler-integration:
+%
+function sim = simulateEuler(p, y, dt, tEnd)
+%%
 % Load library:
 %
-if libisloaded("model")
-    unloadlibrary("model")
+if ~libisloaded("model")
+    loadlibrary('../Cpp/model.so','../Cpp/model.h');
 end
-loadlibrary('../Cpp/model.so','../Cpp/model.h')
 %
 % Set parameters:
 %
@@ -29,25 +31,26 @@ calllib('model','setParameters', ...
     double(p.remin), ...
     double(p.remin2), ...
     double(p.cLeakage))
-%
+%%
 % Simulate:
 %
-[t, y] = ode45(@derivChemostat, [0 tEnd], [0.1*p.N0, p.DOC0, p.B0], [], p);
-%
+%y = [0.1*p.N0, p.DOC0, p.B0];
+
+y = calllib('model','simulateEuler', y, ...
+    double(p.L), double(p.T), double(p.d), double(p.N0), double(dt), double(tEnd));
+
+%%
 % Extract result:
 %
-ixB = 3:p.n+2;
-ixTime = find(t>=(max(t)/2),1):length(t);
-
-sim.t = t;
+sim.t = tEnd;
 sim.p = p;
 
-sim.Btime = y(:,ixB);
-sim.Ntime = y(:,1);
-sim.DOCtime = y(:,2);
+sim.Ntime = y(1);
+sim.DOCtime = y(2);
+sim.Btime = y(3:(2+p.n));
 
-sim.Bmean = mean(sim.Btime(ixTime,:));
-sim.Nmean = mean(sim.Ntime(ixTime,:));
-sim.DOCmean = mean(sim.DOCtime(ixTime,:));
+%sim.Bmean = mean(sim.Btime(ixTime,:));
+%sim.Nmean = mean(sim.Ntime(ixTime,:));
+%sim.DOCmean = mean(sim.DOCtime(ixTime,:));
 
 end

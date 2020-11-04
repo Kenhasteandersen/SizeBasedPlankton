@@ -350,7 +350,7 @@ void calcRates(const double& T, const double& L, const double* u, double* dudt, 
   
   if (gammaN<1 | gammaDOC<1) {
     calcRates(T,L,u,dudt,gammaN,gammaDOC);
-    std::cout << gammaN << "," << gammaDOC << "\n";
+    //std::cout << gammaN << "," << gammaDOC << "\n";
   }
 };
 
@@ -368,6 +368,27 @@ extern "C" void derivativeChemostat(const double* L, const double* T,
   for (int i=0; i<p.n; i++)
     dudt[idxB+i] += (*d)*(0-u[idxB+i]);
 };
+
+/* ===============================================================
+ * Euler integration:
+ */
+extern "C" void simulateEuler(double* u, 
+                             const double* L, const double* T, 
+                             const double* d, const double* N0,
+                             const double* dt, const double* tEnd) {
+  
+  double *dudt;
+  dudt = (double *) calloc(p.n+2, sizeof(double *));
+  /*
+   * Iterate
+   */
+  for (int i=1; i<(*tEnd)/(*dt); i++) {
+    // Calc reaction:
+    calcRates(*T, *L, u, dudt, *dt);
+    for (int j=0; j<(p.n+2); j++)
+      u[j] += dudt[j]*(*dt);
+  }  
+}
 
 /* ===============================================================
  * Stuff for watercolumn model:
