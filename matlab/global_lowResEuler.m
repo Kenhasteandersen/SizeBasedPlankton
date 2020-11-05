@@ -178,11 +178,12 @@ for i=1:simtime
     % Running euler time step         
     
     
-    Bcol = Bmat(:); %column vector of Bmat
-    for k = 1:nb
+    %Bcol = Bmat(:); %column vector of Bmat
+    %%
+    parfor k = 1:nb
 
 
-        u = calllib('model','simulateEuler',[N(k);DOC(k);Bcol(k:nb:end)] ,...
+        u = calllib('model','simulateEuler',[N(k);DOC(k);Bmat(k,:)'] ,...
             p.L(k), p.T(k),0,0, 0.1, 0.5);
     %     if any(isnan(dudtTmp))
     %         warning('NaNs after running current grid box');
@@ -192,15 +193,15 @@ for i=1:simtime
 
         N(k) = u(1);
         DOC(k) = u(2);
-        Bcol(k:nb:end) = u(3:end);
-
+        %Bcol(k:nb:end) = u(3:end);
+        Bmat(k,:) = u(3:end)';
 
     end
-    if any(isnan([N;DOC;Bcol]))
+    if any(isnan([N;DOC;Bmat(:)]))
         warning('NaNs after running current grid box');
         keyboard
     end
-    Bmat = reshape(Bcol,[],p.n);
+    %Bmat = reshape(Bcol,[],p.n);
     
     % Remove small concentrations
     N(N<1E-6) = 0;
