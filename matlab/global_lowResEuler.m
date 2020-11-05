@@ -247,7 +247,7 @@ for i=1:simtime
     end
      if mod(i,730)==0
         
-        save(['../Data/global_results/global_',num2str(YEAR),'yr_n',num2str(n),'.mat'],'Bmatm','Nm','DOCm','elapsed_time','p')
+        save(['../Data/global_results/euler_global_',num2str(YEAR),'yr_n',num2str(n),'.mat'],'Bmatm','Nm','DOCm','elapsed_time','p')
         %reset monthly results for new year
         Nm = single(zeros(nb,12));
         DOCm = single(zeros(nb,12));
