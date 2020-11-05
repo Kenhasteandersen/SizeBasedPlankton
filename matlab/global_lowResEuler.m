@@ -38,10 +38,13 @@ p = parametersGlobal(n);
 
 % Load library:
 %
+parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
+parfor i=1:4
 if libisloaded("model")
     unloadlibrary("model")
 end
 loadlibrary('../Cpp/model.so','../Cpp/model.h')
+end
 %
 % Set parameters:
 %
