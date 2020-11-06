@@ -6,8 +6,8 @@
 % ../Cpp/model.cpp must be compiled locally to create model.so
 
 
-clear all
-close all
+%clear all
+%close all
 %% Load Initial January TM and configuations
 load('../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_01.mat');
 load('../TMs/MITgcm/grid.mat');
@@ -38,6 +38,7 @@ p = parametersGlobal(n);
 %
 % Load library:
 %
+%if bParallel
 if isempty(gcp('nocreate'))
     parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
 end
@@ -60,12 +61,22 @@ parfor i=1:poolsize
         p.theta, p.mort, p.mort2, p.mortHTL*p.mortHTLm, ...
         p.remin, p.remin2, p.cLeakage)
 end
+
+% else
+%     loadlibrary('../Cpp/model.so','../Cpp/model.h')
+%     calllib('model','setParameters', ...
+%         p.n, p.m, p.rhoCN, p.epsilonL, p.epsilonF, ...
+%         p.ANm, p.ALm, p.AFm, ...
+%         p.Jmax, p.JFmaxm, p.Jresp, p.Jloss_passive_m, ...
+%         p.theta, p.mort, p.mort2, p.mortHTL*p.mortHTLm, ...
+%         p.remin, p.remin2, p.cLeakage)
+% end
 %%
 % Initialize run:
 %
 p.nb = nb;
 
-simtime = 730*1; %simulation time in half days
+simtime = 30*1; %simulation time in half days
 
 month = 0;
 YEAR = 0;
@@ -225,7 +236,7 @@ for i=1:simtime
     N   = Aimp * ( Aexp * N);
     DOC = Aimp * ( Aexp  * DOC);
     
-    parfor k = 1:size(Bmat,2)
+    for k = 1:size(Bmat,2)
         Bmat(:,k) =  Aimp * ( Aexp  * Bmat(:,k));
     end
     
