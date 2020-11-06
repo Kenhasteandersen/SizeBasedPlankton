@@ -39,12 +39,13 @@ p = parametersGlobal(n);
 % Load library:
 %
 %if bParallel
-if isempty(gcp('nocreate'))
+h = gcp('nocreate');
+if isempty(h)
     parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
 end
 
-poolsize = gcp('nocreate').NumWorkers;
-parfor i=1:poolsize
+poolsize = h.NumWorkers;
+parfor i=1:12
     if libisloaded("model")
         unloadlibrary("model")
     end
@@ -76,7 +77,7 @@ end
 %
 p.nb = nb;
 
-simtime = 30*1; %simulation time in half days
+simtime = 730*1; %simulation time in half days
 
 month = 0;
 YEAR = 0;
