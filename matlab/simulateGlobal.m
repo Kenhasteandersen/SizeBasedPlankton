@@ -5,7 +5,11 @@
 %
 % ../Cpp/model.cpp must be compiled locally to create model.so
 %
-function sim = simulateGlobal(p)
+% Input:
+%  p: parameter structure from parametersGlobal
+%  sim: (optional) simulation to use for initial conditions
+%
+function sim = simulateGlobal(p, sim)
 
 % Load paths for switching TM
 loadPath = '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
@@ -65,35 +69,32 @@ YEAR = 0;
 mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
 mon2 = [31 28 31 30 31 30 31 31 30 31 30 31]*2;
 ticks = 1+2*cumsum(mon);
-
-%if no initial conditions available:
-%N = zeros(nx,ny,nz) + p.N0;
-DOC = zeros(nx,ny,nz) + p.DOC0;
-% Load initial cond.
-load('../Data/N_oceandata.mat')
-
-B = zeros(nx,ny,nz,p.n)+0.1; %biomass
-for i = 1:p.n
-    B(:,:,1:5,i) = B(:,:,1:5,i)+p.B0(i);
+%
+% Initial conditions:
+%
+if (exist('sim'))
+    disp('Starting from previous simulation.');
+    N = double(sim.N(:,end));
+    DOC = double(sim.DOC(:,end));
+    Bmat = double(squeeze(sim.B(:,:,end)));
+else
+    load('../Data/N_oceandata.mat')
+    DOC = zeros(nx,ny,nz) + p.DOC0;
+    B = zeros(nx,ny,nz,p.n)+0.1; %biomass
+    for i = 1:p.n
+        B(:,:,1:5,i) = B(:,:,1:5,i)+p.B0(i);
+    end
+    % Convert from grid form to matrix form
+    N   = gridToMatrix(N, [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
+    DOC = gridToMatrix(DOC, [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
+    Bmat = zeros(nb,p.n);
+    for i = 1:p.n
+        Bmat(:,i) = gridToMatrix(B(:,:,:,i), [], ...
+            '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
+    end
 end
-
-% Convert from grid form to matrix form
-N   = gridToMatrix(N, [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
-DOC = gridToMatrix(DOC, [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
-
-Bmat = zeros(nb,p.n);
-for i = 1:p.n
-    Bmat(:,i) = gridToMatrix(B(:,:,:,i), [], ...
-        '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
-end
-
-% Matrices for saving the solution:
-nSave = floor(p.tEnd/p.tSave);
-Nm = single(zeros(nb,nSave));
-DOCm = single(zeros(nb,nSave));
-Bmatm= single(zeros(nb,p.n,nSave));
-
-%% Load environmental variables
+%
+% Load environmental variables
 %choose which temperature to use.
 
 load('../TMs/MITgcm/BiogeochemData/Theta_bc.mat')
@@ -107,7 +108,13 @@ Tmat = zeros(nb,12);
 for i = 1:12
     Tmat(:,i) = gridToMatrix(Tbc(:,:,:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
 end
-
+%
+% Matrices for saving the solution:
+%
+nSave = floor(p.tEnd/p.tSave);
+Nm = single(zeros(nb,nSave));
+DOCm = single(zeros(nb,nSave));
+Bmatm= single(zeros(nb,p.n,nSave));
 %%
 % Run transport matrix simulation
 %
@@ -199,15 +206,8 @@ for i=1:simtime
         DOCm(:,iSave) = (DOCm(:,iSave)*(TIMESTEP-1) + single(DOC))/TIMESTEP;
         Bmatm(:,:,iSave)= (Bmatm(:,:,iSave)*(TIMESTEP-1) + single(Bmat))/TIMESTEP;
         
-        fprintf('t = %u days.\n',i/2)
+        fprintf('t = %u days.\n',floor(i/2))
     end
-    %
-    % Visual output:
-    %
-    if mod(i,30) == 0
-        
-    end
-    
 end
 
 fprintf('Solving time: %4.1f hours\n',toc/3600);
