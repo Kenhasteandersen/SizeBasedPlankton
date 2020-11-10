@@ -9,7 +9,7 @@
 %  p: parameter structure from parametersGlobal
 %  sim: (optional) simulation to use for initial conditions
 %
-function sim = simulateGlobal(p, sim)
+function sim = simulateGlobal(p, sim) % if no initial conditions available: simulateGlobal(p)
 
 % Load paths for switching TM
 loadPath = '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
@@ -72,7 +72,8 @@ ticks = 1+2*cumsum(mon);
 %
 % Initial conditions:
 %
-if (exist('sim'))
+
+if (nargin==2)
     disp('Starting from previous simulation.');
     N = double(sim.N(:,end));
     DOC = double(sim.DOC(:,end));
@@ -154,20 +155,21 @@ for i=1:simtime
     %
     % Calculate light:
     %
-    p.i = i/2;   %set time of year [days] (for light)
-    for j=1:length(lyr_n)
-        p.LYR = lyr_ind(j):lyr_end(j);        %current layer indices
-        p.phi = Ybox(p.LYR);              %set latitude
-        p.I0 = daily_insolation(0,p.phi,p.i,1);  %set light
-        p.L(p.LYR) =  p.EinConv*p.PARfrac*p.I0*exp(-p.kw*z(j)); % Light w. latitude
-    end
-    p.L(p.L<1)=0;
+%     p.i = i/2;   %set time of year [days] (for light)
+%     for j=1:length(lyr_n)
+%         p.LYR = lyr_ind(j):lyr_end(j);        %current layer indices
+%         p.phi = Ybox(p.LYR);              %set latitude
+%         p.I0 = daily_insolation(0,p.phi,p.i,1);  %set light
+%         p.L(p.LYR) =  p.EinConv*p.PARfrac*p.I0*exp(-p.kw*z(j)); % Light w. latitude
+%     end
+%     p.L(p.L<1)=0;
     %%
     % Run Euler time step for half a day:
     %
+    %L = p.L(:,i);
     parfor k = 1:nb
         u = calllib('model','simulateEuler',[N(k);DOC(k);Bmat(k,:)'] ,...
-            p.L(k), p.T(k),0,0, p.dt, 0.5);
+            p.L(k,i), p.T(k),0,0, p.dt, 0.5);
         %     if any(isnan(dudtTmp))
         %         warning('NaNs after running current grid box');
         %         keyboard
