@@ -67,7 +67,6 @@ iSave = 0;
 YEAR = 0;
 
 mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
-mon2 = [31 28 31 30 31 30 31 31 30 31 30 31]*2;
 ticks = 1+2*cumsum(mon);
 %
 % Initial conditions:
@@ -99,10 +98,6 @@ end
 %choose which temperature to use.
 
 load('../TMs/MITgcm/BiogeochemData/Theta_bc.mat')
-% GCM
-% for i = 1:12
-% TmatGCM(:,i) = gridToMatrix(Tgcm(:,:,:,i), [], '../bin/MITgcm_ECCO/Matrix1/Data/boxes.mat', '../bin/MITgcm_ECCO/grid.mat');
-% end
 
 %Biochemical temperature
 Tmat = zeros(nb,12);
@@ -112,10 +107,11 @@ end
 %
 % Matrices for saving the solution:
 %
-nSave = floor(p.tEnd/p.tSave);
+nSave = floor(p.tEnd/p.tSave) + sign(mod(p.tEnd,p.tSave));
 Nm = single(zeros(nb,nSave));
 DOCm = single(zeros(nb,nSave));
 Bmatm= single(zeros(nb,p.n,nSave));
+tSave = [];
 %%
 % Run transport matrix simulation
 %
@@ -150,33 +146,16 @@ for i=1:simtime
         Aimp = Aimp^(36);
         
         % Set monthly mean temperature
-        p.T = Tmat(:,month);
+        T = Tmat(:,month);
     end
-    %
-    % Calculate light:
-    %
-%     p.i = i/2;   %set time of year [days] (for light)
-%     for j=1:length(lyr_n)
-%         p.LYR = lyr_ind(j):lyr_end(j);        %current layer indices
-%         p.phi = Ybox(p.LYR);              %set latitude
-%         p.I0 = daily_insolation(0,p.phi,p.i,1);  %set light
-%         p.L(p.LYR) =  p.EinConv*p.PARfrac*p.I0*exp(-p.kw*z(j)); % Light w. latitude
-%     end
-%     p.L(p.L<1)=0;
     %%
     % Run Euler time step for half a day:
     %
-    %L = p.L(:,i);
+    L = p.L(:,i);
+    dt = p.dt;
     parfor k = 1:nb
-        u = calllib('model','simulateEuler',[N(k);DOC(k);Bmat(k,:)'] ,...
-            p.L(k,i), p.T(k),0,0, p.dt, 0.5);
-        %     if any(isnan(dudtTmp))
-        %         warning('NaNs after running current grid box');
-        %         keyboard
-        %     end
-        N(k) = u(1);
-        DOC(k) = u(2);
-        Bmat(k,:) = u(3:end)';
+        calllib('model','simulateEuler',[N(k); DOC(k); Bmat(k,:)'] ,...
+            L(k), T(k),0,0, dt, 0.5);
     end
     if any(isnan([N;DOC;Bmat(:)]))
         warning('NaNs after running current grid box');
@@ -202,22 +181,24 @@ for i=1:simtime
     %%
     % Save timeseries
     %
-    if (mod(i/2,p.tSave) < mod((i-1)/2,p.tSave))
+    if ((mod(i/2,p.tSave) < mod((i-1)/2,p.tSave)) || (i==simtime))
         iSave = iSave + 1;
         Nm(:,iSave) = (Nm(:,iSave)*(TIMESTEP-1) + single(N))/TIMESTEP;
         DOCm(:,iSave) = (DOCm(:,iSave)*(TIMESTEP-1) + single(DOC))/TIMESTEP;
         Bmatm(:,:,iSave)= (Bmatm(:,:,iSave)*(TIMESTEP-1) + single(Bmat))/TIMESTEP;
+        tSave = [tSave, i*0.5];
         
         fprintf('t = %u days.\n',floor(i/2))
     end
 end
-
-fprintf('Solving time: %4.1f hours\n',toc/3600);
+time = toc;
+fprintf('Solving time: %2u:%02u:%02u\n', ...
+    [floor(time/3600), mod(floor(time/60),60), floor(mod(time,60))]);
 %
 % Put results into sim structure:
 %
 sim.N = Nm;
 sim.DOC = DOCm;
 sim.B = Bmatm;
-sim.t = round(p.tSave:p.tSave:iSave*p.tSave); % days where solution was saved
+sim.t = tSave; % days where solution was saved
 sim.p = p;
