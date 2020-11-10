@@ -116,6 +116,7 @@ tSave = [];
 % Run transport matrix simulation
 %
 elapsed_time = zeros(1,simtime);
+disp('Starting simulation')
 tic
 for i=1:simtime
     telapsed = tic;
@@ -151,20 +152,24 @@ for i=1:simtime
     %%
     % Run Euler time step for half a day:
     %
-    L = p.L(:,i);
+    L = p.L(:,mod(i,365)+1);
     dt = p.dt;
     parfor k = 1:nb
-        calllib('model','simulateEuler',[N(k); DOC(k); Bmat(k,:)'] ,...
+        u = [N(k); DOC(k); Bmat(k,:)'];
+        u = calllib('model','simulateEuler', u, ...
             L(k), T(k),0,0, dt, 0.5);
+        N(k) = u(1);
+        DOC(k) = u(2);
+        Bmat(k,:) = u(3:end)';
     end
     if any(isnan([N;DOC;Bmat(:)]))
         warning('NaNs after running current grid box');
         keyboard
     end
     % Remove small concentrations
-    N(N<1E-6) = 0;
-    DOC(DOC<1E-6) = 0;
-    Bmat(Bmat<1E-6) = 0;
+    %N(N<1E-6) = 0;
+    %DOC(DOC<1E-6) = 0;
+    %Bmat(Bmat<1E-6) = 0;
     
     TIMESTEP = TIMESTEP+1;
     %
