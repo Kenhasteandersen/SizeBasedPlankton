@@ -5,3 +5,4 @@ sim = simulateGlobal(p,sim);
 
 close all
 plotGlobal(sim);
+%gifGlobal(sim);

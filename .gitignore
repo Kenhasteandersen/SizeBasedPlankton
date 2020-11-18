@@ -3,3 +3,4 @@
 TMs/MITgcm
 Cpp/model.so
 Data/global_results
+*.gif
