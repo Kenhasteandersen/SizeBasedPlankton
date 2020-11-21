@@ -388,6 +388,7 @@ extern "C" void simulateEuler(double* u,
     for (int j=0; j<(p.n+2); j++)
       u[j] += dudt[j]*(*dt);
   }  
+  free(dudt);
 }
 
 /* ===============================================================
@@ -627,7 +628,7 @@ extern "C" void simulateWaterColumn(const double* L0, const double* T,
                    &u[(*nGrid)*(p.n+2)*(i-1)+idxB+k],
                    cprime, sprime, &u[(*nGrid)*(p.n+2)*i+idxB+k]);
   }  
-  
+  free(dudt);
 }
 
 
