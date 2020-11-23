@@ -385,6 +385,13 @@ extern "C" void simulateEuler(double* u,
   for (int i=1; i<(*tEnd)/(*dt); i++) {
     // Calc reaction:
     calcRates(*T, *L, u, dudt, *dt);
+    // Diffusion: **SHOULD BE REMOVED**
+    dudt[idxN]     += (*d)*((*N0)-u[idxN]);
+    dudt[idxDOC]   += (*d)*(0-u[idxDOC]);
+    
+    for (int i=0; i<p.n; i++)
+      dudt[idxB+i] += (*d)*(0-u[idxB+i]);
+    // Euler time step:
     for (int j=0; j<(p.n+2); j++)
       u[j] += dudt[j]*(*dt);
   }  

@@ -3,36 +3,44 @@ function plotGlobalSimple(sim, iTime)
 if (nargin()==1)
     iTime = length(sim.t);
 end
-
+%
 % Load grid:
+%
 load('../TMs/MITgcm/grid.mat');
 x = [x-x(1) ;360]; % adjust x coordinates to map plot
-%%
+%
 % Prepare timestep:
 %
 N(:,:,:) = matrixToGrid(sim.N(:,iTime), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
 DOC(:,:,:) = double(matrixToGrid(sim.DOC(:,iTime), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
 B(:,:,:) = double(matrixToGrid(sum(sim.B(:,:,iTime),2), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
-
-%%
+%
 % Do the plots:
-
+%
 clf
 set(gcf,'color','w');
-
 
 % DOC
 %text(0, 1, labels(i),'Units','normalized')
 subplot(3,1,1)
-panelGlobal(x,y,DOC(:,:,1),'DOC');
+%panelGlobal(x,y,DOC(:,:,1),'DOC');
+surface(x(1:128),y,squeeze(DOC(:,:,1))');
+colorbar
+shading flat
 
 % Nitrogen
 subplot(3,1,2)
-c = panelGlobal(x,y,N(:,:,1),'N');
-c.Label.String  = 'Concentration [\mug N l^{-1}]';
+%c = panelGlobal(x,y,N(:,:,1),'N');
+%c.Label.String  = 'Concentration [\mug N l^{-1}]';
 box off
 %text(0, 1, labels(i),'Units','normalized')
+surface(x(1:128),y,squeeze(N(:,:,1))');
+colorbar
+shading flat
 
 % Plankton
 subplot(3,1,3)
-panelGlobal(x,y,B(:,:,1),'Plankton');
+%panelGlobal(x,y,B(:,:,1),'Plankton');
+surface(x(1:128),y,squeeze(B(:,:,1))');
+colorbar
+shading flat

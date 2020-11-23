@@ -9,6 +9,8 @@ p = parameters(n);
 p.tEnd = 365; % In days
 p.tSave = 365/12; % How often to save results (monthly)
 p.dt = 0.1; % For Euler time stepping
+p.bParallel = true;
+p.bTransport = true;
 
 % Light environment (??):
 EinConv = 4.57; % conversion factor from W m^-2 to \mu mol s^-1 m^-2 (Thimijan & Heins 1983)

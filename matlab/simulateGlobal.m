@@ -33,30 +33,71 @@ lyr_end = cumsum(lyr_n);
 %
 % Load library:
 %
-%if bParallel
-if isempty(gcp('nocreate'))
-    parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
-end
-
-h = gcp('nocreate');
-poolsize = h.NumWorkers; 
-parfor i=1:poolsize
+if p.bParallel
+    if isempty(gcp('nocreate'))
+        parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
+    end
+    
+    h = gcp('nocreate');
+    poolsize = h.NumWorkers;
+    parfor i=1:poolsize
+        if libisloaded("model")
+            unloadlibrary("model")
+        end
+        loadlibrary('../Cpp/model.so','../Cpp/model.h')
+    end
+    %
+    % Set parameters:
+    %
+    parfor i=1:poolsize
+        calllib('model','setParameters', ...
+            int32(p.n), ...
+            double(p.m), ...
+            double(p.rhoCN), ...
+            double(p.epsilonL), ...
+            double(p.epsilonF), ...
+            double(p.ANm), ...
+            double(p.ALm), ...
+            double(p.AFm), ...
+            double(p.Jmax), ...
+            double(p.JFmaxm), ...
+            double(p.Jresp), ...
+            double(p.Jloss_passive_m), ...
+            p.theta, ...
+            double(p.mort), ...
+            double(p.mort2), ...
+            double(p.mortHTL*p.mortHTLm), ...
+            double(p.remin), ...
+            double(p.remin2), ...
+            double(p.cLeakage))
+    end
+else
     if libisloaded("model")
         unloadlibrary("model")
-    end
-    loadlibrary('../Cpp/model.so','../Cpp/model.h')
-end
-%
-% Set parameters:
-%
-parfor i=1:poolsize
+        end
+        loadlibrary('../Cpp/model.so','../Cpp/model.h')
     calllib('model','setParameters', ...
-        p.n, p.m, p.rhoCN, p.epsilonL, p.epsilonF, ...
-        p.ANm, p.ALm, p.AFm, ...
-        p.Jmax, p.JFmaxm, p.Jresp, p.Jloss_passive_m, ...
-        p.theta, p.mort, p.mort2, p.mortHTL*p.mortHTLm, ...
-        p.remin, p.remin2, p.cLeakage)
+        int32(p.n), ...
+        double(p.m), ...
+        double(p.rhoCN), ...
+        double(p.epsilonL), ...
+        double(p.epsilonF), ...
+        double(p.ANm), ...
+        double(p.ALm), ...
+        double(p.AFm), ...
+        double(p.Jmax), ...
+        double(p.JFmaxm), ...
+        double(p.Jresp), ...
+        double(p.Jloss_passive_m), ...
+        p.theta, ...
+        double(p.mort), ...
+        double(p.mort2), ...
+        double(p.mortHTL*p.mortHTLm), ...
+        double(p.remin), ...
+        double(p.remin2), ...
+        double(p.cLeakage))
 end
+
 %%
 % Initialize run:
 %
@@ -79,10 +120,11 @@ if (nargin==2)
     Bmat = double(squeeze(sim.B(:,:,end)));
 else
     load('../Data/N_oceandata.mat')
+    %N = zeros(nx,ny,nz) + p.N0; % TESTING
     DOC = zeros(nx,ny,nz) + p.DOC0;
-    B = zeros(nx,ny,nz,p.n)+0.1; %biomass
+    B = zeros(nx,ny,nz,p.n); %biomass
     for i = 1:p.n
-        B(:,:,1:5,i) = B(:,:,1:5,i)+p.B0(i);
+        B(:,:,1:2,i) = B(:,:,1:2,i)+p.B0(i);
     end
     % Convert from grid form to matrix form
     N   = gridToMatrix(N, [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
@@ -152,15 +194,25 @@ for i=1:simtime
     %%
     % Run Euler time step for half a day:
     %
-    L = p.L(:,mod(i,365)+1);
+    L = p.L(:,mod(i,365*2)+1);
     dt = p.dt;
-    parfor k = 1:nb
-        u = [N(k); DOC(k); Bmat(k,:)'];
-        u = calllib('model','simulateEuler', u, ...
-            L(k), T(k),0,0, dt, 0.5);
-        N(k) = u(1);
-        DOC(k) = u(2);
-        Bmat(k,:) = u(3:end)';
+    if p.bParallel
+        parfor k = 1:nb
+            u = [N(k); DOC(k); Bmat(k,:)'];
+            u = calllib('model','simulateEuler', u, ...
+                L(k), T(k),0,0, dt, 0.5);            %    L(k), 10., 0.1, 150., dt, 0.5);
+            N(k) = max(0,u(1));
+            DOC(k) = max(0,u(2));
+            Bmat(k,:) = max(0,u(3:end))';
+        end
+    else
+        for k = 1:nb
+            u = [N(k); DOC(k); Bmat(k,:)'];
+            u = calllib('model','simulateEuler', u, 60., 10.,0.1,150, dt, 0.5);
+            N(k) = u(1);
+            DOC(k) = u(2);
+            Bmat(k,:) = u(3:end)';
+        end
     end
     if any(isnan([N;DOC;Bmat(:)]))
         warning('NaNs after running current grid box');
@@ -175,22 +227,23 @@ for i=1:simtime
     %
     % Transport
     %
-    N   = Aimp * ( Aexp * N);
-    DOC = Aimp * ( Aexp  * DOC);
-    
-    for k = 1:size(Bmat,2)
-        Bmat(:,k) =  Aimp * (Aexp * Bmat(:,k));
+    if p.bTransport
+        N   = Aimp * ( Aexp * N);
+        DOC = Aimp * ( Aexp  * DOC);
+        
+        for k = 1:size(Bmat,2)
+            Bmat(:,k) =  Aimp * (Aexp * Bmat(:,k));
+        end
     end
-    
     elapsed_time(i) = toc(telapsed);
     %%
     % Save timeseries
     %
     if ((mod(i/2,p.tSave) < mod((i-1)/2,p.tSave)) || (i==simtime))
         iSave = iSave + 1;
-        Nm(:,iSave) = (Nm(:,iSave)*(TIMESTEP-1) + single(N))/TIMESTEP;
-        DOCm(:,iSave) = (DOCm(:,iSave)*(TIMESTEP-1) + single(DOC))/TIMESTEP;
-        Bmatm(:,:,iSave)= (Bmatm(:,:,iSave)*(TIMESTEP-1) + single(Bmat))/TIMESTEP;
+        Nm(:,iSave) = single(N);%(Nm(:,iSave)*(TIMESTEP-1) + single(N))/TIMESTEP;
+        DOCm(:,iSave) = single(DOC);%(DOCm(:,iSave)*(TIMESTEP-1) + single(DOC))/TIMESTEP;
+        Bmatm(:,:,iSave)= single(Bmat);%(Bmatm(:,:,iSave)*(TIMESTEP-1) + single(Bmat))/TIMESTEP;
         tSave = [tSave, i*0.5];
         
         fprintf('t = %u days.\n',floor(i/2))

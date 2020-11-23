@@ -1,3 +1,6 @@
+%
+% Make a panel of a global field given in gridded coordinates:
+%
 function cbar = panelGlobal(x,y,z, sTitle)
 
 ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', ...
