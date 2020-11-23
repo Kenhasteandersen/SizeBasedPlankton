@@ -148,6 +148,8 @@ nSave = floor(p.tEnd/p.tSave) + sign(mod(p.tEnd,p.tSave));
 sim.N = single(zeros(nb,nSave));
 sim.DOC = single(zeros(nb,nSave));
 sim.B = single(zeros(nb,p.n,nSave));
+sim.L = single(zeros(nb,nSave));
+sim.T = single(zeros(nb,nSave));
 tSave = [];
 %%
 % Run transport matrix simulation
@@ -231,6 +233,8 @@ for i=1:simtime
         sim.N(:,iSave) = single(N);
         sim.DOC(:,iSave) = single(DOC);
         sim.B(:,:,iSave)= single(Bmat);
+        sim.L(:,iSave) = L;
+        sim.T(:,iSave) = T;
         tSave = [tSave, i*0.5];
         
         fprintf('t = %u days.\n',floor(i/2))
