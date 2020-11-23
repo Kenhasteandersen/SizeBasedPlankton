@@ -4,5 +4,11 @@ load('../TMs/globalInit.mat'); % Load decent initial conditions
 sim = simulateGlobal(p,sim);
 
 close all
-plotGlobal(sim);
+figure
+plotGlobalSimple(sim);
+
+figure
+plotGlobalWatercolumnTime(60,0,sim);
+
+%plotGlobal(sim);
 %gifGlobal(sim);

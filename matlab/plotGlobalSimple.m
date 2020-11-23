@@ -3,6 +3,8 @@ function plotGlobalSimple(sim, iTime)
 if (nargin()==1)
     iTime = length(sim.t);
 end
+
+sType = 'fast';
 %
 % Load grid:
 %
@@ -23,24 +25,14 @@ set(gcf,'color','w');
 % DOC
 %text(0, 1, labels(i),'Units','normalized')
 subplot(3,1,1)
-%panelGlobal(x,y,DOC(:,:,1),'DOC');
-surface(x(1:128),y,squeeze(DOC(:,:,1))');
-colorbar
-shading flat
+panelGlobal(x,y,DOC(:,:,1),'DOC',sType);
 
 % Nitrogen
 subplot(3,1,2)
-%c = panelGlobal(x,y,N(:,:,1),'N');
-%c.Label.String  = 'Concentration [\mug N l^{-1}]';
-box off
-%text(0, 1, labels(i),'Units','normalized')
-surface(x(1:128),y,squeeze(N(:,:,1))');
-colorbar
-shading flat
+c = panelGlobal(x,y,N(:,:,1),'N',sType);
+c.Label.String  = 'Concentration [\mug N l^{-1}]';
 
 % Plankton
 subplot(3,1,3)
-%panelGlobal(x,y,B(:,:,1),'Plankton');
-surface(x(1:128),y,squeeze(B(:,:,1))');
-colorbar
-shading flat
+panelGlobal(x,y,log10(B(:,:,1)),'Plankton (log10)',sType);
+caxis([1 3])

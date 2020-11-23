@@ -112,7 +112,6 @@ ticks = 1+2*cumsum(mon);
 %
 % Initial conditions:
 %
-
 if (nargin==2)
     disp('Starting from previous simulation.');
     N = double(sim.N(:,end));
@@ -120,7 +119,6 @@ if (nargin==2)
     Bmat = double(squeeze(sim.B(:,:,end)));
 else
     load('../Data/N_oceandata.mat')
-    %N = zeros(nx,ny,nz) + p.N0; % TESTING
     DOC = zeros(nx,ny,nz) + p.DOC0;
     B = zeros(nx,ny,nz,p.n); %biomass
     for i = 1:p.n
@@ -136,12 +134,9 @@ else
     end
 end
 %
-% Load environmental variables
-%choose which temperature to use.
-
+% Load temperature:
+%
 load('../TMs/MITgcm/BiogeochemData/Theta_bc.mat')
-
-%Biochemical temperature
 Tmat = zeros(nb,12);
 for i = 1:12
     Tmat(:,i) = gridToMatrix(Tbc(:,:,:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
@@ -150,9 +145,9 @@ end
 % Matrices for saving the solution:
 %
 nSave = floor(p.tEnd/p.tSave) + sign(mod(p.tEnd,p.tSave));
-Nm = single(zeros(nb,nSave));
-DOCm = single(zeros(nb,nSave));
-Bmatm= single(zeros(nb,p.n,nSave));
+sim.N = single(zeros(nb,nSave));
+sim.DOC = single(zeros(nb,nSave));
+sim.B = single(zeros(nb,p.n,nSave));
 tSave = [];
 %%
 % Run transport matrix simulation
@@ -167,7 +162,6 @@ for i=1:simtime
     %
     if ismember(i, ticks+730*YEAR)%
         month = month + 1;
-        TIMESTEP = 0;
         % Reset to Jan
         if month > 12
             month = 1;
@@ -199,8 +193,7 @@ for i=1:simtime
     if p.bParallel
         parfor k = 1:nb
             u = [N(k); DOC(k); Bmat(k,:)'];
-            u = calllib('model','simulateEuler', u, ...
-                L(k), T(k),0,0, dt, 0.5);            %    L(k), 10., 0.1, 150., dt, 0.5);
+            u = calllib('model','simulateEuler', u, L(k), T(k),0,0, dt, 0.5);
             N(k) = max(0,u(1));
             DOC(k) = max(0,u(2));
             Bmat(k,:) = max(0,u(3:end))';
@@ -208,7 +201,7 @@ for i=1:simtime
     else
         for k = 1:nb
             u = [N(k); DOC(k); Bmat(k,:)'];
-            u = calllib('model','simulateEuler', u, 60., 10.,0.1,150, dt, 0.5);
+            u = calllib('model','simulateEuler', u, L(k), T(k),0,0, dt, 0.5);
             N(k) = u(1);
             DOC(k) = u(2);
             Bmat(k,:) = u(3:end)';
@@ -218,12 +211,6 @@ for i=1:simtime
         warning('NaNs after running current grid box');
         keyboard
     end
-    % Remove small concentrations
-    %N(N<1E-6) = 0;
-    %DOC(DOC<1E-6) = 0;
-    %Bmat(Bmat<1E-6) = 0;
-    
-    TIMESTEP = TIMESTEP+1;
     %
     % Transport
     %
@@ -241,9 +228,9 @@ for i=1:simtime
     %
     if ((mod(i/2,p.tSave) < mod((i-1)/2,p.tSave)) || (i==simtime))
         iSave = iSave + 1;
-        Nm(:,iSave) = single(N);%(Nm(:,iSave)*(TIMESTEP-1) + single(N))/TIMESTEP;
-        DOCm(:,iSave) = single(DOC);%(DOCm(:,iSave)*(TIMESTEP-1) + single(DOC))/TIMESTEP;
-        Bmatm(:,:,iSave)= single(Bmat);%(Bmatm(:,:,iSave)*(TIMESTEP-1) + single(Bmat))/TIMESTEP;
+        sim.N(:,iSave) = single(N);
+        sim.DOC(:,iSave) = single(DOC);
+        sim.B(:,:,iSave)= single(Bmat);
         tSave = [tSave, i*0.5];
         
         fprintf('t = %u days.\n',floor(i/2))
@@ -255,8 +242,5 @@ fprintf('Solving time: %2u:%02u:%02u\n', ...
 %
 % Put results into sim structure:
 %
-sim.N = Nm;
-sim.DOC = DOCm;
-sim.B = Bmatm;
 sim.t = tSave; % days where solution was saved
 sim.p = p;
