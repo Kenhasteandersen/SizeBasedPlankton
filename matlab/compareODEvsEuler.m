@@ -1,9 +1,10 @@
 %
 % Compare Euler and ode45 integation:
 %
-function compareODEvsEuler(p, dt)
+function [simODE45 simEuler] = compareODEvsEuler(p, dt)
 %p = parametersChemostat();
-p.d = 0;
+%unloadlibrary("model")
+p.d = 0.1;
 
 tEnd = 365;
 
@@ -14,6 +15,12 @@ toc
 tic
 simEuler = simulateEuler(p, [p.N0, p.DOC0, p.B0], dt, tEnd);
 toc
+
+%u = [p.N0, p.DOC0, p.B0];
+%for i = 1:365
+%    simEuler = simulateEuler(p, u, dt, 1);
+%    u = [simEuler.Ntime simEuler.DOCtime simEuler.Btime];
+%end
 
 clf
 loglog(p.m, simODE45.Btime(end,:))
