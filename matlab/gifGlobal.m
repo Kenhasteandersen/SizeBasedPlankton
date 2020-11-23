@@ -18,7 +18,8 @@ mB = mB(:,end-11:end);
 
 % Prepare all timesteps:
 %
-for i = 1:length(sim.t)
+t = sim.t(max(1,end-11):end);
+for i = 1:length(t)
     Nplot(:,:,:,i) = matrixToGrid(sim.N(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
     DOCplot(:,:,:,i) = double(matrixToGrid(sim.DOC(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
     pBplot(:,:,:,i) = double(matrixToGrid(pB(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));

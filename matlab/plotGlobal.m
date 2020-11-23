@@ -64,7 +64,7 @@ end
 
 % Plankton
 for ii = 1:n
- h = figure('Position', [500, 500, 700, 400]);
+    figure('Position', [500, 500, 700, 400]);
     set(gcf,'color','w');    
      ax = axesm ( 'Origin',  [0 -90 0], 'MapProjection','eckert4', ...
          'Grid','on', 'Frame', 'on','ScaleFactor', 1, 'labelrotation',...
