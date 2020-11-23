@@ -157,6 +157,7 @@ tSave = [];
 elapsed_time = zeros(1,simtime);
 disp('Starting simulation')
 tic
+dudt = zeros(1,2+p.n);
 for i=1:simtime
     telapsed = tic;
     %
@@ -195,7 +196,7 @@ for i=1:simtime
     if p.bParallel
         parfor k = 1:nb
             u = [N(k); DOC(k); Bmat(k,:)'];
-            u = calllib('model','simulateEuler', u, L(k), T(k),0,0, dt, 0.5);
+            u = calllib('model','simulateEuler', u, dudt, L(k), T(k),dt, 0.5);
             N(k) = max(0,u(1));
             DOC(k) = max(0,u(2));
             Bmat(k,:) = max(0,u(3:end))';
@@ -203,7 +204,7 @@ for i=1:simtime
     else
         for k = 1:nb
             u = [N(k); DOC(k); Bmat(k,:)'];
-            u = calllib('model','simulateEuler', u, L(k), T(k),0,0, dt, 0.5);
+            u = calllib('model','simulateEuler', u, dudt, L(k), T(k), dt, 0.5);
             N(k) = u(1);
             DOC(k) = u(2);
             Bmat(k,:) = u(3:end)';

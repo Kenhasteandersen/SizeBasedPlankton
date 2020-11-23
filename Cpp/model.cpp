@@ -372,13 +372,9 @@ extern "C" void derivativeChemostat(const double* L, const double* T,
 /* ===============================================================
  * Euler integration:
  */
-extern "C" void simulateEuler(double* u, 
+extern "C" void simulateEuler(double* u, double* dudt,
                              const double* L, const double* T, 
-                             const double* d, const double* N0,
                              const double* dt, const double* tEnd) {
-  
-  double *dudt;
-  dudt = (double *) calloc(p.n+2, sizeof(double *));
   /*
    * Iterate
    */
@@ -386,16 +382,15 @@ extern "C" void simulateEuler(double* u,
     // Calc reaction:
     calcRates(*T, *L, u, dudt, *dt);
     // Diffusion: **SHOULD BE REMOVED**
-    dudt[idxN]     += (*d)*((*N0)-u[idxN]);
-    dudt[idxDOC]   += (*d)*(0-u[idxDOC]);
+    //dudt[idxN]     += (*d)*((*N0)-u[idxN]);
+    //dudt[idxDOC]   += (*d)*(0-u[idxDOC]);
     
-    for (int i=0; i<p.n; i++)
-      dudt[idxB+i] += (*d)*(0-u[idxB+i]);
+    //for (int i=0; i<p.n; i++)
+    //  dudt[idxB+i] += (*d)*(0-u[idxB+i]);
     // Euler time step:
     for (int j=0; j<(p.n+2); j++)
       u[j] += dudt[j]*(*dt);
   }  
-  free(dudt);
 }
 
 /* ===============================================================

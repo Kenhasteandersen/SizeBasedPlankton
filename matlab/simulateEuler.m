@@ -34,10 +34,10 @@ calllib('model','setParameters', ...
 %%
 % Simulate:
 %
-%y = [0.1*p.N0, p.DOC0, p.B0];
 
-y = calllib('model','simulateEuler', y, ...
-    double(p.L), double(p.T), double(p.d), double(p.N0), double(dt), double(tEnd));
+dydt = 0*y;
+y = calllib('model','simulateEuler', y, dydt, ...
+    double(p.L), double(p.T), double(dt), double(tEnd));
 
 %%
 % Extract result:

@@ -4,7 +4,7 @@
 function [simODE45 simEuler] = compareODEvsEuler(p, dt)
 %p = parametersChemostat();
 %unloadlibrary("model")
-p.d = 0.1;
+p.d = 0.0;
 
 tEnd = 365;
 
@@ -13,7 +13,7 @@ simODE45 = simulateChemostat(p, tEnd);
 toc
 
 tic
-simEuler = simulateEuler(p, [p.N0, p.DOC0, p.B0], dt, tEnd);
+simEuler = simulateEuler(p, [0.1*p.N0, p.DOC0, p.B0], dt, tEnd);
 toc
 
 %u = [p.N0, p.DOC0, p.B0];
