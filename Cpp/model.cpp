@@ -394,6 +394,21 @@ extern "C" void simulateEuler(double* u, double* dudt,
 }
 
 /* ===============================================================
+ * Functions:
+ */
+extern "C" void calcCnet(double* Cnet, const double* u, const double* L, const double* T) {
+  double conversion = 365*1e-6*1000; // Convert to gC/yr/m2
+  *Cnet = 0;
+  double* dudt = (double *) calloc((p.n+2), sizeof(double *));
+
+  calcRates(*T, *L, u, dudt, 0);
+
+  for (int i=0; i<p.n; i++) 
+    *Cnet += conversion*max(0, rates.JLreal[i]-0*p.Jresp[i])*B[i]/p.m[i];
+  free(dudt);
+}
+
+/* ===============================================================
  * Stuff for watercolumn model:
  */
 

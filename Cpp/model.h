@@ -25,6 +25,8 @@ void setParameters(
 void derivativeChemostat(const double* L, const double* T, const double* d, const double* N0,
                                    const double* u, double* dudt);
 
+void calcCnet(double* Cnet, const double* B, const double* L, const double* T);
+    
 void simulateEuler(double* u, double* dudt,
                              const double* L, const double* T, 
                              const double* dt, const double* tEnd);
