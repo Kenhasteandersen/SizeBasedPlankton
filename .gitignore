@@ -1,6 +1,10 @@
 *.m~
 *.asv
 TMs/MITgcm
+TMs/MITgcm_ECCO
+matlab/baserunGlobalTEST.m
+matlab/parametersGlobalTEST.m
+matlab/simulateGlobalTEST.m
 Cpp/model.so
 Data/global_results
 *.gif
