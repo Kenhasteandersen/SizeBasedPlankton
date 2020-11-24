@@ -28,19 +28,13 @@ load('../TMs/MITgcm/Matrix5/Data/boxes.mat');
 Ix = speye(nb,nb);
 Aexp = Ix + (12*60*60)*Aexp;
 Aimp = Aimp^(36);
-
-% number of elements in each layer:
-lyr_n = permute(sum(sum(bathy)),[3,1,2]);
-lyr_ind = [1 ; cumsum(lyr_n(1:end-1))+1];
-lyr_end = cumsum(lyr_n);
 %
 % Load library:
 %
 if p.bParallel
     if isempty(gcp('nocreate'))
         parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
-    end
-    
+    end   
     %
     % Set parameters:
     %
