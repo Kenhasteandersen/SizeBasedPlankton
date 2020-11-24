@@ -277,7 +277,7 @@ calcFunctionsWatercolumn = function(sim) {
     prodCgross = prodCgross + 
       conversion * sum(rates[[i]]$JLreal*sim$B[,i,idx]/param$m)/param$epsilonL*dx[i]
     prodCnet = prodCnet + 
-      conversion * sum( (rates[[i]]$JLreal-rates[[i]]$JR)*sim$B[,i,idx]/param$m )*dx[i]
+      conversion * sum( max(0,rates[[i]]$JLreal-rates[[i]]$JR)*sim$B[,i,idx]/param$m )*dx[i]
     #
     # Loss to HTL:
     #

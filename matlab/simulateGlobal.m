@@ -9,6 +9,9 @@
 %  p: parameter structure from parametersGlobal
 %  sim: (optional) simulation to use for initial conditions
 %
+% Output:
+%  sim: structure with simulation results
+%
 function sim = simulateGlobal(p, sim) % if no initial conditions available: simulateGlobal(p)
 
 % Load paths for switching TM
@@ -38,25 +41,17 @@ if p.bParallel
         parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
     end
     
-    h = gcp('nocreate');
-    poolsize = h.NumWorkers;
-    parfor i=1:poolsize
-        if libisloaded("model")
-            unloadlibrary("model")
-        end
-        loadlibrary('../Cpp/model.so','../Cpp/model.h')
-    end
     %
     % Set parameters:
     %
+    h = gcp('nocreate');
+    poolsize = h.NumWorkers;
     parfor i=1:poolsize
+        loadModel;
         setParameters(p);
     end
 else
-    if libisloaded("model")
-        unloadlibrary("model")
-        end
-        loadlibrary('../Cpp/model.so','../Cpp/model.h')
+    loadModel;
     setParameters(p);
 end
 
@@ -112,6 +107,7 @@ sim.DOC = single(zeros(nb,nSave));
 sim.B = single(zeros(nb,p.n,nSave));
 sim.L = single(zeros(nb,nSave));
 sim.T = single(zeros(nb,nSave));
+dudt = zeros(1,2+p.n);
 tSave = [];
 %
 % Run transport matrix simulation
@@ -119,7 +115,6 @@ tSave = [];
 elapsed_time = zeros(1,simtime);
 disp('Starting simulation')
 tic
-dudt = zeros(1,2+p.n);
 for i=1:simtime
     telapsed = tic;
     %

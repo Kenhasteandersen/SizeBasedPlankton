@@ -41,5 +41,5 @@ panelGlobal(x,y,log10(B(:,:,1)),'Plankton (log10)',sType);
 caxis([1 3])
 
 subplot(4,1,4)
-panelGlobal(x,y,log10(Cnet(:,:,1)),'Net primary production (log10)', sType);
+panelGlobal(x,y,log10(Cnet(:,:,1)),'Net primary production TOP LAYER ONLY (log10)', sType);
 caxis([0 2])

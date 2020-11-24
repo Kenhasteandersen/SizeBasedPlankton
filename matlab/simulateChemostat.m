@@ -2,9 +2,7 @@ function sim = simulateChemostat(p, tEnd)
 %
 % Load library:
 %
-if ~libisloaded("model")
-    loadlibrary('../Cpp/model.so','../Cpp/model.h')
-end
+loadModel;
 %
 % Set parameters:
 %
