@@ -34,7 +34,8 @@ Aimp = Aimp^(36);
 if p.bParallel
     if isempty(gcp('nocreate'))
         parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
-    end   
+    end
+   
     %
     % Set parameters:
     %

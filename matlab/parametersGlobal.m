@@ -1,9 +1,18 @@
-function p = parametersGlobal(n)
+function p = parametersGlobal(n, pathTM)
 if (nargin==0)
     n = 10; % Minimal number for correct resolution of the size spectrum
 end
 % Basic model parameters:
 p = parameters(n);
+%
+% Set load paths
+%
+if (nargin==1)
+    p.pathTM = 'sdfsdfsdf';
+end
+
+%p.pathBoxes 0 adasd
+%p.path
 
 % Numerical parameters:
 p.tEnd = 365; % In days
@@ -14,7 +23,7 @@ p.bTransport = true;
 
 % Light environment (??):
 EinConv = 4.57; % conversion factor from W m^-2 to \mu mol s^-1 m^-2 (Thimijan & Heins 1983)
-PARfrac = 0.4; %
+PARfrac = 0.4; % ??
 kw = 0.1; % 0.4 Camila ??
 
 load('../TMs/MITgcm/Matrix5/Data/boxes.mat','Ybox','Zbox');
