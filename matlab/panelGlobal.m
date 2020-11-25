@@ -6,9 +6,12 @@ function cbar = panelGlobal(x,y,z, sTitle, sForm)
 if (nargin==4)
     sForm = 'globe';
 end
+% Adjust to global plot (close gap at lat 0)
+z = [z;z(1,:)];
+x = [x-x(1);360];
 
 if (strcmp(sForm,'fast'))
-    surface(x(1:128),y,squeeze(z)');
+    surface(x,y,squeeze(z)');
     shading flat
     axis tight
 else

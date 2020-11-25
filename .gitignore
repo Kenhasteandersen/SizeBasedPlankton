@@ -8,3 +8,5 @@ matlab/simulateGlobalTEST.m
 Cpp/model.so
 Data/global_results
 *.gif
+matlab/code_interp_N.m
+matlab/woa18_all_n00an01.csv

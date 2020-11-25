@@ -1,11 +1,8 @@
 function plotWCglobal(lat,lon,sim,iTime);
 % lat: South is negative
 % lon: West is negative
-load('../TMs/MITgcm/Matrix5/Data/boxes.mat','Xbox','Ybox','Zbox');
-load('../TMs/MITgcm/grid.mat','z');
-% x(x>180) = x(x>180)-360;
-% [tmp,idxX] = min(abs(lon-x)); 
-% [tmp,idxY] = min(abs(lat-y)); 
+load(p.pathBoxes,'Xbox','Ybox','Zbox');
+
 
 if (nargin()==3)
     iTime = length(sim.t);

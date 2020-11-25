@@ -6,4 +6,7 @@ sim.B = s.B(:,:,end);
 sim.t = 0;
 sim.p = s.p;
 
-save('../TMs/globalInit.mat','sim');
+
+save(sim.p.pathInit,'sim');
+
+    

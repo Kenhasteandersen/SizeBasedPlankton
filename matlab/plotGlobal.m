@@ -6,16 +6,16 @@ end
 
 n = double(sim.p.n);
 % Load grid:
-load('../TMs/MITgcm/grid.mat');
+load(sim.p.pathGrid);
 xp = [x-x(1) ;360]; % adjust x coordinates to map plot
 %%
 % Prepare all timesteps:
 %
 for i = 1:length(sim.t)
-    Nplot(:,:,:,i) = matrixToGrid(sim.N(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
-    DOCplot(:,:,:,i) = double(matrixToGrid(sim.DOC(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
+    Nplot(:,:,:,i) = matrixToGrid(sim.N(:,i), [], sim.p.pathBoxes, sim.p.pathGrid);
+    DOCplot(:,:,:,i) = double(matrixToGrid(sim.DOC(:,i), [], sim.p.pathBoxes, sim.p.pathGrid));
     for j = 1:n
-        Bplot(:,:,:,j,i) = double(matrixToGrid(sim.B(:,j,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
+        Bplot(:,:,:,j,i) = double(matrixToGrid(sim.B(:,j,i), [], sim.p.pathBoxes, sim.p.pathGrid));
     end
 end
 

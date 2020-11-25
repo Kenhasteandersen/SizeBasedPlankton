@@ -1,6 +1,6 @@
 function gifGlobal(sim)
 % Load grid:
-load('../TMs/MITgcm/grid.mat');
+load(sim.p.pathGrid);
 xp = [x-x(1) ;360]; % adjust x coordinates to map plot
 
 labels = {'Jan' 'Feb' 'Mar' 'Apr' 'May' 'Jun' 'Jul' 'Aug' 'Sep' 'Oct' 'Nov' 'Dec'};
@@ -20,11 +20,11 @@ mB = mB(:,end-11:end);
 %
 t = sim.t(max(1,end-11):end);
 for i = 1:length(t)
-    Nplot(:,:,:,i) = matrixToGrid(sim.N(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
-    DOCplot(:,:,:,i) = double(matrixToGrid(sim.DOC(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
-    pBplot(:,:,:,i) = double(matrixToGrid(pB(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
-    nBplot(:,:,:,i) = double(matrixToGrid(nB(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
-    mBplot(:,:,:,i) = double(matrixToGrid(mB(:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
+    Nplot(:,:,:,i) = matrixToGrid(sim.N(:,i), [], sim.p.pathBoxes, sim.p.pathGrid);
+    DOCplot(:,:,:,i) = double(matrixToGrid(sim.DOC(:,i), [], sim.p.pathBoxes, sim.p.pathGrid));
+    pBplot(:,:,:,i) = double(matrixToGrid(pB(:,i), [], sim.p.pathBoxes, sim.p.pathGrid));
+    nBplot(:,:,:,i) = double(matrixToGrid(nB(:,i), [], sim.p.pathBoxes, sim.p.pathGrid));
+    mBplot(:,:,:,i) = double(matrixToGrid(mB(:,i), [], sim.p.pathBoxes, sim.p.pathGrid));
 end
 
 %%

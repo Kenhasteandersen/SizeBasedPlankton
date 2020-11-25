@@ -1,12 +1,9 @@
-function [idx, z] = calcGlobalWatercolumn(lat, lon)
+function [idx, z] = calcGlobalWatercolumn(lat, lon, sim)
 
 % lat: South is negative
 % lon: West is negative
-load('../TMs/MITgcm/Matrix5/Data/boxes.mat','Xbox','Ybox','Zbox');
-load('../TMs/MITgcm/grid.mat','z');
-% x(x>180) = x(x>180)-360;
-% [tmp,idxX] = min(abs(lon-x)); 
-% [tmp,idxY] = min(abs(lat-y)); 
+load(sim.p.pathBoxes,'Xbox','Ybox','Zbox');
+
 
 
 Xbox(Xbox>180) = Xbox(Xbox>180)-360;

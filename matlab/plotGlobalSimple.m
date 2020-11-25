@@ -8,16 +8,16 @@ sType = 'fast';
 %
 % Load grid:
 %
-load('../TMs/MITgcm/grid.mat');
-x = [x-x(1) ;360]; % adjust x coordinates to map plot
+load(sim.p.pathGrid);
 %
 % Prepare timestep:
 %
-N(:,:,:) = matrixToGrid(sim.N(:,iTime), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
-DOC(:,:,:) = double(matrixToGrid(sim.DOC(:,iTime), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
-B(:,:,:) = double(matrixToGrid(sum(sim.B(:,:,iTime),2), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
+N(:,:,:) = matrixToGrid(sim.N(:,iTime), [], sim.p.pathBoxes, sim.p.pathGrid);
+DOC(:,:,:) = double(matrixToGrid(sim.DOC(:,iTime), [], sim.p.pathBoxes, sim.p.pathGrid));
+B(:,:,:) = double(matrixToGrid(sum(sim.B(:,:,iTime),2), [], sim.p.pathBoxes, sim.p.pathGrid));
 C=calcGlobalCnet(sim,iTime);
-Cnet = double(matrixToGrid(C, [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
+Cnet = double(matrixToGrid(C, [], sim.p.pathBoxes, sim.p.pathGrid));
+
 
 %
 % Do the plots:

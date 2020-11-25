@@ -15,14 +15,14 @@
 function sim = simulateGlobal(p, sim) % if no initial conditions available: simulateGlobal(p)
 
 % Load paths for switching TM
-loadPath = '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
-loadPath1 =  '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_';
+% loadPath = '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
+% loadPath1 =  '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_';
 
 %% Load Initial January TM:
-load('../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_01.mat');
-load('../TMs/MITgcm/grid.mat');
-load('../TMs/MITgcm/config_data.mat');
-load('../TMs/MITgcm/Matrix5/Data/boxes.mat');
+load(strcat(p.pathMatrix0, '1.mat'));
+load(p.pathGrid);
+load(p.pathConfigData);
+load(p.pathBoxes);
 
 % Preparing for timestepping. Using 43200 sec timesteps (0.5 days)
 Ix = speye(nb,nb);
@@ -70,29 +70,39 @@ if (nargin==2)
     DOC = double(sim.DOC(:,end));
     Bmat = double(squeeze(sim.B(:,:,end)));
 else
-    load('../Data/N_oceandata.mat')
+    load(p.pathN0)
     DOC = zeros(nx,ny,nz) + p.DOC0;
     B = zeros(nx,ny,nz,p.n); %biomass
     for i = 1:p.n
         B(:,:,1:2,i) = B(:,:,1:2,i)+p.B0(i);
     end
     % Convert from grid form to matrix form
-    N   = gridToMatrix(N, [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
-    DOC = gridToMatrix(DOC, [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
+    N   = gridToMatrix(N, [], p.pathBoxes, p.pathGrid);
+    DOC = gridToMatrix(DOC, [], p.pathBoxes, p.pathGrid);
     Bmat = zeros(nb,p.n);
     for i = 1:p.n
-        Bmat(:,i) = gridToMatrix(B(:,:,:,i), [], ...
-            '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
+        Bmat(:,i) = gridToMatrix(B(:,:,:,i), [], p.pathBoxes, p.pathGrid);
     end
 end
 %
 % Load temperature:
 %
-load('../TMs/MITgcm/BiogeochemData/Theta_bc.mat')
+load(p.pathTemp);
 Tmat = zeros(nb,12);
 for i = 1:12
-    Tmat(:,i) = gridToMatrix(Tbc(:,:,:,i), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat');
+    Tmat(:,i) = gridToMatrix(Tbc(:,:,:,i), [], p.pathBoxes, p.pathGrid);
 end
+
+%
+% Load Light:
+%
+
+L0 = zeros(nb,730);
+for i = 1:730
+    L0(:,i) = p.EinConv*p.PARfrac*daily_insolation(0,Ybox,i/2,1).*exp(-p.kw*Zbox);
+end
+%L(p.L<1) = 0;
+
 %
 % Matrices for saving the solution:
 %
@@ -123,11 +133,11 @@ for i=1:simtime
         end
         % Load TM
         if month < 10
-            load(strcat(loadPath, num2str(month), '.mat'));
-            %disp(strcat(loadPath, num2str(month), '.mat'))
+            load(strcat(p.pathMatrix0, num2str(month), '.mat'));
+            %disp(strcat(p.pathMatrix0, num2str(month), '.mat'))
         else
-            load(strcat(loadPath1, num2str(month), '.mat'));
-            %disp(strcat(loadPath1, num2str(month), '.mat'))
+            load(strcat(p.pathMatrix1, num2str(month), '.mat'));
+            %disp(strcat(p.pathMatrix1, num2str(month), '.mat'))
         end
         
         Aexp=function_convert_TM_positive(Aexp);
@@ -143,7 +153,7 @@ for i=1:simtime
     %
     % Run Euler time step for half a day:
     %
-    L = p.L(:,mod(i,365*2)+1);
+    L = L0(:,mod(i,365*2)+1);
     dt = p.dt;
     if p.bParallel
         parfor k = 1:nb

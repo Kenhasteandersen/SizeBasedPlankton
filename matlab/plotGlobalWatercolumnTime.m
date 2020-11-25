@@ -1,6 +1,6 @@
 function plotGlobalWatercolumnTime(lat,lon,sim)
 
-[idx, z] = calcGlobalWatercolumn(lat,lon);
+[idx, z] = calcGlobalWatercolumn(lat,lon,sim);
 t = sim.t;
 
 

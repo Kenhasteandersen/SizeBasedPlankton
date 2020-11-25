@@ -3,7 +3,7 @@ if (nargin()==3)
     iTime = length(sim.t);
 end
 
-[idx, z] = calcGlobalWatercolumn(lat,lon);
+[idx, z] = calcGlobalWatercolumn(lat,lon, sim);
 
 
 clf
