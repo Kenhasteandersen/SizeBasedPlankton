@@ -10,11 +10,11 @@ p.dt = 0.25;
 sim3 = simulateGlobal(p);
 
 %%
-load('../TMs/MITgcm/grid.mat');
+load(p.pathGrid);
 x = [x-x(1) ;360]; % adjust x coordinates to map plot
-B(:,:,:)  = double(matrixToGrid(sum(sim.B(:,:,end),2), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
-B2(:,:,:) = double(matrixToGrid(sum(sim2.B(:,:,end),2), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
-B3(:,:,:) = double(matrixToGrid(sum(sim3.B(:,:,end),2), [], '../TMs/MITgcm/Matrix5/Data/boxes.mat', '../TMs/MITgcm/grid.mat'));
+B(:,:,:)  = double(matrixToGrid(sum(sim.B(:,:,end),2), [], p.pathBoxes, p.pathGrid));
+B2(:,:,:) = double(matrixToGrid(sum(sim2.B(:,:,end),2), [], p.pathBoxes, p.pathGrid));
+B3(:,:,:) = double(matrixToGrid(sum(sim3.B(:,:,end),2), [], p.pathBoxes, p.pathGrid));
 
 
 clf
