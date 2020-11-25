@@ -1,13 +1,12 @@
 %
 % Make a basic run of the global model
 %
-p = parametersGlobal();
-%p = parametersGlobal(10,2); %MITgcm_ECCO
+p = parametersGlobal(); % Use standard low-res model
+%p = parametersGlobal(10,2); % Use MITgcm_ECCO
 
 load(p.pathInit); % Load decent initial conditions
 p.tSave = 10; % Save every 10th day
 sim = simulateGlobal(p,sim); % Simulate
-
 %
 % Plots:
 %
@@ -20,5 +19,5 @@ plotGlobalWatercolumnTime(60,10,sim);
 %
 % CPU-heavy plots:
 %
-%plotGlobal(sim);
-%gifGlobal(sim);
+% plotGlobal(sim);
+% animateGlobal(sim);

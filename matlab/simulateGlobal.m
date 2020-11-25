@@ -12,9 +12,11 @@
 % Output:
 %  sim: structure with simulation results
 %
-function sim = simulateGlobal(p, sim) % if no initial conditions available: simulateGlobal(p)
+function sim = simulateGlobal(p, sim)
 
-%% Load Initial January TM:
+disp('Preparing simulation')
+
+% Load Initial January TM:
 load(strcat(p.pathMatrix0, '1.mat'));
 load(p.pathGrid);
 load(p.pathConfigData);
