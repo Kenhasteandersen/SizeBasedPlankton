@@ -14,10 +14,6 @@
 %
 function sim = simulateGlobal(p, sim) % if no initial conditions available: simulateGlobal(p)
 
-% Load paths for switching TM
-% loadPath = '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
-% loadPath1 =  '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_';
-
 %% Load Initial January TM:
 load(strcat(p.pathMatrix0, '1.mat'));
 load(p.pathGrid);
@@ -34,8 +30,7 @@ Aimp = Aimp^(36);
 if p.bParallel
     if isempty(gcp('nocreate'))
         parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
-    end
-   
+    end   
     %
     % Set parameters:
     %
@@ -49,7 +44,6 @@ else
     loadModel;
     setParameters(p);
 end
-
 %
 % Initialize run:
 %
@@ -92,17 +86,13 @@ Tmat = zeros(nb,12);
 for i = 1:12
     Tmat(:,i) = gridToMatrix(Tbc(:,:,:,i), [], p.pathBoxes, p.pathGrid);
 end
-
 %
 % Load Light:
 %
-
 L0 = zeros(nb,730);
 for i = 1:730
     L0(:,i) = p.EinConv*p.PARfrac*daily_insolation(0,Ybox,i/2,1).*exp(-p.kw*Zbox);
 end
-%L(p.L<1) = 0;
-
 %
 % Matrices for saving the solution:
 %
