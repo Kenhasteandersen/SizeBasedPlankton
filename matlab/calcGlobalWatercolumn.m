@@ -1,14 +1,14 @@
-function [idx, z] = calcGlobalWatercolumn(lat, lon, sim)
+function idx = calcGlobalWatercolumn(lat, lon, sim)
 
-% lat: South is negative
-% lon: West is negative
-load(sim.p.pathBoxes,'Xbox','Ybox','Zbox');
+if (lon<0)
+    lon = lon+360;
+end
 
+dist=(sim.x*ones(1,length(sim.y))-lon).^2 + ((sim.y*ones(1,length(sim.x)))'-lat).^2;
+shortest = min(dist(:));
+ix = find(dist==shortest);
+ix = ix(1);
+idx.y = floor(ix/length(sim.x));
+idx.x = mod(ix, length(sim.x));
+idx.z = find( ~isnan([squeeze(sim.N(idx.x, idx.y,:,2))]) );
 
-
-Xbox(Xbox>180) = Xbox(Xbox>180)-360;
-[val,idx1] = min(abs(sqrt((Xbox-lon).^2+(Ybox-lat).^2)));
-XYbox = [Xbox,Ybox];
-
-idx = find(ismember(XYbox,XYbox(idx1,:),'rows')==1);
-z = Zbox(idx);
