@@ -15,7 +15,7 @@ figure
 plotGlobalSimple(sim);
 
 figure
-plotGlobalWatercolumnTime(60,10,sim);
+plotGlobalWatercolumnTime(60,-10,sim);
 %
 % CPU-heavy plots:
 %
