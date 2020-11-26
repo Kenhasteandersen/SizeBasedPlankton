@@ -99,11 +99,12 @@ end
 % Matrices for saving the solution:
 %
 nSave = floor(p.tEnd/p.tSave) + sign(mod(p.tEnd,p.tSave));
-sim.N = single(zeros(nb,nSave));
-sim.DOC = single(zeros(nb,nSave));
-sim.B = single(zeros(nb,p.n,nSave));
-sim.L = single(zeros(nb,nSave));
-sim.T = single(zeros(nb,nSave));
+sim = load(p.pathGrid,'x','y','z');
+sim.N = single(zeros(length(sim.x), length(sim.y), length(sim.z),nSave));
+sim.DOC = sim.N;
+sim.B = single(zeros(length(sim.x), length(sim.y), length(sim.z), p.n, nSave));
+sim.L = sim.N;
+sim.T = sim.N;
 dudt = zeros(1,2+p.n);
 tSave = [];
 %
@@ -184,15 +185,18 @@ for i=1:simtime
     % Save timeseries
     %
     if ((mod(i/2,p.tSave) < mod((i-1)/2,p.tSave)) || (i==simtime))
+        fprintf('t = %u days',floor(i/2))
         iSave = iSave + 1;
-        sim.N(:,iSave) = single(N);
-        sim.DOC(:,iSave) = single(DOC);
-        sim.B(:,:,iSave)= single(Bmat);
-        sim.L(:,iSave) = L;
-        sim.T(:,iSave) = T;
+        sim.N(:,:,:,iSave) = single(matrixToGrid(N, [], p.pathBoxes, p.pathGrid));
+        sim.DOC(:,:,:,iSave) = single(matrixToGrid(DOC, [], p.pathBoxes, p.pathGrid));
+        for j = 1:p.n
+            sim.B(:,:,:,j,iSave) = single(matrixToGrid(Bmat(:,j), [], p.pathBoxes, p.pathGrid));
+        end
+        sim.L(:,:,:,iSave) = single(matrixToGrid(L, [], p.pathBoxes, p.pathGrid));
+        sim.T(:,:,:,iSave) = single(matrixToGrid(T, [], p.pathBoxes, p.pathGrid));
         tSave = [tSave, i*0.5];
+        fprintf('.\n');
         
-        fprintf('t = %u days.\n',floor(i/2))
     end
 end
 time = toc;
