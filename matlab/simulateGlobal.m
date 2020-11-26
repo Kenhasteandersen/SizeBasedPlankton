@@ -62,9 +62,11 @@ ticks = 1+2*cumsum(mon);
 %
 if (nargin==2)
     disp('Starting from previous simulation.');
-    N = double(sim.N(:,end));
-    DOC = double(sim.DOC(:,end));
-    Bmat = double(squeeze(sim.B(:,:,end)));
+    N = gridToMatrix(squeeze(double(sim.N(:,:,:,end))),[],sim.p.pathBoxes, sim.p.pathGrid);
+    DOC = gridToMatrix(squeeze(double(sim.DOC(:,:,:,end))),[],sim.p.pathBoxes, sim.p.pathGrid);
+    for i = 1:p.n
+        Bmat(:,i) = gridToMatrix(squeeze(double(squeeze(sim.B(:,:,:,i,end)))),[],sim.p.pathBoxes, sim.p.pathGrid);
+    end
 else
     load(p.pathN0)
     DOC = zeros(nx,ny,nz) + p.DOC0;
@@ -182,7 +184,7 @@ for i=1:simtime
     end
     elapsed_time(i) = toc(telapsed);
     %%
-    % Save timeseries
+    % Save timeseries in grid format
     %
     if ((mod(i/2,p.tSave) < mod((i-1)/2,p.tSave)) || (i==simtime))
         fprintf('t = %u days',floor(i/2))
