@@ -18,8 +18,7 @@ p = parameters(n);
 % Set load paths for tranport matrices:
 %
 if (nargin==1 || nargin==0 || nTMmodel == 1)
-    p.pathMatrix0   = '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_0';
-    p.pathMatrix1   =  '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_';
+    p.pathMatrix   = '../TMs/MITgcm/Matrix5/TMs/matrix_nocorrection_';
     p.pathBoxes     = '../TMs/MITgcm/Matrix5/Data/boxes.mat';
     p.pathGrid      = '../TMs/MITgcm/grid.mat';
     p.pathConfigData = '../TMs/MITgcm/config_data.mat';
@@ -27,8 +26,7 @@ if (nargin==1 || nargin==0 || nTMmodel == 1)
     p.pathN0        = '../TMs/MITgcm_N0';
     p.pathInit      = '../TMs/globalInitMITgcm';
 elseif nTMmodel == 2
-    p.pathMatrix0 = '../TMs/MITgcm_ECCO/Matrix1/TMs/matrix_nocorrection_0';
-    p.pathMatrix1 =  '../TMs/MITgcm_ECCO/Matrix1/TMs/matrix_nocorrection_';
+    p.pathMatrix = '../TMs/MITgcm_ECCO/Matrix1/TMs/matrix_nocorrection_';
     p.pathBoxes = '../TMs/MITgcm_ECCO/Matrix1/Data/boxes.mat';
     p.pathGrid = '../TMs/MITgcm_ECCO/grid.mat';
     p.pathConfigData = '../TMs/MITgcm_ECCO/config_data.mat';
