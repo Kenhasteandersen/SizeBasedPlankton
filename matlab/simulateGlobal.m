@@ -59,7 +59,7 @@ if (nargin==2)
     for i = 1:p.n
         Bmat(:,i) = gridToMatrix(squeeze(double(squeeze(sim.B(:,:,:,i,end)))),[],sim.p.pathBoxes, sim.p.pathGrid);
     end
- else
+else
     load(p.pathN0)
     DOC = zeros(nx,ny,nz) + p.DOC0;
     B = zeros(nx,ny,nz,p.n); %biomass
@@ -153,6 +153,7 @@ for i=1:simtime
             Bmat(k,:) = u(3:end)';
         end
     end
+
     if any(isnan([N;DOC;Bmat(:)]))
         warning('NaNs after running current time step');
         keyboard
