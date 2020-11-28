@@ -114,10 +114,9 @@ for i=1:simtime
     % Test for time to change monthly transport matrix
     %
     if ismember(mod(i,730), 1+2*cumsum(mon))
-        disp(i);
         % Load TM
         load(strcat(p.pathMatrix, sprintf('%02i.mat',month+1)));
-        disp(strcat(p.pathMatrix, sprintf('%02i.mat',month+1)));
+        %disp(strcat(p.pathMatrix, sprintf('%02i.mat',month+1)));
         
         Aexp=function_convert_TM_positive(Aexp);
         Aimp=function_convert_TM_positive(Aimp);
