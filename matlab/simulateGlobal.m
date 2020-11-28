@@ -16,16 +16,15 @@ function sim = simulateGlobal(p, sim)
 
 disp('Preparing simulation')
 
-% Load Initial January TM:
-load(strcat(p.pathMatrix0, '1.mat'));
+% Load grid data:
 load(p.pathGrid);
 load(p.pathConfigData);
 load(p.pathBoxes);
 
-% Preparing for timestepping. Using 43200 sec timesteps (0.5 days)
+% Preparing for timestepping
 Ix = speye(nb,nb);
-Aexp = Ix + (12*60*60)*Aexp;
-Aimp = Aimp^(36);
+month = 0;
+mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
 %
 % Load library:
 %
@@ -50,13 +49,6 @@ end
 % Initialize run:
 %
 simtime = p.tEnd*2; %simulation time in half days
-
-month = 0;
-iSave = 0;
-YEAR = 0;
-
-mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
-ticks = 1+2*cumsum(mon);
 %
 % Initial conditions:
 %
@@ -67,7 +59,7 @@ if (nargin==2)
     for i = 1:p.n
         Bmat(:,i) = gridToMatrix(squeeze(double(squeeze(sim.B(:,:,:,i,end)))),[],sim.p.pathBoxes, sim.p.pathGrid);
     end
-else
+ else
     load(p.pathN0)
     DOC = zeros(nx,ny,nz) + p.DOC0;
     B = zeros(nx,ny,nz,p.n); %biomass
@@ -100,6 +92,7 @@ end
 %
 % Matrices for saving the solution:
 %
+iSave = 0;
 nSave = floor(p.tEnd/p.tSave) + sign(mod(p.tEnd,p.tSave));
 sim = load(p.pathGrid,'x','y','z');
 sim.N = single(zeros(length(sim.x), length(sim.y), length(sim.z),nSave));
@@ -120,20 +113,11 @@ for i=1:simtime
     %
     % Test for time to change monthly transport matrix
     %
-    if ismember(i, ticks+730*YEAR)%
-        month = month + 1;
-        % Reset to Jan
-        if month > 12
-            month = 1;
-        end
+    if ismember(mod(i,730), 1+2*cumsum(mon))
+        disp(i);
         % Load TM
-        if month < 10
-            load(strcat(p.pathMatrix0, num2str(month), '.mat'));
-            %disp(strcat(p.pathMatrix0, num2str(month), '.mat'))
-        else
-            load(strcat(p.pathMatrix1, num2str(month), '.mat'));
-            %disp(strcat(p.pathMatrix1, num2str(month), '.mat'))
-        end
+        load(strcat(p.pathMatrix, sprintf('%02i.mat',month+1)));
+        disp(strcat(p.pathMatrix, sprintf('%02i.mat',month+1)));
         
         Aexp=function_convert_TM_positive(Aexp);
         Aimp=function_convert_TM_positive(Aimp);
@@ -143,7 +127,9 @@ for i=1:simtime
         Aimp = Aimp^(36);
         
         % Set monthly mean temperature
-        T = Tmat(:,month);
+        T = Tmat(:,month+1);
+
+        month = mod(month + 1, 12);
     end
     %
     % Run Euler time step for half a day:
@@ -153,7 +139,7 @@ for i=1:simtime
     if p.bParallel
         parfor k = 1:nb
             u = [N(k); DOC(k); Bmat(k,:)'];
-            u = calllib('model','simulateEuler', u, dudt, L(k), T(k),dt, 0.5);
+            u = calllib('model','simulateEuler', u, dudt,60,10,dt, 0.5);
             N(k) = max(0,u(1));
             DOC(k) = max(0,u(2));
             Bmat(k,:) = max(0,u(3:end))';
@@ -168,7 +154,7 @@ for i=1:simtime
         end
     end
     if any(isnan([N;DOC;Bmat(:)]))
-        warning('NaNs after running current grid box');
+        warning('NaNs after running current time step');
         keyboard
     end
     %
