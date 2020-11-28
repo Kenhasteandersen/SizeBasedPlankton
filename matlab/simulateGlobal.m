@@ -59,7 +59,7 @@ if (nargin==2)
     for i = 1:p.n
         Bmat(:,i) = gridToMatrix(squeeze(double(squeeze(sim.B(:,:,:,i,end)))),[],sim.p.pathBoxes, sim.p.pathGrid);
     end
- else
+else
     load(p.pathN0)
     DOC = zeros(nx,ny,nz) + p.DOC0;
     B = zeros(nx,ny,nz,p.n); %biomass
@@ -136,6 +136,10 @@ for i=1:simtime
     %
     L = L0(:,mod(i,365*2)+1);
     dt = p.dt;
+    if true
+        N = N -0.001*N*0.5;
+    else
+        
     if p.bParallel
         parfor k = 1:nb
             u = [N(k); DOC(k); Bmat(k,:)'];
@@ -152,6 +156,7 @@ for i=1:simtime
             DOC(k) = u(2);
             Bmat(k,:) = u(3:end)';
         end
+    end
     end
     if any(isnan([N;DOC;Bmat(:)]))
         warning('NaNs after running current time step');
