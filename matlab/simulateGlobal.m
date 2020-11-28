@@ -13,6 +13,9 @@
 %  sim: structure with simulation results
 %
 function sim = simulateGlobal(p, sim)
+ixN = 1;
+ixDOC = 2;
+ixB = 3:(2+p.n);
 
 disp('Preparing simulation')
 
@@ -54,25 +57,16 @@ simtime = p.tEnd*2; %simulation time in half days
 %
 if (nargin==2)
     disp('Starting from previous simulation.');
-    N = gridToMatrix(squeeze(double(sim.N(:,:,:,end))),[],sim.p.pathBoxes, sim.p.pathGrid);
-    DOC = gridToMatrix(squeeze(double(sim.DOC(:,:,:,end))),[],sim.p.pathBoxes, sim.p.pathGrid);
+    u(:,ixN) = gridToMatrix(squeeze(double(sim.N(:,:,:,end))),[],sim.p.pathBoxes, sim.p.pathGrid);
+    u(:, ixDOC) = gridToMatrix(squeeze(double(sim.DOC(:,:,:,end))),[],sim.p.pathBoxes, sim.p.pathGrid);
     for i = 1:p.n
-        Bmat(:,i) = gridToMatrix(squeeze(double(squeeze(sim.B(:,:,:,i,end)))),[],sim.p.pathBoxes, sim.p.pathGrid);
+        u(:, ixB(i)) = gridToMatrix(squeeze(double(squeeze(sim.B(:,:,:,i,end)))),[],sim.p.pathBoxes, sim.p.pathGrid);
     end
 else
-    load(p.pathN0)
-    DOC = zeros(nx,ny,nz) + p.DOC0;
-    B = zeros(nx,ny,nz,p.n); %biomass
-    for i = 1:p.n
-        B(:,:,1:2,i) = B(:,:,1:2,i)+p.B0(i);
-    end
-    % Convert from grid form to matrix form
-    N   = gridToMatrix(N, [], p.pathBoxes, p.pathGrid);
-    DOC = gridToMatrix(DOC, [], p.pathBoxes, p.pathGrid);
-    Bmat = zeros(nb,p.n);
-    for i = 1:p.n
-        Bmat(:,i) = gridToMatrix(B(:,:,:,i), [], p.pathBoxes, p.pathGrid);
-    end
+    load(p.pathN0);
+    u(:, ixN) = gridToMatrix(N, [], p.pathBoxes, p.pathGrid);   
+    u(:,ixDOC) = zeros(nb,1) + p.DOC0;
+    u(:,ixB) = ones(nb,1)*p.B0;
 end
 %
 % Load temperature:
@@ -137,23 +131,15 @@ for i=1:simtime
     dt = p.dt;
     if p.bParallel
         parfor k = 1:nb
-            u = [N(k); DOC(k); Bmat(k,:)'];
-            u = calllib('model','simulateEuler', u, dudt,60,10,dt, 0.5);
-            N(k) = max(0,u(1));
-            DOC(k) = max(0,u(2));
-            Bmat(k,:) = max(0,u(3:end))';
+            u(k,:) = calllib('model','simulateEuler', u(k,:), dudt, L(k), T(k), dt, 0.5);
         end
     else
         for k = 1:nb
-            u = [N(k); DOC(k); Bmat(k,:)'];
-            u = calllib('model','simulateEuler', u, dudt, L(k), T(k), dt, 0.5);
-            N(k) = u(1);
-            DOC(k) = u(2);
-            Bmat(k,:) = u(3:end)';
+            u(k,:) = calllib('model','simulateEuler', u(k,:), dudt, L(k), T(k), dt, 0.5);
         end
     end
 
-    if any(isnan([N;DOC;Bmat(:)]))
+    if any(isnan(u))
         warning('NaNs after running current time step');
         keyboard
     end
@@ -161,11 +147,8 @@ for i=1:simtime
     % Transport
     %
     if p.bTransport
-        N   = Aimp * ( Aexp * N);
-        DOC = Aimp * ( Aexp  * DOC);
-        
-        for k = 1:size(Bmat,2)
-            Bmat(:,k) =  Aimp * (Aexp * Bmat(:,k));
+        for k = 1:p.n+2
+            u(:,k) =  Aimp * (Aexp * u(:,k));
         end
     end
     elapsed_time(i) = toc(telapsed);
@@ -175,10 +158,10 @@ for i=1:simtime
     if ((mod(i/2,p.tSave) < mod((i-1)/2,p.tSave)) || (i==simtime))
         fprintf('t = %u days',floor(i/2))
         iSave = iSave + 1;
-        sim.N(:,:,:,iSave) = single(matrixToGrid(N, [], p.pathBoxes, p.pathGrid));
-        sim.DOC(:,:,:,iSave) = single(matrixToGrid(DOC, [], p.pathBoxes, p.pathGrid));
+        sim.N(:,:,:,iSave) = single(matrixToGrid(u(:,ixN), [], p.pathBoxes, p.pathGrid));
+        sim.DOC(:,:,:,iSave) = single(matrixToGrid(u(:,ixDOC), [], p.pathBoxes, p.pathGrid));
         for j = 1:p.n
-            sim.B(:,:,:,j,iSave) = single(matrixToGrid(Bmat(:,j), [], p.pathBoxes, p.pathGrid));
+            sim.B(:,:,:,j,iSave) = single(matrixToGrid(u(:,ixB(j)), [], p.pathBoxes, p.pathGrid));
         end
         sim.L(:,:,:,iSave) = single(matrixToGrid(L, [], p.pathBoxes, p.pathGrid));
         sim.T(:,:,:,iSave) = single(matrixToGrid(T, [], p.pathBoxes, p.pathGrid));
