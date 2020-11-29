@@ -12,12 +12,11 @@ sim = simulateGlobal(p,sim); % Simulate
 %
 close all
 figure
-plotGlobalSimple(sim);
+plotGlobal(sim);
 
 figure
 plotGlobalWatercolumnTime(60,-10,sim);
 %
 % CPU-heavy plots:
 %
-% plotGlobal(sim);
 % animateGlobal(sim);

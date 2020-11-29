@@ -34,7 +34,7 @@ mon = [0 31 28 31 30 31 30 31 31 30 31 30 ];
 if p.bParallel
     if isempty(gcp('nocreate'))
         parpool('AttachedFiles',{'../Cpp/model.so','../Cpp/model.h'});
-    end   
+    end
     %
     % Set parameters:
     %
@@ -64,7 +64,7 @@ if (nargin==2)
     end
 else
     load(p.pathN0);
-    u(:, ixN) = gridToMatrix(N, [], p.pathBoxes, p.pathGrid);   
+    u(:, ixN) = gridToMatrix(N, [], p.pathBoxes, p.pathGrid);
     u(:,ixDOC) = zeros(nb,1) + p.DOC0;
     u(:,ixB) = ones(nb,1)*p.B0;
 end
@@ -121,7 +121,7 @@ for i=1:simtime
         
         % Set monthly mean temperature
         T = Tmat(:,month+1);
-
+        
         month = mod(month + 1, 12);
     end
     %
@@ -138,7 +138,7 @@ for i=1:simtime
             u(k,:) = calllib('model','simulateEuler', u(k,:), dudt, L(k), T(k), dt, 0.5);
         end
     end
-
+    
     if any(isnan(u))
         warning('NaNs after running current time step');
         keyboard
@@ -152,7 +152,7 @@ for i=1:simtime
         end
     end
     elapsed_time(i) = toc(telapsed);
-    %%
+    %
     % Save timeseries in grid format
     %
     if ((mod(i/2,p.tSave) < mod((i-1)/2,p.tSave)) || (i==simtime))
