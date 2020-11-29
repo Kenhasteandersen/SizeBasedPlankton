@@ -1,4 +1,4 @@
-function animateGlobal(sim, sFilename)
+function F = animateGlobal(sim, sFilename)
 if nargin==1
     sFilename = "Global";
 end
@@ -20,7 +20,11 @@ for i = 1:n
     disp(i);
 end
 %%
-v = VideoWriter(sFilename, 'MPEG-4');
+if (ismac || ispc)
+    v = VideoWriter(sFilename, 'MPEG-4');
+else
+    v = VideoWriter(sFilename, 'Motion JPEG AVI');
+end
 open(v);
 for i = 1:n
     writeVideo(v,F(i));
