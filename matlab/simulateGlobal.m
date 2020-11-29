@@ -1,5 +1,6 @@
+%
 % Global run of size based unicelluar plankton model
-% Transport Matrix used: MITgcm 2.8 degrees
+% 
 % Tranport matrices must be downloaded from http://kelvin.earth.ox.ac.uk/spk/Research/TMM/TransportMatrixConfigs/
 % (choose MITgcm_2.8deg), and be put into the location '../TMs'
 %

@@ -1,16 +1,11 @@
-function plotGlobalSimple(sim, iTime)
-% Choose the last timestep if none is given:
+function plotGlobal(sim, iTime, sProjection)
+
 if (nargin()==1)
-    iTime = length(sim.t);
+    iTime = length(sim.t); % Choose the last timestep if none is given
 end
-
-sType = 'fast';
-%
-% Calc primary production:
-%
-Cnet = calcGlobalCnet(sim,iTime);
-
-
+if (nargin()<3)
+    sProjection = 'fast'; % Use fast plotting as default
+end
 %
 % Do the plots:
 %
@@ -20,18 +15,20 @@ set(gcf,'color','w');
 % DOC
 %text(0, 1, labels(i),'Units','normalized')
 subplot(4,1,1)
-panelGlobal(sim.x,sim.y,sim.DOC(:,:,1,iTime),'DOC',sType);
+panelGlobal(sim.x,sim.y,sim.DOC(:,:,1,iTime),'DOC',sProjection);
 
 % Nitrogen
 subplot(4,1,2)
-c = panelGlobal(sim.x,sim.y,sim.N(:,:,1,iTime),'N',sType);
+c = panelGlobal(sim.x,sim.y,sim.N(:,:,1,iTime),'N',sProjection);
 c.Label.String  = 'Concentration [\mug N l^{-1}]';
 
 % Plankton
 subplot(4,1,3)
-panelGlobal(sim.x,sim.y,log10(sum(sim.B(:,:,1,:,iTime),4)),'Plankton (log10)',sType);
+panelGlobal(sim.x,sim.y,log10(sum(sim.B(:,:,1,:,iTime),4)),'Plankton (log10)',sProjection);
 caxis([1 3])
 
-subplot(4,1,4)
-panelGlobal(sim.x, sim.y, log10(Cnet(:,:,1)),'Net primary production TOP LAYER ONLY (log10)', sType);
-caxis([0 2])
+if isfield(sim,'CnetPerArea')
+    subplot(4,1,4)
+    panelGlobal(sim.x, sim.y, log10(sim.CnetPerArea(:,:,1)),'Average net primary production (log10 gC/m2/yr)', sProjection);
+    caxis([8 11])
+end
