@@ -159,7 +159,7 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
     # Set parameters
     dummy = .C("setParameters", as.integer(p$n), 
                p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-               p$aNm*p$m, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
+               p$aNm*p$m, p$aLm*p$m, p$AFm, p$Jmax, p$JFmaxm,
                p$Jresp, p$Jloss_passive_m,
                p$theta,
                p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,

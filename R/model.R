@@ -28,8 +28,10 @@ parameters <- function(n=25) {
   #p$AL = 0.0019 # if using Al propto m^(2/3) for non-diatoms
   #p$AL = 0.0012 # if using my shading formula for non-diatoms
   #p$cL = 0.021 # if using my shading formula for non-diatoms
-  p$AL = 0.000914 # if using Andys shading formula for non-diatoms
-  p$cL = 21 # if using Andys shading formula for non-diatoms
+  #p$AL = 0.000914 # if using Andys shading formula for non-diatoms
+  #p$cL = 21 # if using Andys shading formula for non-diatoms
+  p$alphaL = 0.206
+  p$rLstar = 8.25
   p$AF = 0.018  #  Fits to TK data for protists
   p$cF = 0.6 # Just a guess
   #
@@ -40,7 +42,8 @@ parameters <- function(n=25) {
   p$aNm = p$aN*p$r^(-2) / (1 + (p$r/p$rNstar)^(-2))
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
   #p$ALm = p$cL*p$m * p$AL*p$m^(2/3) / ( p$cL*p$m + p$AL*p$m^(2/3) )  # shading formula
-  p$ALm = p$AL*p$m^(2/3) * (1-exp(- p$cL*p$m^(1/3) ))  # shading formula
+  #p$ALm = p$AL*p$m^(2/3) * (1-exp(- p$cL*p$m^(1/3) ))  # shading formula
+  p$aLm = p$alphaL/p$r * (1-exp(-p$r/p$rLstar))
   p$AFm = p$AF*p$m
   p$Jloss_passive_m = p$cLeakage * p$m^(2/3) # in units of C
   p$JFmaxm = p$cF*p$m^(2/3)
@@ -156,7 +159,7 @@ calcRates = function(Light,N,DOC,B,p) {
     # 
     JDOC = ANmT*DOC # Diffusive DOC uptake, units of C/time
     
-    JL =   epsilonL * ALm*Light  # Photoharvesting
+    JL =   epsilonL * aLm*m*Light  # Photoharvesting
 
     # Light acclimation:
     #JLreal = pmax( 0, JL - pmax(0,(JL+JDOC-JR - JN)) )

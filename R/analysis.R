@@ -9,7 +9,7 @@ source("modelChemostat.R")
 # ===================================================
 
 plotAll = function() {
-  pdfplot("../AL.pdf", plotALsimple, width = 1.5*singlewidth, height=1.5*height)
+  pdfplot("../aL.pdf", plot_aL, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../AF.pdf", plotAF, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../aN.pdf", plot_aN, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Mumax.pdf", plotMumax, width = 1.5*singlewidth, height=1.5*height)
@@ -208,6 +208,83 @@ plotALsimple = function() {
   legend(x="bottomright", bty="n",
          legend=c("Diatoms", "Other phototrophs"),
            pch=c(15,16),
+         lwd=0,
+         col="darkgreen")
+}
+
+plot_aL = function() {
+  data = data.frame(r=NA,C=NA,taxon=NA,aL=NA)
+  #
+  # Taguchi
+  #
+  #Ata=read.csv("../data/Taguchi.dat",  header=FALSE, col.names=c("V ((mum)^3)", "err", "C (pgC", "CperChl", "alpha (mgC/(mg chlA) /h /W m^2)"), sep=" ")
+  #C = (Ata$C..pgC)*1e-6 # mugC
+  #chl = 1e-3 * C/Ata$CperChl # mg chl
+  #A = 24 * 1000* Ata$alpha * chl # mugC/d/(Wm2)
+  #data = data.frame(C=C, taxon="diatom", A=A, source="Taguchi")
+  #ALtaguchi = exp(mean(log(A/(C^(2/3)))))
+  #cat("AL = ", AL, "mugC/d/(wm2)\n")
+  #
+  # Edwards:
+  #
+  Aed = read.csv("../data/Data from Edwards et al (2015).csv", 
+                 sep=";", skip=3, header=TRUE, na.strings = "na")
+  C = convertVolume2Mass(Aed$volume, Aed$taxon)
+  r = (Aed$volume*3/(4*pi))^(1/3)
+  
+  aL = Aed$alpha * (Aed$daylength/24) # convert to units of mu gC/day/(mu mol photons/m2/s),
+  # corrected for daylength.
+  data = data.frame(r=r, C=C, taxon=Aed$taxon, aL=aL, source="Edwards")#rbind(data, 
+  
+  #
+  # Sort out nans:
+  #
+  data = data[(!is.na(data$aL) & !is.na(data$C)), ]
+  # 
+  # Fits to complex shading formula:
+  #
+  ixDiatom = data$taxon=="diatom"
+  
+  #form = formula(log(A) ~ log( a*C^(2/3) * Cmax*C / (a*C^(2/3) + Cmax*C)))
+  form = formula(log(aL) ~ log( alphaL/r * (1 - exp(-r/rStar) ) ))
+  
+  fit = nls(form,
+            data = data,
+            start = list(rStar = 1.5, alphaL=1),
+            lower=list(rStar=0, alphaL=1e-20), 
+            upper=list(rStar=10, alphaL=1e10), algorithm="port")
+  
+  print(summary(fit))
+  cat(c("alpha_L = ", coef(fit)[[2]], "1/day/mugC*mum/(light)"))
+  cat(c("r* = ", coef(fit)[1], "mu m\n"))
+  #
+  # Fits to 2/3 scaling
+  #
+  #alphaL = exp(mean(log(data$A/data$C^(2/3))))
+  #AL_diatoms = exp(mean(log(data$A/data$C^(2/3))[ixDiatom]))
+  #AL_no_diatoms = exp(mean(log(data$A/data$C^(2/3))[!ixDiatom]))
+  #cat(AL_no_diatoms)
+  #
+  # Plot
+  #
+  defaultplot()
+  loglogpanel(xlim = c(0.1, 300), 
+              ylim = c(0.5*min(data$aL[!is.na(data$aL)]), 2*max(data$aL[!is.na(data$aL)])),
+              xlab="Cell radius ($\\mu$m)",
+              ylab="Affinity for light, $\\textit{a_L}$ (day$\\cdot \\mu$ mol photons m$^{-2}s^{-1}\\cdot \\mu$gC)$^{-1}$")
+  points(data$r[!ixDiatom], data$aL[!ixDiatom],pch=15, col="darkgreen")
+  points(data$r[ixDiatom], data$aL[ixDiatom],pch=16, col="darkgreen")
+  points(data$r[data$source=="Taguchi"], data$aL[data$source=="Taguchi"], pch=17, col="darkgreen")
+  
+  r = 10^seq(-1, 4, length.out = 100)
+  lines(r, exp(predict(fit, list(r=r,C=C))), lwd=2)
+  
+  lines(r, coef(fit)[[2]]/r, lty=dotted)
+  lines(r, coef(fit)[[2]]/coef(fit)[[1]]*r/r, lty=dotted)
+  
+  legend(x="topright", bty="n",
+         legend=c("Diatoms", "Other phototrophs"),
+         pch=c(15,16),
          lwd=0,
          col="darkgreen")
 }
