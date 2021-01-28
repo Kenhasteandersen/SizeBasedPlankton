@@ -159,7 +159,7 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
     # Set parameters
     dummy = .C("setParameters", as.integer(p$n), 
                p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-               p$aNm*p$m, p$aLm*p$m, p$AFm, p$Jmax, p$JFmaxm,
+               p$aNm*p$m, p$aLm*p$m, p$aFm*p$m, p$Jmax, p$jFmaxm*p$m,
                p$Jresp, p$Jloss_passive_m,
                p$theta,
                p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
@@ -609,10 +609,10 @@ plotRates = function(sim, p=sim$p,
   lines(p$m, -r$JR/p$m, col="grey", lwd=4)
   lines(p$m, -r$Jloss_passive/p$m, col="darkgreen", lwd=4)
   
-  BSheldon =exp(mean(log(B)))
-  delta = (p$m[2]-p$m[1]) / sqrt(p$m[2]*p$m[1])
-  mortPredTheoretical = BSheldon * (1-0.6) * p$AF *sqrt(2*pi)*p$sigma / delta
-  lines(range(p$m), -mortPredTheoretical*c(1,1), lty=dotted, col="red")
+  #BSheldon =exp(mean(log(B)))
+  #delta = (p$m[2]-p$m[1]) / sqrt(p$m[2]*p$m[1])
+  #mortPredTheoretical = BSheldon * (1-0.6) * p$AF *sqrt(2*pi)*p$sigma / delta
+  #lines(range(p$m), -mortPredTheoretical*c(1,1), lty=dotted, col="red")
   
   legend(x="bottomright", cex=cex,
          legend=c("Losses:", "Predation", "Virulysis", 

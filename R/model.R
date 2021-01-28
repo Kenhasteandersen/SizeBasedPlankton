@@ -32,21 +32,22 @@ parameters <- function(n=25) {
   #p$cL = 21 # if using Andys shading formula for non-diatoms
   p$alphaL = 0.206
   p$rLstar = 8.25
-  p$AF = 0.018  #  Fits to TK data for protists
+  p$aF = 0.018  #  Fits to TK data for protists
   p$cF = 0.6 # Just a guess
   #
   # Calc rates as a function of m:
   #
   #p$ANm = p$AN*p$m^(1/3) / (1 + p$cN*p$m^(-1/3))
   #p$ANm = 0.00012*p$m^(1/3) / (1 + 0.1*p$m^(-1/3))
-  p$aNm = p$aN*p$r^(-2) / (1 + (p$r/p$rNstar)^(-2))
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
   #p$ALm = p$cL*p$m * p$AL*p$m^(2/3) / ( p$cL*p$m + p$AL*p$m^(2/3) )  # shading formula
   #p$ALm = p$AL*p$m^(2/3) * (1-exp(- p$cL*p$m^(1/3) ))  # shading formula
+  p$aNm = p$aN*p$r^(-2) / (1 + (p$r/p$rNstar)^(-2))
   p$aLm = p$alphaL/p$r * (1-exp(-p$r/p$rLstar))
-  p$AFm = p$AF*p$m
+  p$aFm = p$aF*p$m/p$m
+  p$jFmaxm = p$cF*p$m^(-1/3)
+
   p$Jloss_passive_m = p$cLeakage * p$m^(2/3) # in units of C
-  p$JFmaxm = p$cF*p$m^(2/3)
   #
   # Prey encounter
   #
@@ -151,7 +152,7 @@ calcRates = function(Light,N,DOC,B,p) {
     f2 = fTemp(2,p$T)
     JmaxT = Jmax*f2
     JR = Jresp*f2
-    JFmaxmT = JFmaxm*f2
+    JFmaxmT = jFmaxm*m*f2
     #
     # Uptakes
     #
@@ -166,7 +167,7 @@ calcRates = function(Light,N,DOC,B,p) {
     
     # Feeding as type II with surface limitation:
     F = theta %*% B
-    JF = epsilonF * JFmaxmT * AFm*F / (AFm*F + JFmaxmT) #        # Feeding
+    JF = epsilonF * JFmaxmT * aFm*p$m*F / (aFm*p$m*F + JFmaxmT) #        # Feeding
     
     # Passive losses:
     #Jloss_passive = p$cLeakage * m^(2/3) # in units of C

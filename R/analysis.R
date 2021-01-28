@@ -623,8 +623,30 @@ plotAF = function() {
   # Camila
   C = range(data$w[ixProtist])
   lines(C, 0.018*C, col="orange")
+}
+
+plot_aF = function() {
+  dat <- read.csv("../data/TK Appendix feeding rates - revised.csv",header=TRUE,sep=";")
+  data = data.frame(w=1e3*dat$Body.mass, beta=24*0.001*dat$Fmax.1, Group=dat$Group)  
   
+  ixProtist = (data$Group=="Nanoflagellates") | 
+    (data$Group=="Dinoflagellates") | 
+    (data$Group=="Dinoflagellate") | 
+    (data$Group=="Ciliates") | 
+    (data$Group=="Ciliate")
   
+  x = data$beta/data$w
+  x = x[ixProtist]
+  x = x[!is.na(x)]
+  SpecificBeta = exp(mean(log(x)))
+  cat(c("aF = ", SpecificBeta, "L/day/mugC\n"))
+  
+  defaultplot()
+  loglogpanel(xlim=c(1e-6, 1), ylim=c(1e-4,1),
+              xlab = "Mass ($\\mu$gC)", ylab="Specfic clearance rate $\\textit{a_F}$ (L/d/{\\mu}gC)")
+  points(data$w[ixProtist], data$beta[ixProtist]/data$w[ixProtist], pch=16)
+  w = 10^seq(-7,1)
+  lines(w, SpecificBeta*w/w, lwd=2)
 }
 #
 # Plot specific affinity:
