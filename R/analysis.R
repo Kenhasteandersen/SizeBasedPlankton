@@ -11,7 +11,7 @@ source("modelChemostat.R")
 plotAll = function() {
   pdfplot("../AL.pdf", plotALsimple, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../AF.pdf", plotAF, width = 1.5*singlewidth, height=1.5*height)
-  pdfplot("../AN.pdf", plotAN, width = 1.5*singlewidth, height=1.5*height)
+  pdfplot("../aN.pdf", plot_aN, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Mumax.pdf", plotMumax, width = 1.5*singlewidth, height=1.5*height)
   pdfplot("../Rstar.pdf", plotRstar, width=doublewidth, height = height)
   pdfplot("../Mumax_corrected.pdf", plotMuAlphaCorrelation, width = 1.5*singlewidth, height=1.5*height)
@@ -156,7 +156,7 @@ plotALsimple = function() {
   C = convertVolume2Mass(Aed$volume, Aed$taxon)
   r = (Aed$volume*3/(4*pi))^(1/3)
   
-  A = Aed$alpha * C * (Aed$daylength/24) # convert to units of mu gC/(mu mol photons/m2/s),
+  A = Aed$alpha * C * (Aed$daylength/24) # convert to units of mu gC/day/(mu mol photons/m2/s),
   # corrected for daylength.
   data = data.frame(r=r, C=C, taxon=Aed$taxon, A=A, source="Edwards")#rbind(data, 
   
@@ -193,7 +193,7 @@ plotALsimple = function() {
   loglogpanel(xlim = c(0.1, 300), 
               ylim = c(0.5*min(data$A[!is.na(data$A)]), 2*max(data$A[!is.na(data$A)])),
               xlab="Cell radius ($\\mu$m)",
-              ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/($\\mu$ mol photons m$^{-2}s^{-1})")
+              ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/day/($\\mu$ mol photons m$^{-2}s^{-1})")
   points(data$r[!ixDiatom], data$A[!ixDiatom],pch=15, col="darkgreen")
   points(data$r[ixDiatom], data$A[ixDiatom],pch=16, col="darkgreen")
   points(data$r[data$source=="Taguchi"], data$A[data$source=="Taguchi"], pch=17, col="darkgreen")
@@ -274,7 +274,7 @@ plotALvolume = function() {
   defaultplotvertical(2)
   loglogpanel(xlim = data$r, ylim = c(0.9*min(data$A[!is.na(data$A)]), 1.1*max(data$A[!is.na(data$A)])),
               xaxis=FALSE,
-              ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/($\\mu$ mol photons m$^{-2}s^{-1})")
+              ylab="Affinity for light, $\\textit{A_L}$ ($\\mu$gC/day/($\\mu$ mol photons m$^{-2}s^{-1})")
   points(data$r[!ixDiatom], data$A[!ixDiatom],pch=16, col="blue")
   points(data$r[ixDiatom], data$A[ixDiatom],pch=16, col="red")
   
@@ -549,6 +549,114 @@ plotAF = function() {
   
   
 }
+#
+# Plot specific affinity:
+#
+plot_aN = function() {
+  dat = read.csv("../data/Nutrient data from Edwards et al (2015b).csv",
+                 header=TRUE,sep=",")
+  #
+  # Convert carbon from mol to g:
+  #
+  dat$c_per_cell = dat$c_per_cell*12
+  #
+  # Convert to weights when only volume is given:
+  # 
+  ix = (!is.na(dat$volume)) & (is.na(dat$c_per_cell))
+  dat$c_per_cell[ix] = convertVolume2Mass(dat$volume[ix], dat$taxon[ix])
+  C = dat$c_per_cell
+  #
+  # Convert to ESD/2 (radius) assuming spherical cells
+  #
+  r = ( 3/(4*pi)*dat$volume )^(1/3)
+  
+  #
+  # Calc affinities
+  #
+  a_nit = dat$vmax_nit / dat$k_nit / dat$c_per_cell
+  a_amm = dat$vmax_amm / dat$k_amm / dat$c_per_cell 
+  a_phos = dat$vmax_p / dat$k_p / dat$c_per_cell
+  #
+  # Plot
+  #
+  defaultplot()
+  loglogpanel(xlim=c(0.1 ,200), ylim=c(1e-5, 20), #c(1e-9 ,1)
+              xlab="Radius ($\\mathrm{\\mu}$m)",
+              ylab="Nutrient affinity, $\\textit{a}_N$ (L/day/$\\mathrm{\\mu}$gC)")
+  
+  col = 1
+  taxons = unique(dat$taxon[!is.na(C) & !(is.na(Anit) & is.na(Aamm)  & is.na(Aphos))])
+  aff = data.frame(r=NULL, A=NULL)
+  for (i in taxons) {
+    ix = dat$taxon == i
+    points(r[ix], a_nit[ix], pch=16, col=col)
+    points(r[ix], a_amm[ix], pch=17, col=col)
+    points(r[ix], a_phos[ix], pch=18, col=col)
+    
+    #points(C[ix], a_nit[ix], pch=16, col=col)
+    #points(C[ix], a_amm[ix], pch=17, col=col)
+    #points(C[ix], a_phos[ix], pch=18, col=col)
+    col = col + 1
+    
+    aff = rbind( aff, data.frame(r=r[ix], a= a_nit[ix]))
+    aff = rbind( aff, data.frame(r=r[ix], a= a_amm[ix]))
+    aff = rbind( aff, data.frame(r=r[ix], a= a_phos[ix]))
+  }
+  ix = !is.na(aff$r) & !is.na(aff$a)
+  aff = aff[ix,]
+  #points(C, Aphos,pch=18)
+  legend(x="topright",bty="n",
+         legend=taxons, pch=16, col=seq(1,length(taxons)))
+  
+  r = 10^seq(-1,3,length.out = 100) # mum
+  Diff = 1.5e-5*60*60*24 # cm^2/day, at 10 degrees (https://www.unisense.com/files/PDF/Diverse/Seawater%20&%20Gases%20table.pdf)
+  rho = 0.57 # g/cm3 (Andersen et al 2016; rho = m/V = 0.3*d^3/(4/3*pi*(d/2)^3) )
+  aNmax = 3*Diff*1e8*1e-3/rho * 1e-6 # L/day/mugC
+  rstar = 2; # mum
+  corr = 1 - parameters()$c*m^(-1/3)
+  #cat("alphaN_max = ", (ANmax/m^(1/3))[1], "\n")
+  #lines(m, ANmax/m, lwd=1, lty=dotted)  
+  #lines(m, 0.2*m/m, lwd=1, lty=dotted)  
+  lines(r, aNmax*r^-2, lwd=1, lty=dotted)  
+  #lines(m, 0.2*m/m, lwd=1, lty=dotted)  
+  lines(r, aNmax*r^-2*(r/rstar)^2, lwd=1, lty=dotted, col="blue")
+  lines(r, aNmax*r^-2/(1+((r)/rstar)^-2), lwd=2)
+  
+  #lines(m, p$AN/p$cN*m^(2/3)/m, lty=dotted, col="blue")
+  #cat( mean(ANmax/(parameters()$AN*m^(1/3))) ,"\n" )
+  cat("aN = ", aNmax, "r^-2 \n")
+  cat("r_D^* = ", rstar," mum\n")
+  
+  # Make a bi-linear fit:
+  #form = formula( log(C) ~ log(a/(1+b*C^-0.333))+0.3333*log(C) )
+  #fit = nls(form, data=aff, 
+  #          start = list(a=1e-4, b=0.05),
+  #          lower = list(a=0,b=0), algorithm = "port", trace=TRUE)
+  #lines(m, exp(predict(fit,list(C=m))))
+  
+  #V = 10^seq(-2,8,length.out = 100)
+  #alphaN_Ward2018 = 1.1 * 1000 / 1000 / 12 # convert from m3->liter, from mmol->umol, from mol->g 
+  #lines(convertVolume2Mass(V), alphaN_Ward2018*V^-0.35*convertVolume2Mass(V), col="blue", lty=dashed)
+  
+  # Camila's parameters:
+  #lines(C, 3.75e-5*C^(1/3), col="orange")
+  
+  #alphaN_Banas2011 = 2.6/0.1 / 14 / 6 # convert from uM N-> ugN, from gN->gC
+  #lines(m , alphaN_Banas2011*m^(1-0.45), col="blue", lty=dashdotted)
+  
+  legend(x="bottomleft", bty="n",
+         legend=c("Model","Diffusion limit","Porter limit"),
+         lty=c(solid,dotted,dotted),
+         lwd=c(2,1,1,1),
+         col=c("black","black","blue","orange"))
+  
+  #r = (3*dat$volume/(4*pi))^(1/3) # mu m
+  #m = 0.3e-6*(2*r)^3
+  #ANmax = 4*pi*Diff*(r*1e-4) * 1e-3
+  #points(m, ANmax, col="red")
+}
+
+
 
 plotAN = function() {
   dat = read.csv("../data/Nutrient data from Edwards et al (2015b).csv",

@@ -89,7 +89,7 @@ derivative = function(t,y,p) {
     sum(rates$JCloss*B/p$m) +
     p$remin2*sum(rates$mort2*B) +
     p$remin*mortloss
-
+  
   if (TRUE==FALSE) {
     # Check of nutrient conservation; should be close to zero
     Nin = diff*(p$N0-N) + diff*sum(0-B)/p$rhoCN
@@ -132,12 +132,12 @@ compareCandRmodel = function(p,N=p$N0,DOC=p$DOC0,B=p$B0) {
   # Set parameters
   dummy = .C("setParameters", as.integer(p$n), 
              p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-             p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
+             p$aNm*p$m, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
              p$Jresp, p$Jloss_passive_m,
              p$theta,
              p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
              p$remin2, p$cLeakage);
-
+  
   dudtC = derivativeC(0,y,p)
   
   plot(p$m, dudtR[3:(p$n+2)], type="l", log="x", col="red")
@@ -152,14 +152,14 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
   
   # Get the version of sundialr:
   pkg = installed.packages(fields = "Built")
-
+  
   if (useC) {
     # Load library
     dyn.load("../Cpp/model.so")
     # Set parameters
     dummy = .C("setParameters", as.integer(p$n), 
                p$m, p$rhoCN, p$epsilonL, p$epsilonF,
-               p$ANm, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
+               p$aNm*p$m, p$ALm, p$AFm, p$Jmax, p$JFmaxm,
                p$Jresp, p$Jloss_passive_m,
                p$theta,
                p$mort, p$mort2, p$mortHTL*p$mortHTLm, p$remin,
@@ -224,84 +224,83 @@ simulateChemostat = function(p=parametersChemostat(), useC=FALSE) {
 }
 
 
-calcFunctionsChemostat = function(param,r,N,B) {
-  with(param, {
-    conversion  = 365*M*1e-6*1000 # Convert to gC/yr/m2
-    #
-    # New production calculated as the flux of nitrogen into the system. Units of carbon:
-    #
-    prodNew = conversion * d*(N0-N) * rhoCN  
-    #
-    # Primary production (carbon fixed)
-    #
-    prodCgross = conversion * sum(r$JLreal*B/m)/epsilonL
-    prodCnet = conversion * sum( pmax(0, r$JLreal-r$JR)*B/m )
-    #prodCnet = conversion * sum( r$JLreal*(1 - r$JR/(r$JCtot+r$JR))*B/m )
-    #
-    # Loss to HTL:
-    #
-    prodHTL = conversion * sum( mortHTL*(m>=mHTL)*B )
-    #
-    # Loss to depth:
-    #
-    prodSeq = 0#conversion * r$POMgeneration * (1-epsilonPOM)
-    #
-    # Respiration
-    #
-    resp = conversion * sum( r$JR*B/m )
-    #
-    # Bacterial production:
-    #
-    prodBact = conversion * sum( pmin(pmax(0,r$JDOC-r$JR), r$JNtot)*B/m )
-    #prodBact = conversion * sum( r$JDOC*(1-r$JR/(r$JCtot+r$JR))*B/m )
-    #
-    # Efficiencies:
-    #
-    effHTL = prodHTL/prodNew # CHECK: CORRECT uNitS?
-    effBact = prodBact / prodCnet
-    #
-    # Losses
-    #
-    lossPassive = conversion * sum( r$Jloss_passive/m*B ) 
-    lossPhotouptake = conversion * sum( r$JCloss_photouptake/m*B )
-    lossFeeding = conversion * sum( r$JCloss_feeding/m*B )
-    lossFeedingHTL = sum( (1-epsilonF)*prodHTL )
-    lossTotalC = lossPassive+lossPhotouptake+lossFeeding+lossFeedingHTL
-    lossTotalN = (lossPassive+lossFeeding+lossFeedingHTL)/rhoCN
-    #
-    # Biomasses:
-    #
-    conversion = M/10*100*1e-6  # Convert to gC/m2
-    d = calcESD(m)
-    Bpico = conversion * sum( B[d < 2] )
-    Bnano = conversion * sum( B[d>=2 & d <20])
-    Bmicro = conversion * sum( B[d>=20])
-    #
-    # Chl-a (gC/m2): Use rough conversion from Edwards et al (2015) that Chl-a propto alpha
-    #
-    Chl_per_l = sum( r$JLreal/(epsilonL*L)/m*B )
-    Chl_per_m2 = conversion * Chl_per_l
-    
-    return(list(
-      prodNew = prodNew,
-      prodCgross = prodCgross,
-      prodCnet = prodCnet,
-      prodHTL = prodHTL,
-      prodBact = prodBact,
-      resp = resp,
-      effHTL = effHTL,
-      effBact = effBact,
-      lossPassive = lossPassive,
-      lossPhotouptake = lossPhotouptake,
-      lossFeeding = lossFeeding,
-      lossFeedingHTL = lossFeedingHTL,
-      lossTotalC = lossTotalC,
-      lossTotalN = lossTotalN,
-      Bpico=Bpico, Bnano=Bnano, Bmicro=Bmicro,
-      Chl_per_m2 = Chl_per_m2,
-      Chl_per_l = Chl_per_l
-    ))
-  })
+calcFunctionsChemostat = function(p,r,L,N,B) {
+  m = p$m
+  conversion  = 365*p$M*1e-6*1000 # Convert to gC/yr/m2
+  #
+  # New production calculated as the flux of nitrogen into the system. Units of carbon:
+  #
+  prodNew = conversion * p$d*(p$N0-N) * p$rhoCN  
+  #
+  # Primary production (carbon fixed)
+  #
+  prodCgross = conversion * sum(r$JLreal*B/m)/p$epsilonL
+  prodCnet = conversion * sum( pmax(0, r$JLreal-r$JR)*B/m )
+  #prodCnet = conversion * sum( r$JLreal*(1 - r$JR/(r$JCtot+r$JR))*B/m )
+  #
+  # Loss to HTL:
+  #
+  prodHTL = conversion * sum( p$mortHTL*(m>=p$mHTL)*B )
+  #
+  # Loss to depth:
+  #
+  prodSeq = 0#conversion * r$POMgeneration * (1-epsilonPOM)
+  #
+  # Respiration
+  #
+  resp = conversion * sum( r$JR*B/m )
+  #
+  # Bacterial production:
+  #
+  prodBact = conversion * sum( pmin(pmax(0,r$JDOC-r$JR), r$JNtot)*B/m )
+  #prodBact = conversion * sum( r$JDOC*(1-r$JR/(r$JCtot+r$JR))*B/m )
+  #
+  # Efficiencies:
+  #
+  effHTL = prodHTL/prodNew # CHECK: CORRECT uNitS?
+  effBact = prodBact / prodCnet
+  #
+  # Losses
+  #
+  lossPassive = conversion * sum( r$Jloss_passive/m*B ) 
+  lossPhotouptake = conversion * sum( r$JCloss_photouptake/m*B )
+  lossFeeding = conversion * sum( r$JCloss_feeding/m*B )
+  lossFeedingHTL = sum( (1-p$epsilonF)*prodHTL )
+  lossTotalC = lossPassive+lossPhotouptake+lossFeeding+lossFeedingHTL
+  lossTotalN = (lossPassive+lossFeeding+lossFeedingHTL)/p$rhoCN
+  #
+  # Biomasses:
+  #
+  conversion = p$M/10*100*1e-6  # Convert to gC/m2
+  d = 2*p$r
+  Bpico = conversion * sum( B[d < 2] )
+  Bnano = conversion * sum( B[d>=2 & d <20])
+  Bmicro = conversion * sum( B[d>=20])
+  #
+  # Chl-a (gC/m2): Use rough conversion from Edwards et al (2015) that Chl-a propto alpha
+  #
+  Chl_per_l = sum( r$JLreal/(p$epsilonL*L)/m*B )
+  Chl_per_m2 = conversion * Chl_per_l
+  
+  return(list(
+    prodNew = prodNew,
+    prodCgross = prodCgross,
+    prodCnet = prodCnet,
+    prodHTL = prodHTL,
+    prodBact = prodBact,
+    resp = resp,
+    effHTL = effHTL,
+    effBact = effBact,
+    lossPassive = lossPassive,
+    lossPhotouptake = lossPhotouptake,
+    lossFeeding = lossFeeding,
+    lossFeedingHTL = lossFeedingHTL,
+    lossTotalC = lossTotalC,
+    lossTotalN = lossTotalN,
+    Bpico=Bpico, Bnano=Bnano, Bmicro=Bmicro,
+    Chl_per_m2 = Chl_per_m2,
+    Chl_per_l = Chl_per_l
+  ))
 }
 
 plotTimeline = function(sim, time=max(sim$t)) {
@@ -529,7 +528,7 @@ plotSpectrum <- function(sim, t=max(sim$t), bPlot=TRUE) {
   text(x=m[1], y=2.25, labels=TeX(sprintf("DIN: %2.2f $\\mu$mol N/l", N/14)) , cex=cex, pos=4, col=grey(0.5))
   text(x=m[1], y=1.5, labels=TeX(sprintf("DOC: %2.2f $mmol C/l", 1000*DOC/12)), cex=cex, pos=4, col=grey(0.5))
   
-  func = calcFunctionsChemostat(sim$p, sim$rates, sim$N, sim$B)
+  func = calcFunctionsChemostat(sim$p, sim$rates, sim$p$L, sim$N, sim$B)
   text(x=10, 4.5, 
        labels=TeX(sprintf("Chl-a: %2.2f $mgC/m$^2$", 1000*func$Chl_per_m2)),
        cex=cex, pos=2, col=grey(0.5))

@@ -7,6 +7,8 @@ parameters <- function(n=25) {
   
   p$n = as.integer(n); # No of groups
   p$m = 10^seq(-8.5,1,length.out = p$n)  # Mass bins in mugC
+  rho = 0.57*1e6*1e-12 # mug/cm3 (Andersen et al 2016; rho = m/V = 0.3*d^3/(4/3*pi*(d/2)^3) )
+  p$r = (3/(4*pi)*p$m/rho)^(1/3)
   
   p$rhoCN = 5.68 # C:N mass ratio
   p$epsilonL = 0.9 # Light uptake efficiency
@@ -16,13 +18,13 @@ parameters <- function(n=25) {
   # Cell wall fraction of mass:
   #
   p$c = 0.0015 # the constant is increased a bit to limit the lower cell size
-  nu = p$c * p$m^(-1/3)  
+  p$nu = p$c * p$m^(-1/3)  
   #
   # Clearance rates:
   #
   #factor = (1e-6)^(1/3)/1.5 
-  p$AN = 0.00012 #0.00004 # 0.000162 # Mathilde.  (2.5e-3 l/d/cm) * (1e6 mug/g)^(-1/3) / 1.5 (g/cm); Andersen et al 2015
-  p$cN = 0.1
+  p$aN = 0.682 #  L/d/mugC/mum^2.   0.00012 #0.00004 # 0.000162 # Mathilde.  (2.5e-3 l/d/cm) * (1e6 mug/g)^(-1/3) / 1.5 (g/cm); Andersen et al 2015
+  p$rNstar = 2 # mum
   #p$AL = 0.0019 # if using Al propto m^(2/3) for non-diatoms
   #p$AL = 0.0012 # if using my shading formula for non-diatoms
   #p$cL = 0.021 # if using my shading formula for non-diatoms
@@ -33,7 +35,9 @@ parameters <- function(n=25) {
   #
   # Calc rates as a function of m:
   #
-  p$ANm = p$AN*p$m^(1/3) / (1 + p$cN*p$m^(-1/3))
+  #p$ANm = p$AN*p$m^(1/3) / (1 + p$cN*p$m^(-1/3))
+  #p$ANm = 0.00012*p$m^(1/3) / (1 + 0.1*p$m^(-1/3))
+  p$aNm = p$aN*p$r^(-2) / (1 + (p$r/p$rNstar)^(-2))
   #p$ALm = p$AL*p$m^(2/3)*(1-nu)
   #p$ALm = p$cL*p$m * p$AL*p$m^(2/3) / ( p$cL*p$m + p$AL*p$m^(2/3) )  # shading formula
   p$ALm = p$AL*p$m^(2/3) * (1-exp(- p$cL*p$m^(1/3) ))  # shading formula
@@ -55,7 +59,7 @@ parameters <- function(n=25) {
   # Metabolism:
   #
   p$alphaJ = 1.5 # per day
-  p$Jmax = p$alphaJ * p$m * (1-nu) # mugC/day
+  p$Jmax = p$alphaJ * p$m * (1-p$nu) # mugC/day
   p$cR = 0.1
   p$Jresp = p$cR*p$alphaJ*p$m
   #
@@ -139,7 +143,8 @@ calcRates = function(Light,N,DOC,B,p) {
     #
     # Temperature corrections:
     #
-    ANmT = ANm*fTemp(1.5,p$T)
+    #ANmT = ANm*fTemp(1.5,p$T)
+    ANmT = aNm*m*fTemp(1.5,p$T)
     f2 = fTemp(2,p$T)
     JmaxT = Jmax*f2
     JR = Jresp*f2
